@@ -400,7 +400,7 @@
     <string name="global_actions_airplane_mode_off_status">Airplane mode is OFF</string>
 
     <!-- label in options dialog to toggle statusbar visibility -->
-    <string name="global_actions_toggle_statusbar">Hide/show statusbar</string>
+    <string name="global_actions_toggle_statusbar">Toggle Statusbar</string>
 
     <!-- Text to use when the number in a notification info is too large
          (greater than status_bar_notification_info_maxnum, defined in
