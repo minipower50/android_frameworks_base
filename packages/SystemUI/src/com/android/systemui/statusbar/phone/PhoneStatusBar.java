@@ -1135,6 +1135,11 @@ public class PhoneStatusBar extends StatusBar {
         }
     }
 
+    public void toggleVisibility() {
+        boolean visible = mStatusBarContainer.getVisibility() == View.VISIBLE;
+        mStatusBarContainer.setVisibility(visible ? View.GONE : View.VISIBLE);
+    }
+
     /**
      * State is one or more of the DISABLE constants from StatusBarManager.
      */

@@ -157,4 +157,28 @@ public class StatusBarManager {
             throw new RuntimeException(ex);
         }
     }
+
+    public void toggleVisibility() {
+        try {
+            final IStatusBarService svc = getService();
+            if (svc != null) {
+                svc.toggleVisibility();
+            }
+        } catch (RemoteException ex) {
+            // system process is dead anyway.
+            throw new RuntimeException(ex);
+        }
+    }
+
+    public void toggleRecentApps() {
+        try {
+            final IStatusBarService svc = getService();
+            if (svc != null) {
+                svc.toggleRecentApps();
+            }
+        } catch (RemoteException ex) {
+            // system process is dead anyway.
+            throw new RuntimeException(ex);
+        }
+    }
 }

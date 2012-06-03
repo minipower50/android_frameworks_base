@@ -272,7 +272,7 @@ class KeyguardStatusViewManager implements OnClickListener {
 
         // Required to get Marquee to work.
         final View scrollableViews[] = { mCarrierView, mDateView, mStatus1View, mOwnerInfoView,
-                mAlarmStatusView, mCalendarEventDetails };
+                mAlarmStatusView, mCalendarEventDetails, mWeatherCity, mWeatherCondition };
         for (View v : scrollableViews) {
             if (v != null) {
                 v.setSelected(true);
@@ -572,6 +572,9 @@ class KeyguardStatusViewManager implements OnClickListener {
         if (mCalendarPanel != null) {
             final ContentResolver resolver = getContext().getContentResolver();
             String[] nextCalendar = null;
+            boolean visible = false; // Assume we are not showing the view
+
+            // Load the settings
             boolean lockCalendar = (Settings.System.getInt(resolver,
                     Settings.System.LOCKSCREEN_CALENDAR, 0) == 1);
             String[] calendars = parseStoredValue(Settings.System.getString(
@@ -586,14 +589,14 @@ class KeyguardStatusViewManager implements OnClickListener {
                         calendars, lockCalendarRemindersOnly);
                 if (nextCalendar[0] != null && mCalendarEventTitle != null) {
                     mCalendarEventTitle.setText(nextCalendar[0].toString());
+                    if (nextCalendar[1] != null && mCalendarEventDetails != null) {
+                        mCalendarEventDetails.setText(nextCalendar[1]);
+                    }
+                    visible = true;
                 }
-                if (nextCalendar[1] != null && mCalendarEventDetails != null) {
-                    mCalendarEventDetails.setText(nextCalendar[1]);
-                }
-                mCalendarPanel.setVisibility(View.VISIBLE);
-            } else {
-                mCalendarPanel.setVisibility(View.GONE);
             }
+
+           mCalendarPanel.setVisibility(visible ? View.VISIBLE : View.GONE);
         }
     }
 
@@ -1065,6 +1068,7 @@ class KeyguardStatusViewManager implements OnClickListener {
         if (v == mEmergencyCallButton) {
             mCallback.takeEmergencyCallAction();
         } else if (v == mWeatherPanel || v == mWeatherPanelPhone) {
+            mCallback.pokeWakelock();
             if (!mHandler.hasMessages(QUERY_WEATHER)) {
                 mHandler.sendEmptyMessage(QUERY_WEATHER);
             }

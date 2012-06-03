@@ -40,6 +40,7 @@ import android.security.KeyStore;
 import android.telephony.TelephonyManager;
 import android.text.TextUtils;
 import android.text.format.DateFormat;
+import android.text.format.Time;
 import android.util.Log;
 import android.view.View;
 import android.widget.Button;
@@ -1027,13 +1028,21 @@ public class LockPatternUtils {
             where.append(") ");
         }
 
+        // Projection array
         String[] projection = new String[] {
             CalendarContract.Events.TITLE,
-            CalendarContract.Events.DTSTART,
+            CalendarContract.Instances.BEGIN,
             CalendarContract.Events.DESCRIPTION,
             CalendarContract.Events.EVENT_LOCATION,
             CalendarContract.Events.ALL_DAY
         };
+
+        // The indices for the projection array
+        int TITLE_INDEX = 0;
+        int BEGIN_TIME_INDEX = 1;
+        int DESCRIPTION_INDEX = 2;
+        int LOCATION_INDEX = 3;
+        int ALL_DAY_INDEX = 4;
 
         Uri uri = Uri.withAppendedPath(CalendarContract.Instances.CONTENT_URI,
                 String.format("%d/%d", now, later));
@@ -1041,29 +1050,28 @@ public class LockPatternUtils {
         Cursor cursor = null;
 
         try {
-            cursor = mContentResolver.query(uri,
-                    projection, where.toString(), null,
-                    CalendarContract.Events.DTSTART + " ASC");
+            cursor = mContentResolver.query(uri, projection,
+                    where.toString(), null, "begin ASC");
 
             if (cursor != null && cursor.moveToFirst()) {
 
-                String title = cursor.getString(0);
-                long begin = cursor.getLong(1);
-                String description = cursor.getString(2);
-                String location = cursor.getString(3);
-                boolean allDay = cursor.getInt(4) != 0;
+                String title = cursor.getString(TITLE_INDEX);
+                long begin = cursor.getLong(BEGIN_TIME_INDEX);
+                String description = cursor.getString(DESCRIPTION_INDEX);
+                String location = cursor.getString(LOCATION_INDEX);
+                boolean allDay = cursor.getInt(ALL_DAY_INDEX) != 0;
 
                 // Check the next event in the case of all day event. As UTC is used for all day
                 // events, the next event may be the one that actually starts sooner
                 if (allDay && !cursor.isLast()) {
                     cursor.moveToNext();
-                    long nextBegin = cursor.getLong(1);
+                    long nextBegin = cursor.getLong(BEGIN_TIME_INDEX);
                     if (nextBegin < begin + TimeZone.getDefault().getOffset(begin)) {
-                        title = cursor.getString(0);
+                        title = cursor.getString(TITLE_INDEX);
                         begin = nextBegin;
-                        description = cursor.getString(2);
-                        location = cursor.getString(3);
-                        allDay = cursor.getInt(4) != 0;
+                        description = cursor.getString(DESCRIPTION_INDEX);
+                        location = cursor.getString(LOCATION_INDEX);
+                        allDay = cursor.getInt(ALL_DAY_INDEX) != 0;
                     }
                 }
 
@@ -1080,7 +1088,7 @@ public class LockPatternUtils {
                             mContext.getString(R.string.abbrev_wday_month_day_no_year));
                     // Calendar stores all-day events in UTC -- setting the time zone ensures
                     // the correct date is shown.
-                    sdf.setTimeZone(TimeZone.getTimeZone("UTC"));
+                    sdf.setTimeZone(TimeZone.getTimeZone(Time.TIMEZONE_UTC));
                     sb.append(sdf.format(start));
                 } else {
                     sb.append(DateFormat.format("E", start));
@@ -1142,9 +1150,7 @@ public class LockPatternUtils {
                 nextCalendarAlarm[1] = sb.toString();
             }
         } catch (Exception e) {
-            if (cursor != null) {
-                cursor.close();
-            }
+            // Do nothing
         } finally {
             if (cursor != null) {
                 cursor.close();

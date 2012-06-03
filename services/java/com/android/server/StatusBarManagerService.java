@@ -139,6 +139,15 @@ public class StatusBarManagerService extends IStatusBarService.Stub
         }
     }
 
+    public void toggleVisibility() {
+        if (mBar != null) {
+            try {
+                mBar.toggleVisibility();
+            } catch (RemoteException ex) {
+            }
+        }
+    }
+
     public void disable(int what, IBinder token, String pkg) {
         enforceStatusBar();
 

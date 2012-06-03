@@ -103,7 +103,6 @@ class GlobalActions implements DialogInterface.OnDismissListener, DialogInterfac
     private boolean mAirplaneModeNeeded;
 
     private StatusBarManager mStatusBarManager;
-    private boolean mStatusBarDisabled = false;
 
     private Profile mChosenProfile;
 
@@ -299,8 +298,7 @@ class GlobalActions implements DialogInterface.OnDismissListener, DialogInterfac
                 new SinglePressAction(com.android.internal.R.drawable.ic_lock_hide_statusbar,
                         R.string.global_actions_toggle_statusbar) {
                     public void onPress() {
-                        mStatusBarManager.disable(mStatusBarDisabled ? 0x00000000 : 0x10000000);
-                        mStatusBarDisabled = !mStatusBarDisabled;
+                        mStatusBarManager.toggleVisibility();
                     }
 
                     public boolean showDuringKeyguard() {
@@ -929,7 +927,6 @@ class GlobalActions implements DialogInterface.OnDismissListener, DialogInterfac
         private final StatusBarManager mStatusBarManager;
         private final Handler mHandler;
         private Context mContext;
-        private boolean mStatusBarDisabled = false;
 
         CondensedModeActionTwo(StatusBarManager statusBarManager, Handler handler, Context context) {
             mStatusBarManager = statusBarManager;
@@ -982,8 +979,7 @@ class GlobalActions implements DialogInterface.OnDismissListener, DialogInterfac
                     break;
                 case 1:
                     if (v.getContext().getResources().getConfiguration().smallestScreenWidthDp >= 600) {
-                        mStatusBarManager.disable(mStatusBarDisabled ? 0x00000000 : 0x10000000);
-                        mStatusBarDisabled = !mStatusBarDisabled;
+                        mStatusBarManager.toggleVisibility();
                     } else {
                         changeAirplaneModeSystemSetting(v.getContext());
                     }
