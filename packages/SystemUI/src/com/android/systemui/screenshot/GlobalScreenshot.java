@@ -265,7 +265,7 @@ class GlobalScreenshot {
     private float mBgPaddingScale;
 
     private CameraSound mCameraSound;
-
+    private boolean mScreenshotSound;
 
     /**
      * @param context everything needs a context :(
@@ -318,6 +318,8 @@ class GlobalScreenshot {
 
         // Setup the Camera shutter sound
         mCameraSound = new CameraSound();
+        mScreenshotSound = Settings.System.getInt(context.getContentResolver(),
+                Settings.System.SCREENSHOT_SOUND, 1) == 1;
     }
 
     /**
@@ -433,7 +435,7 @@ class GlobalScreenshot {
             @Override
             public void run() {
                 // Play the shutter sound to notify that we've taken a screenshot
-                mCameraSound.playSound(CameraSound.SHUTTER_CLICK);
+                if (mScreenshotSound) mCameraSound.playSound(CameraSound.SHUTTER_CLICK);
 
                 mScreenshotView.setLayerType(View.LAYER_TYPE_HARDWARE, null);
                 mScreenshotView.buildLayer();

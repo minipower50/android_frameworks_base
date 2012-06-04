@@ -2261,6 +2261,12 @@ public final class Settings {
         public static final String EXPANDED_FLASH_MODE = "expanded_flash_mode";
 
         /**
+        * Screenshot tone.
+        * @hide
+        */
+        public static final String SCREENSHOT_SOUND = "screenshot_sound";
+
+        /**
         * Volume change beep.
         * @hide
         */
