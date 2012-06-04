@@ -2267,6 +2267,30 @@ public final class Settings {
         public static final String VOLUME_CHANGE_BEEP = "volume_change_beep";
 
         /**
+        * Right edge swipe.
+        * @hide
+        */
+        public static final String EDGE_SWIPE_RIGHT = "edge_swipe_right";
+
+        /**
+        * Left edge swipe.
+        * @hide
+        */
+        public static final String EDGE_SWIPE_LEFT = "edge_swipe_left";
+
+        /**
+        * Top edge swipe.
+        * @hide
+        */
+        public static final String EDGE_SWIPE_TOP = "edge_swipe_top";
+
+        /**
+        * Bottom edge swipe.
+        * @hide
+        */
+        public static final String EDGE_SWIPE_BOTTOM = "edge_swipe_bottom";
+
+        /**
         * AutoHide CombinedBar on tablets.
         * @hide
         */

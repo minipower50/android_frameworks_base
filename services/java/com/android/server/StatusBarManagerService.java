@@ -118,7 +118,7 @@ public class StatusBarManagerService extends IStatusBarService.Stub
     // From IStatusBarService
     // ================================================================================
     public void expand() {
-        enforceExpandStatusBar();
+        //enforceExpandStatusBar();
 
         if (mBar != null) {
             try {

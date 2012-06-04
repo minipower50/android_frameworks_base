@@ -69,6 +69,7 @@ import android.view.MotionEvent;
 import android.view.SoundEffectConstants;
 import android.view.VelocityTracker;
 import android.view.View;
+import android.view.View.OnLongClickListener;
 import android.view.ViewConfiguration;
 import android.view.ViewGroup;
 import android.view.WindowManager;
@@ -537,6 +538,13 @@ public class TabletStatusBar extends StatusBar implements
         final TabletStatusBarView sb = (TabletStatusBarView)View.inflate(
                 context, mRightButtons ? R.layout.status_bar_flipped : R.layout.status_bar, null);
         mStatusBarView = sb;
+        mStatusBarView.setOnLongClickListener(new OnLongClickListener() {
+            @Override
+            public boolean onLongClick(View v) {
+                toggleVisibility();
+                return true;
+            }
+        });
 
         sb.setHandler(mHandler);
 
