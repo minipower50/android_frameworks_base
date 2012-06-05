@@ -1974,8 +1974,8 @@ public class PhoneWindow extends Window implements MenuBuilder.Callback {
             }
         }
 
-        private final int TOUCH_DISTANCE = 56;
-        private final int SWIPE_DISTANCE = 100;
+        private final int TOUCH_DISTANCE = 35;
+        private final int SWIPE_DISTANCE = 40;
         private boolean mSwipeRight = false;
         private boolean mSwipeLeft = false;
         private boolean mSwipeBottom = false;
@@ -1991,18 +1991,17 @@ public class PhoneWindow extends Window implements MenuBuilder.Callback {
             int action = event.getAction();
 
             if (mGestureBottom + mGestureLeft + mGestureRight + mGestureTop > 0) {
-                final DisplayMetrics metrics = getContext().getResources().getDisplayMetrics();
                 int x = (int)event.getX();
                 int y = (int)event.getY();
                 boolean handled = false;
                 if (action == MotionEvent.ACTION_DOWN) {
-                    if (mGestureBottom > 0 && y > metrics.heightPixels - TOUCH_DISTANCE) {
+                    if (mGestureBottom > 0 && y > getHeight() - TOUCH_DISTANCE) {
                         mSwipeBottom = true;
                         mSwipeStartBottom = y;
                     } else if (mGestureTop > 0 && y < TOUCH_DISTANCE) {
                         mSwipeTop = true;
                         mSwipeStartTop = y;
-                    } else if (mGestureRight > 0 && x > metrics.widthPixels - TOUCH_DISTANCE) {
+                    } else if (mGestureRight > 0 && x > getWidth() - TOUCH_DISTANCE) {
                         mSwipeRight = true;
                         mSwipeStartRight = x;
                     } else if (mGestureLeft > 0 && x < TOUCH_DISTANCE) {
@@ -2028,6 +2027,10 @@ public class PhoneWindow extends Window implements MenuBuilder.Callback {
                     mSwipeBottom = false;
                     mSwipeTop = false;
                     if (handled) {
+                        return true;
+                    }
+                } else if (action == MotionEvent.ACTION_MOVE) {
+                    if (mSwipeRight || mSwipeLeft || mSwipeTop || mSwipeBottom) {
                         return true;
                     }
                 }
