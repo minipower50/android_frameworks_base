@@ -2297,6 +2297,12 @@ public final class Settings {
         public static final String EDGE_SWIPE_BOTTOM = "edge_swipe_bottom";
 
         /**
+        * Edge swipe capture move event.
+        * @hide
+        */
+        public static final String EDGE_SWIPE_MOVE = "edge_swipe_move";
+
+        /**
         * AutoHide CombinedBar on tablets.
         * @hide
         */

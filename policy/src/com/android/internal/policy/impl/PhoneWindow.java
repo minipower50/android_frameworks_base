@@ -196,6 +196,7 @@ public class PhoneWindow extends Window implements MenuBuilder.Callback {
     private int mGestureTop;
     private int mGestureLeft;
     private int mGestureRight;
+    private boolean mGestureMove;
 
     static class WindowManagerHolder {
         static final IWindowManager sWindowManager = IWindowManager.Stub.asInterface(
@@ -2029,7 +2030,7 @@ public class PhoneWindow extends Window implements MenuBuilder.Callback {
                     if (handled) {
                         return true;
                     }
-                } else if (action == MotionEvent.ACTION_MOVE) {
+                } else if (action == MotionEvent.ACTION_MOVE && mGestureMove) {
                     if (mSwipeRight || mSwipeLeft || mSwipeTop || mSwipeBottom) {
                         return true;
                     }
@@ -3659,6 +3660,8 @@ public class PhoneWindow extends Window implements MenuBuilder.Callback {
                 Settings.System.EDGE_SWIPE_RIGHT, 0);
         mGestureBottom = Settings.System.getInt(getContext().getContentResolver(),
                 Settings.System.EDGE_SWIPE_BOTTOM, 0);
+        mGestureMove = Settings.System.getInt(getContext().getContentResolver(),
+                Settings.System.EDGE_SWIPE_MOVE, 0) == 1;
     }
 
     private class SettingsObserver extends ContentObserver {
@@ -3673,6 +3676,8 @@ public class PhoneWindow extends Window implements MenuBuilder.Callback {
                 Settings.System.EDGE_SWIPE_RIGHT), false, this);
             getContext().getContentResolver().registerContentObserver(Settings.System.getUriFor(
                 Settings.System.EDGE_SWIPE_LEFT), false, this);
+            getContext().getContentResolver().registerContentObserver(Settings.System.getUriFor(
+                Settings.System.EDGE_SWIPE_MOVE), false, this);
         }
 
         @Override
