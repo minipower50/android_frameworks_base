@@ -239,7 +239,7 @@ class KeyguardStatusViewManager implements OnClickListener {
 
         // Calendar panel
         mCalendarPanel = (LinearLayout) findViewById(R.id.calendar_panel);
-        mCalendarPanel.setOnClickListener(this);
+        if (mCalendarPanel != null) mCalendarPanel.setOnClickListener(this);
         mCalendarEventTitle = (TextView) findViewById(R.id.calendar_event_title);
         mCalendarEventDetails = (TextView) findViewById(R.id.calendar_event_details);
 
@@ -303,7 +303,7 @@ class KeyguardStatusViewManager implements OnClickListener {
         LinearLayout portStatus = (LinearLayout) findViewById(R.id.screen_status_port);
         if (portStatus != null) portStatus.setGravity(panelGravity);
         if (tabletUI) {
-            mCalendarPanel.setGravity(panelGravity);
+            if (mCalendarPanel != null) mCalendarPanel.setGravity(panelGravity);
         }
     }
 
