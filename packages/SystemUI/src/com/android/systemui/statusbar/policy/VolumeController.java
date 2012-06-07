@@ -77,7 +77,6 @@ public class VolumeController implements ToggleSlider.Listener {
             }
             int flags = Settings.System.getInt(mContext.getContentResolver(),
                     Settings.System.VOLUME_CHANGE_BEEP, 1) == 1 ? AudioManager.FLAG_PLAY_SOUND : 0;
-            if (mAudioManager.isMusicActive()) flags = 0;
             mAudioManager.setStreamVolume(STREAM, level, flags);
         } else {
             mAudioManager.setStreamVolume(STREAM, level, 0);

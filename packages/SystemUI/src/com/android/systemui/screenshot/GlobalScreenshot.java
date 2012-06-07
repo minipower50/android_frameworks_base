@@ -29,6 +29,7 @@ import android.content.ContentValues;
 import android.content.Context;
 import android.content.Intent;
 import android.content.res.Resources;
+import android.database.ContentObserver;
 import android.graphics.Bitmap;
 import android.graphics.Canvas;
 import android.graphics.Matrix;
@@ -38,6 +39,7 @@ import android.hardware.CameraSound;
 import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Environment;
+import android.os.Handler;
 import android.os.Process;
 import android.provider.MediaStore;
 import android.provider.Settings;
@@ -266,6 +268,7 @@ class GlobalScreenshot {
 
     private CameraSound mCameraSound;
     private boolean mScreenshotSound;
+    private SettingsObserver mSettingsObserver;
 
     /**
      * @param context everything needs a context :(
@@ -318,8 +321,9 @@ class GlobalScreenshot {
 
         // Setup the Camera shutter sound
         mCameraSound = new CameraSound();
-        mScreenshotSound = Settings.System.getInt(context.getContentResolver(),
-                Settings.System.SCREENSHOT_SOUND, 1) == 1;
+
+        mSettingsObserver = new SettingsObserver();
+        updateSoundSetting();
     }
 
     /**
@@ -401,7 +405,6 @@ class GlobalScreenshot {
         startAnimation(finisher, mDisplayMetrics.widthPixels, mDisplayMetrics.heightPixels,
                 statusBarVisible, navBarVisible);
     }
-
 
     /**
      * Starts the animation after taking the screenshot
@@ -574,6 +577,25 @@ class GlobalScreenshot {
             });
         }
         return anim;
+    }
+
+    private void updateSoundSetting() {
+        mScreenshotSound = Settings.System.getInt(mContext.getContentResolver(),
+                Settings.System.SCREENSHOT_SOUND, 1) == 1;
+    }
+
+    private class SettingsObserver extends ContentObserver {
+        SettingsObserver() {
+            super(new Handler());
+            mContext.getContentResolver().registerContentObserver(Settings.System.getUriFor(
+                Settings.System.SCREENSHOT_SOUND), false, this);
+        }
+
+        @Override
+        public void onChange(boolean selfChange) {
+            super.onChange(selfChange);
+            updateSoundSetting();
+        }
     }
 
     static void notifyScreenshotError(Context context, NotificationManager nManager) {
