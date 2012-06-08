@@ -197,6 +197,8 @@ public class PhoneWindow extends Window implements MenuBuilder.Callback {
     private int mGestureLeft;
     private int mGestureRight;
     private boolean mGestureMove;
+    private int mGestureStart;
+    private int mGestureDistance;
 
     static class WindowManagerHolder {
         static final IWindowManager sWindowManager = IWindowManager.Stub.asInterface(
@@ -1975,8 +1977,6 @@ public class PhoneWindow extends Window implements MenuBuilder.Callback {
             }
         }
 
-        private final int TOUCH_DISTANCE = 35;
-        private final int SWIPE_DISTANCE = 40;
         private boolean mSwipeRight = false;
         private boolean mSwipeLeft = false;
         private boolean mSwipeBottom = false;
@@ -1996,30 +1996,30 @@ public class PhoneWindow extends Window implements MenuBuilder.Callback {
                 int y = (int)event.getY();
                 boolean handled = false;
                 if (action == MotionEvent.ACTION_DOWN) {
-                    if (mGestureBottom > 0 && y > getHeight() - TOUCH_DISTANCE) {
+                    if (mGestureBottom > 0 && y > getHeight() - mGestureStart) {
                         mSwipeBottom = true;
                         mSwipeStartBottom = y;
-                    } else if (mGestureTop > 0 && y < TOUCH_DISTANCE) {
+                    } else if (mGestureTop > 0 && y < mGestureStart) {
                         mSwipeTop = true;
                         mSwipeStartTop = y;
-                    } else if (mGestureRight > 0 && x > getWidth() - TOUCH_DISTANCE) {
+                    } else if (mGestureRight > 0 && x > getWidth() - mGestureStart) {
                         mSwipeRight = true;
                         mSwipeStartRight = x;
-                    } else if (mGestureLeft > 0 && x < TOUCH_DISTANCE) {
+                    } else if (mGestureLeft > 0 && x < mGestureStart) {
                         mSwipeLeft = true;
                         mSwipeStartLeft = x;
                     }
                 } else if (action == MotionEvent.ACTION_UP) {
-                    if (mSwipeBottom && mSwipeStartBottom - y > SWIPE_DISTANCE) {
+                    if (mSwipeBottom && mSwipeStartBottom - y > mGestureDistance) {
                         performGesture(mGestureBottom);
                         handled = true;
-                    } else if (mSwipeTop && y > SWIPE_DISTANCE + mSwipeStartTop) {
+                    } else if (mSwipeTop && y > mGestureDistance + mSwipeStartTop) {
                         performGesture(mGestureTop);
                         handled = true;
-                    } else if (mSwipeRight && mSwipeStartRight - x > SWIPE_DISTANCE) {
+                    } else if (mSwipeRight && mSwipeStartRight - x > mGestureDistance) {
                         performGesture(mGestureRight);
                         handled = true;
-                    } else if (mSwipeLeft && x > SWIPE_DISTANCE + mSwipeStartLeft) {
+                    } else if (mSwipeLeft && x > mGestureDistance + mSwipeStartLeft) {
                         performGesture(mGestureLeft);
                         handled = true;
                     }
@@ -3662,6 +3662,10 @@ public class PhoneWindow extends Window implements MenuBuilder.Callback {
                 Settings.System.EDGE_SWIPE_BOTTOM, 0);
         mGestureMove = Settings.System.getInt(getContext().getContentResolver(),
                 Settings.System.EDGE_SWIPE_MOVE, 0) == 1;
+        mGestureStart = Settings.System.getInt(getContext().getContentResolver(),
+                Settings.System.EDGE_SWIPE_START, 35);
+        mGestureDistance = Settings.System.getInt(getContext().getContentResolver(),
+                Settings.System.EDGE_SWIPE_DISTANCE, 40);
     }
 
     private class SettingsObserver extends ContentObserver {
@@ -3678,6 +3682,10 @@ public class PhoneWindow extends Window implements MenuBuilder.Callback {
                 Settings.System.EDGE_SWIPE_LEFT), false, this);
             getContext().getContentResolver().registerContentObserver(Settings.System.getUriFor(
                 Settings.System.EDGE_SWIPE_MOVE), false, this);
+            getContext().getContentResolver().registerContentObserver(Settings.System.getUriFor(
+                Settings.System.EDGE_SWIPE_START), false, this);
+            getContext().getContentResolver().registerContentObserver(Settings.System.getUriFor(
+                Settings.System.EDGE_SWIPE_DISTANCE), false, this);
         }
 
         @Override

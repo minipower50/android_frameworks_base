@@ -2303,6 +2303,18 @@ public final class Settings {
         public static final String EDGE_SWIPE_MOVE = "edge_swipe_move";
 
         /**
+        * Edge swipe start event.
+        * @hide
+        */
+        public static final String EDGE_SWIPE_START = "edge_swipe_start";
+
+        /**
+        * Edge swipe distance.
+        * @hide
+        */
+        public static final String EDGE_SWIPE_DISTANCE = "edge_swipe_distance";
+
+        /**
         * AutoHide CombinedBar on tablets.
         * @hide
         */
