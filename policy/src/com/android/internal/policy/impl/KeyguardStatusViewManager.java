@@ -93,9 +93,9 @@ class KeyguardStatusViewManager implements OnClickListener {
     private TextView mOwnerInfoView;
     private TextView mAlarmStatusView;
     private TransportControlView mTransportView;
-    private LinearLayout mWeatherPanel;
-    private RelativeLayout mWeatherPanelPhone;
-    private TextView mWeatherCity, mWeatherCondition, mWeatherLowHigh, mWeatherTemp, mUpdateTime;
+    private LinearLayout mWeatherPanel, mWeatherTempsPanel;
+    private RelativeLayout mWeatherPanelPhone, mWeatherTempsPanelPhone;
+    private TextView mWeatherCity, mWeatherCondition, mWeatherLowHigh, mWeatherTemp, mWeatherUpdateTime;
     private ImageView mWeatherImage;
     private LinearLayout mCalendarPanel;
     private TextView mCalendarEventTitle, mCalendarEventDetails;
@@ -223,8 +223,12 @@ class KeyguardStatusViewManager implements OnClickListener {
         mWeatherImage = (ImageView) findViewById(R.id.weather_image);
         mWeatherTemp = (TextView) findViewById(R.id.weather_temp);
         mWeatherLowHigh = (TextView) findViewById(R.id.weather_low_high);
-        mUpdateTime = (TextView) findViewById(R.id.update_time);
-
+        mWeatherUpdateTime = (TextView) findViewById(R.id.update_time);
+        if (tabletUI) {
+            mWeatherTempsPanel = (LinearLayout) findViewById(R.id.weather_temps_panel);
+        } else {
+            mWeatherTempsPanelPhone = (RelativeLayout) findViewById(R.id.weather_temps_panel);
+        }
         // Hide Weather panel view until we know we need to show it.
         if (mWeatherPanel != null) {
             mWeatherPanel.setVisibility(View.GONE);
@@ -407,6 +411,7 @@ class KeyguardStatusViewManager implements OnClickListener {
     private void refreshWeather() {
         final ContentResolver resolver = getContext().getContentResolver();
         boolean showWeather = Settings.System.getInt(resolver,Settings.System.LOCKSCREEN_WEATHER, 0) == 1;
+
         if (showWeather) {
             final long interval = Settings.System.getLong(resolver,
                     Settings.System.WEATHER_UPDATE_INTERVAL, 60); // Default to hourly
@@ -445,27 +450,6 @@ class KeyguardStatusViewManager implements OnClickListener {
                 Settings.System.WEATHER_INVERT_LOWHIGH, 0) == 1;
 
         if (mWeatherPanel != null || mWeatherPanelPhone != null) {
-            if (mWeatherCity != null) {
-                mWeatherCity.setText(w.city);
-                mWeatherCity.setVisibility(showLocation ? View.VISIBLE : View.GONE);
-            }
-            if (mWeatherCondition != null) {
-                mWeatherCondition.setText(w.condition);
-            }
-            if (mUpdateTime != null) {
-                Date lastTime = new Date(mWeatherInfo.last_sync);
-                String date = DateFormat.getDateFormat(getContext()).format(lastTime);
-                String time = DateFormat.getTimeFormat(getContext()).format(lastTime);
-                mUpdateTime.setText(date + " " + time);
-                mUpdateTime.setVisibility(showTimestamp ? View.VISIBLE : View.GONE);
-            }
-            if (mWeatherTemp != null) {
-                mWeatherTemp.setText(w.temp);
-            }
-            if (mWeatherLowHigh != null) {
-                mWeatherLowHigh.setText(invertLowhigh ? w.high + " | " + w.low : w.low + " | " + w.high);
-            }
-
             if (mWeatherImage != null) {
                 String conditionCode = w.condition_code;
                 String condition_filename = "weather_" + conditionCode;
@@ -481,6 +465,31 @@ class KeyguardStatusViewManager implements OnClickListener {
                     mWeatherImage.setImageResource(R.drawable.weather_na);
                 }
             }
+            if (mWeatherCity != null) {
+                mWeatherCity.setText(w.city);
+                mWeatherCity.setVisibility(showLocation ? View.VISIBLE : View.GONE);
+            }
+            if (mWeatherCondition != null) {
+                mWeatherCondition.setText(w.condition);
+                mWeatherCondition.setVisibility(View.VISIBLE);
+            }
+            if (mWeatherUpdateTime != null) {
+                Date lastTime = new Date(mWeatherInfo.last_sync);
+                String date = DateFormat.getDateFormat(getContext()).format(lastTime);
+                String time = DateFormat.getTimeFormat(getContext()).format(lastTime);
+                mWeatherUpdateTime.setText(date + " " + time);
+                mWeatherUpdateTime.setVisibility(showTimestamp ? View.VISIBLE : View.GONE);
+            }
+            if (mWeatherTempsPanel != null && mWeatherTemp != null && mWeatherLowHigh != null) {
+                mWeatherTemp.setText(w.temp);
+                mWeatherLowHigh.setText(invertLowhigh ? w.high + " | " + w.low : w.low + " | " + w.high);
+                mWeatherTempsPanel.setVisibility(View.VISIBLE);
+            }
+            if (mWeatherTempsPanelPhone != null && mWeatherTemp != null && mWeatherLowHigh != null) {
+                mWeatherTemp.setText(w.temp);
+                mWeatherLowHigh.setText(invertLowhigh ? w.high + " | " + w.low : w.low + " | " + w.high);
+                mWeatherTempsPanelPhone.setVisibility(View.VISIBLE);
+            }
 
             // Show the Weather panel view
             if (mWeatherPanel != null) mWeatherPanel.setVisibility(View.VISIBLE);
@@ -493,29 +502,25 @@ class KeyguardStatusViewManager implements OnClickListener {
      * 'Tap to reload' message
      */
     private void setNoWeatherData() {
-        final ContentResolver resolver = getContext().getContentResolver();
-        boolean useMetric = Settings.System.getInt(resolver,
-                Settings.System.WEATHER_USE_METRIC, 1) == 1;
-
         if (mWeatherPanel != null || mWeatherPanelPhone != null) {
+            if (mWeatherImage != null) {
+                mWeatherImage.setImageResource(R.drawable.weather_na);
+            }
             if (mWeatherCity != null) {
-                mWeatherCity.setText("CM Weather");  //Hard coding this on purpose
+                mWeatherCity.setText(R.string.weather_no_data);
                 mWeatherCity.setVisibility(View.VISIBLE);
             }
             if (mWeatherCondition != null) {
                 mWeatherCondition.setText(R.string.weather_tap_to_refresh);
             }
-            if (mUpdateTime != null) {
-                mUpdateTime.setVisibility(View.GONE);
+            if (mWeatherUpdateTime != null) {
+                mWeatherUpdateTime.setVisibility(View.GONE);
             }
-            if (mWeatherTemp != null) {
-                mWeatherTemp.setText(useMetric ? "0°c" : "0°f");
+            if (mWeatherTempsPanel != null ) {
+                mWeatherTempsPanel.setVisibility(View.GONE);
             }
-            if (mWeatherLowHigh != null) {
-                mWeatherLowHigh.setText("0° | 0°");
-            }
-            if (mWeatherImage != null) {
-                mWeatherImage.setImageResource(R.drawable.weather_na_cid);
+            if (mWeatherTempsPanelPhone != null ) {
+                mWeatherTempsPanelPhone.setVisibility(View.GONE);
             }
 
             // Show the Weather panel view
@@ -1068,6 +1073,10 @@ class KeyguardStatusViewManager implements OnClickListener {
         if (v == mEmergencyCallButton) {
             mCallback.takeEmergencyCallAction();
         } else if (v == mWeatherPanel || v == mWeatherPanelPhone) {
+            // Indicate we are refreshing
+            if (mWeatherCondition != null) {
+                mWeatherCondition.setText(R.string.weather_refreshing);
+            }
             mCallback.pokeWakelock();
             if (!mHandler.hasMessages(QUERY_WEATHER)) {
                 mHandler.sendEmptyMessage(QUERY_WEATHER);
