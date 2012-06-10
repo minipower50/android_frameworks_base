@@ -18,8 +18,11 @@ package com.android.internal.policy.impl;
 
 import android.content.Context;
 import android.content.Intent;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
 import android.graphics.Canvas;
 import android.graphics.ColorFilter;
+import android.graphics.drawable.BitmapDrawable;
 import android.graphics.PixelFormat;
 import android.graphics.PorterDuff;
 import android.graphics.drawable.Drawable;
@@ -77,12 +80,40 @@ public abstract class KeyguardViewBase extends FrameLayout {
     public KeyguardViewBase(Context context) {
         super(context);
         mColor = Settings.System.getInt(context.getContentResolver(),
-                Settings.System.LOCKSCREEN_COLOR, BACKGROUND_COLOR);
-        resetBackground();
+                Settings.System.LOCKSCREEN_BACKGROUND, BACKGROUND_COLOR);
+        resetBackground(context);
     }
 
-    public void resetBackground() {
-        setBackgroundDrawable(mBackgroundDrawable);
+    public void resetBackground(Context context) {
+        String lockBack = Settings.System.getString(context.getContentResolver(),
+                Settings.System.LOCKSCREEN_BACKGROUND);
+        if (lockBack != null) {
+            if (!lockBack.isEmpty()) {
+                try {
+                    mColor = Integer.parseInt(lockBack);
+                } catch(Exception e) {
+                    e.printStackTrace();
+                }
+                setBackgroundDrawable(mBackgroundDrawable);
+            } else {
+                try {
+                    Context settingsContext = context.createPackageContext("com.android.settings", 0);
+                    String wallpaperFile = settingsContext.getFilesDir() + "/lockwallpaper";
+                    Bitmap background = BitmapFactory.decodeFile(wallpaperFile);
+                    boolean landscape = getWidth() > getHeight();
+                    background = Bitmap.createScaledBitmap(background, landscape ? getWidth() :
+                            getHeight(), landscape ? getWidth() : getHeight(), true);
+                    BitmapDrawable image = new BitmapDrawable(background);
+                    image.setGravity(Gravity.CENTER);
+                    setBackgroundDrawable(image);
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+            }
+        } else {
+            mColor = BACKGROUND_COLOR;
+            setBackgroundDrawable(mBackgroundDrawable);
+        }
     }
 
     // used to inject callback

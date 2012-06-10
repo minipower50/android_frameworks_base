@@ -2230,6 +2230,13 @@ public final class Settings {
         public static final String WIDGET_BUTTONS = "expanded_widget_buttons";
 
         /**
+         * Widget Buttons to Use - Tablet
+         *
+         * @hide
+         */
+        public static final String WIDGET_BUTTONS_TABLET = "expanded_widget_buttons_tablet";
+
+        /**
          * Navigation controls to Use
          *
          * @hide
@@ -2338,12 +2345,6 @@ public final class Settings {
         * @hide
         */
         public static final String COMBINED_BAR_COLOR = "combined_bar_color";
-
-        /**
-        * Lockscreen color.
-        * @hide
-        */
-        public static final String LOCKSCREEN_COLOR = "lockscreen_color";
 
         /**
         * Lockscreen recent button.
@@ -2631,6 +2632,12 @@ public final class Settings {
          * @hide
          */
         public static final String QUIET_HOURS_DIM = "quiet_hours_dim";
+
+        /**
+         * Sets the lockscreen background style
+         * @hide
+         */
+        public static final String LOCKSCREEN_BACKGROUND = "lockscreen_background";
 
         /**
          * Show the weather on the lock screen

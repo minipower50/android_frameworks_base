@@ -1615,8 +1615,6 @@ public class PhoneStatusBar extends StatusBar {
                             } else {
                                 mLinger++;
                             }
-                        } else {
-                            mLinger = 0;
                         }
                     }
                 } else {
@@ -1625,6 +1623,7 @@ public class PhoneStatusBar extends StatusBar {
                 }
             } else if (action == MotionEvent.ACTION_UP
                     || action == MotionEvent.ACTION_CANCEL) {
+                mLinger = 0;
                 mVelocityTracker.computeCurrentVelocity(1000);
 
                 float yVel = mVelocityTracker.getYVelocity();
