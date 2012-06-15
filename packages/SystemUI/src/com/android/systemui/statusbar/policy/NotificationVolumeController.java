@@ -51,7 +51,6 @@ public class NotificationVolumeController implements ToggleSlider.Listener {
 
     public void onChanged(ToggleSlider view, boolean tracking, boolean mute, int level) {
         if (!tracking) {
-            if (level == 0) mute = true;
             if (mute) {
                 boolean vibeInSilent = (1 == Settings.System.getInt(mContext.getContentResolver(),
                         Settings.System.VIBRATE_IN_SILENT, 1));
