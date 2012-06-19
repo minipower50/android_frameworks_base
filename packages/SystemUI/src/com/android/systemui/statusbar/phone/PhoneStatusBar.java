@@ -35,6 +35,7 @@ import android.content.res.Resources;
 import android.content.res.Configuration;
 import android.content.res.CustomTheme;
 import android.database.ContentObserver;
+import android.graphics.drawable.ColorDrawable;
 import android.graphics.PixelFormat;
 import android.graphics.Rect;
 import android.graphics.drawable.Drawable;
@@ -124,6 +125,8 @@ public class PhoneStatusBar extends StatusBar {
     private static final int INTRUDER_ALERT_DECAY_MS = 10000;
 
     private static final boolean CLOSE_PANEL_WHEN_EMPTIED = true;
+
+    private static final float BRIGHTNESS_CONTROL_PADDING = 0.15f;
 
     private boolean mShowClock;
     private boolean mBrightnessControl;
@@ -261,6 +264,14 @@ public class PhoneStatusBar extends StatusBar {
                     Settings.System.STATUS_BAR_BRIGHTNESS_CONTROL), false, this);
             resolver.registerContentObserver(Settings.System.getUriFor(
                     Settings.System.SCREEN_BRIGHTNESS_MODE), false, this);
+            resolver.registerContentObserver(Settings.System.getUriFor(
+                    Settings.System.PHONE_NAVIGATION_CONTROL), false, this);
+            resolver.registerContentObserver(Settings.System.getUriFor(
+                    Settings.System.PHONE_NAVIGATION_CONTROL_LEFT), false, this);
+            resolver.registerContentObserver(Settings.System.getUriFor(
+                    Settings.System.COMBINED_BAR_COLOR), false, this);
+            resolver.registerContentObserver(Settings.System.getUriFor(
+                    Settings.System.STATUS_BAR_CLOCK_COLOR), false, this);
             update();
         }
 
@@ -276,6 +287,26 @@ public class PhoneStatusBar extends StatusBar {
             mAutoBrightness = Settings.System.getInt(resolver,
                     Settings.System.SCREEN_BRIGHTNESS_MODE, 0) ==
                     Settings.System.SCREEN_BRIGHTNESS_MODE_AUTOMATIC;
+
+            recreateStatusBar();
+            setStatusBarColor();
+        }
+    }
+
+    private void setStatusBarColor() {
+        ContentResolver resolver = mContext.getContentResolver();
+        int color = Settings.System.getInt(resolver,
+                Settings.System.COMBINED_BAR_COLOR, 0xFF000000);
+        if (color != 0xFF000000) mStatusBarView.setBackgroundColor(color);
+        TextView clockText = (TextView) mStatusBarView.findViewById(R.id.clock);
+        int clockColor = Settings.System.getInt(resolver,
+                Settings.System.STATUS_BAR_CLOCK_COLOR, 0xFF33B5E5);
+        if (clockText != null) {
+            if (clockColor != 0x00000000) {
+                clockText.setTextColor(clockColor);
+            } else {
+                clockText.setTextColor(0xFF33B5E5);
+            }
         }
     }
 
@@ -319,6 +350,7 @@ public class PhoneStatusBar extends StatusBar {
 
         SettingsObserver observer = new SettingsObserver(mHandler);
         observer.observe();
+        setStatusBarColor();
 
         // Lastly, call to the icon policy to install/update all the icons.
         mIconPolicy = new PhoneStatusBarPolicy(mContext);
@@ -345,6 +377,11 @@ public class PhoneStatusBar extends StatusBar {
             expanded.setBackgroundColor(0x6000FF80);
         }
         expanded.mService = this;
+        expanded.setOnSwipeUpCallback(new Runnable() {
+            public void run() {
+                animateCollapse(true);
+                }
+            });
 
         mIntruderAlertView = View.inflate(context, R.layout.intruder_alert, null);
         mIntruderAlertView.setVisibility(View.GONE);
@@ -425,6 +462,19 @@ public class PhoneStatusBar extends StatusBar {
         mCloseView = (CloseDragHandle)mTrackingView.findViewById(R.id.close);
         mCloseView.mService = this;
 
+        View background = mTrackingView.findViewById(R.id.tracking_background);
+        ImageView closeImage = (ImageView) mTrackingView.findViewById(R.id.close_image);
+        int color = Settings.System.getInt(mContext.getContentResolver(),
+                Settings.System.COMBINED_BAR_COLOR, 0xFF000000);
+        if (color != 0xFF000000) {
+            background.setBackgroundColor(color);
+            LinearLayout.LayoutParams closeParams = new LinearLayout.LayoutParams(
+                    LinearLayout.LayoutParams.MATCH_PARENT, 48);
+            closeParams.gravity = Gravity.BOTTOM;
+            closeImage.setLayoutParams(closeParams);
+            closeImage.setImageDrawable(new ColorDrawable(color));
+        }
+
         mEdgeBorder = res.getDimensionPixelSize(R.dimen.status_bar_edge_ignore);
 
         // set the inital view visibility
@@ -457,7 +507,7 @@ public class PhoneStatusBar extends StatusBar {
         filter.addAction(Intent.ACTION_SCREEN_OFF);
         context.registerReceiver(mBroadcastReceiver, filter);
 
-	mPowerWidget.setupWidget();
+        mPowerWidget.setupWidget();
 
         return sb;
     }
@@ -1028,6 +1078,10 @@ public class PhoneStatusBar extends StatusBar {
             content.setOnClickListener(null);
         }
 
+        int color = Settings.System.getInt(mContext.getContentResolver(),
+                Settings.System.COMBINED_BAR_COLOR, 0xff000000);
+        content.setBackgroundColor(color);
+
         View expanded = null;
         Exception exception = null;
         try {
@@ -1065,11 +1119,14 @@ public class PhoneStatusBar extends StatusBar {
             } catch (NameNotFoundException ex) {
                 Slog.e(TAG, "Failed looking up ApplicationInfo for " + sbn.pkg, ex);
             }
-            if (version > 0 && version < Build.VERSION_CODES.GINGERBREAD) {
+            int color = Settings.System.getInt(mContext.getContentResolver(),
+                    Settings.System.COMBINED_BAR_COLOR, 0xd8000000);
+            content.setBackgroundColor(color);
+/*            if (version > 0 && version < Build.VERSION_CODES.GINGERBREAD) {
                 content.setBackgroundResource(R.drawable.notification_row_legacy_bg);
             } else {
                 content.setBackgroundResource(R.drawable.notification_row_bg);
-            }
+            }*/
         }
     }
 
@@ -1599,7 +1656,16 @@ public class PhoneStatusBar extends StatusBar {
                         if (yVel < 50.0f) {
                             if (mLinger > 20) {
                                 float x = (float) event.getRawX();
-                                int newBrightness = (int) Math.round(((x / mScreenWidth) * android.os.Power.BRIGHTNESS_ON));
+                                float raw = (x / mScreenWidth);
+
+                                // Add a padding to the brightness control on both sides to make it easier
+                                // to reach min/max brightness
+                                float padded = Math.min(1.0f - BRIGHTNESS_CONTROL_PADDING, Math.max(BRIGHTNESS_CONTROL_PADDING, raw));
+                                float value = (padded - BRIGHTNESS_CONTROL_PADDING) / (1 - (2.0f * BRIGHTNESS_CONTROL_PADDING));
+
+                                int newBrightness = mMinBrightness + (int) Math.round(value *
+                                        (android.os.Power.BRIGHTNESS_ON - mMinBrightness));
+
                                 newBrightness = Math.min(newBrightness, android.os.Power.BRIGHTNESS_ON);
                                 newBrightness = Math.max(newBrightness, mMinBrightness);
                                 try {

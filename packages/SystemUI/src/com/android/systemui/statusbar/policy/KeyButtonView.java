@@ -18,16 +18,20 @@ package com.android.systemui.statusbar.policy;
 
 import android.animation.AnimatorSet;
 import android.animation.ObjectAnimator;
+import android.content.ContentResolver;
 import android.content.Context;
 import android.content.res.Resources;
 import android.content.res.TypedArray;
+import android.database.ContentObserver;
 import android.graphics.Canvas;
 import android.graphics.PorterDuff;
 import android.graphics.RectF;
 import android.graphics.drawable.Drawable;
+import android.os.Handler;
 import android.os.RemoteException;
 import android.os.ServiceManager;
 import android.os.SystemClock;
+import android.provider.Settings;
 import android.util.AttributeSet;
 import android.view.HapticFeedbackConstants;
 import android.view.IWindowManager;
@@ -64,6 +68,36 @@ public class KeyButtonView extends ImageView {
     RectF mRect = new RectF(0f,0f,0f,0f);
     int mGlowBGColor;
     boolean mQuickGlow = false;
+    Handler mHandler = new Handler();
+
+    class SettingsObserver extends ContentObserver {
+        SettingsObserver(Handler handler) {
+            super(handler);
+        }
+
+        void observe() {
+            ContentResolver resolver = mContext.getContentResolver();
+            resolver.registerContentObserver(Settings.System.getUriFor(
+                    Settings.System.COMBINED_BAR_NAVIGATION_GLOW), false, this);
+            resolver.registerContentObserver(Settings.System.getUriFor(
+                    Settings.System.COMBINED_BAR_NAVIGATION_GLOW_TIME), false, this);
+            update();
+        }
+
+        @Override
+        public void onChange(boolean selfChange) {
+            update();
+        }
+
+        public void update() {
+            ContentResolver resolver = mContext.getContentResolver();
+            mQuickGlow = Settings.System.getInt(resolver,
+                    Settings.System.COMBINED_BAR_NAVIGATION_GLOW_TIME, 0) != 0;
+            boolean glow = Settings.System.getInt(resolver,
+                    Settings.System.COMBINED_BAR_NAVIGATION_GLOW, 1) != 0;
+            setGlowBG(glow);
+        }
+    }
 
     Runnable mCheckLongPress = new Runnable() {
         public void run() {
@@ -86,6 +120,16 @@ public class KeyButtonView extends ImageView {
 
     public KeyButtonView(Context context, AttributeSet attrs, int defStyle) {
         super(context, attrs);
+
+        SettingsObserver observer = new SettingsObserver(mHandler);
+        observer.observe();
+
+        ContentResolver resolver = mContext.getContentResolver();
+        mQuickGlow = Settings.System.getInt(resolver,
+                Settings.System.COMBINED_BAR_NAVIGATION_GLOW_TIME, 0) != 0;
+        boolean glow = Settings.System.getInt(resolver,
+                Settings.System.COMBINED_BAR_NAVIGATION_GLOW, 1) != 0;
+        setGlowBG(glow);
 
         TypedArray a = context.obtainStyledAttributes(attrs, R.styleable.KeyButtonView,
                 defStyle, 0);

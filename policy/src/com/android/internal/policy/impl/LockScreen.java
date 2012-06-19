@@ -45,7 +45,10 @@ import android.view.KeyEvent;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.view.ViewParent;
 import android.widget.*;
+import android.widget.ImageView.ScaleType;
+import android.widget.LinearLayout.LayoutParams;
 import android.util.Log;
 import android.media.AudioManager;
 import android.provider.MediaStore;
@@ -267,8 +270,7 @@ class LockScreen extends LinearLayout implements KeyguardScreen {
                 mIsScreenLarge = isScreenLarge();
                 ArrayList<TargetDrawable> storedDraw = new ArrayList<TargetDrawable>();
                 final Resources res = getResources();
-                final int targetInset = mIsScreenLarge ? MultiWaveView.TABLET_TARGET_INSET :
-                    MultiWaveView.PHONE_TARGET_INSET;
+                final int targetInset = res.getDimensionPixelSize(com.android.internal.R.dimen.lockscreen_target_inset);
                 final PackageManager packMan = mContext.getPackageManager();
                 final boolean isLandscape = mCreationOrientation == Configuration.ORIENTATION_LANDSCAPE;
                 final Drawable blankActiveDrawable = res.getDrawable(R.drawable.ic_lockscreen_target_activated);
@@ -495,7 +497,7 @@ class LockScreen extends LinearLayout implements KeyguardScreen {
             inflater.inflate(R.layout.keyguard_screen_tab_unlock_land, this, true);
         }
 
-        //setBackground(mContext, (ViewGroup) findViewById(R.id.root));
+        setBackground(mContext, (ViewGroup) findViewById(R.id.root));
 
         mStatusViewManager = new KeyguardStatusViewManager(this, mUpdateMonitor, mLockPatternUtils,
                 mCallback, false);
@@ -552,10 +554,29 @@ class LockScreen extends LinearLayout implements KeyguardScreen {
                 }
             } else {
                 try {
-                    Context settingsContext = context.createPackageContext("com.android.settings", 0);
-                    String wallpaperFile = settingsContext.getFilesDir() + "/lockwallpaper";
-                    Bitmap background = BitmapFactory.decodeFile(wallpaperFile);
-                    layout.setBackgroundDrawable(new BitmapDrawable(background));
+                    layout.getParent();
+                    ViewParent parent =  layout.getParent();
+                    if (parent != null) {
+                        //change parent to show background correctly on scale
+                        RelativeLayout rlout = new RelativeLayout(context);
+                        ((ViewGroup) parent).removeView(layout);
+                        layout.setLayoutParams(new LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT));
+                        ((ViewGroup) parent).addView(rlout); // change parent to new layout
+                        rlout.addView(layout);
+                        // create framelayout and add imageview to set background
+                        FrameLayout flayout = new FrameLayout(context);
+                        flayout.setLayoutParams(new LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT));
+                        ImageView mLockScreenWallpaperImage = new ImageView(flayout.getContext());
+                        mLockScreenWallpaperImage.setScaleType(ScaleType.CENTER_CROP);
+                        flayout.addView(mLockScreenWallpaperImage, -1, -1);
+                        Context settingsContext = context.createPackageContext("com.android.settings", 0);
+                        String wallpaperFile = settingsContext.getFilesDir() + "/lockwallpaper";
+                        Bitmap background = BitmapFactory.decodeFile(wallpaperFile);
+                        Drawable d = new BitmapDrawable(context.getResources(), background);
+                        mLockScreenWallpaperImage.setImageDrawable(d);
+                        // add background to lock screen.
+                        rlout.addView(flayout,0);
+                    }
                 } catch (NameNotFoundException e) {
                 }
             }
