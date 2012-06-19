@@ -266,7 +266,7 @@ public class LockPatternKeyguardView extends KeyguardViewBase implements Handler
                 // TODO: We should disable the wallpaper instead
                 setBackgroundColor(0xff000000);
             } else {
-                resetBackground(mContext);
+                resetBackground();
             }
         }
 
@@ -276,7 +276,7 @@ public class LockPatternKeyguardView extends KeyguardViewBase implements Handler
 
             // TODO: examine all widgets to derive clock status
             mUpdateMonitor.reportClockVisible(true);
-            resetBackground(mContext);
+            resetBackground();
         }
 
         public boolean isVisible(View self) {
