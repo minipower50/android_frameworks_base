@@ -2327,6 +2327,13 @@ public final class Settings {
         public static final String STATUS_BAR_BRIGHTNESS_CONTROL = "status_bar_brightness_control";
 
         /**
+         * Whether to hide or show the status bar
+         *
+         * @hide
+         */
+        public static final String STATUS_BAR_HIDE_BAR = "status_bar_hide_bar";
+
+        /**
          * Whether to show the IME switcher in the status bar
          * @hide
          */

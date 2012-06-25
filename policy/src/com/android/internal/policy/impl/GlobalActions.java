@@ -264,6 +264,26 @@ class GlobalActions implements DialogInterface.OnDismissListener, DialogInterfac
         // next: airplane mode
         //mItems.add(mAirplaneModeOn); //disabled for Kindle Fire
 
+        // next: statusbar
+        mItems.add(
+            new SinglePressAction(com.android.internal.R.drawable.ic_menu_copy,
+                    R.string.global_actions_toggle_statusbar) {
+                public void onPress() {
+                int hideBar = Settings.System.getInt(mContext.getContentResolver(),
+                        Settings.System.STATUS_BAR_HIDE_BAR, 0);
+                Settings.System.putInt(mContext.getContentResolver(),
+                        Settings.System.STATUS_BAR_HIDE_BAR, hideBar == 1 ? 0 : 1);
+                }
+
+                public boolean showDuringKeyguard() {
+                    return true;
+                }
+
+                public boolean showBeforeProvisioning() {
+                    return true;
+                }
+            });
+
         // last: silent mode
         if (SHOW_SILENT_TOGGLE) {
             mItems.add(mSilentModeAction);
