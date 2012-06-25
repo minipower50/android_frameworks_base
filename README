@@ -1,0 +1,5 @@
+CyanogenMod android_frameworks_base fork with Kindle Fire (otter) customizations.
+
+* Added volume slider to the notification drawer
+* Removed airplane mode from extended power menu
+* Toggle Statusbar from extended power menu
