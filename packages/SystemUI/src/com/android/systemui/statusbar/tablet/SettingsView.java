@@ -83,6 +83,7 @@ public class SettingsView extends LinearLayout implements View.OnClickListener {
     AutoRotateController mRotate;
     BluetoothController mBluetooth;
     BrightnessController mBrightness;
+    VolumeController mVolume;
     DoNotDisturbController mDoNotDisturb;
     FlashlightController mFlashLight;
     LocationController mGps;
@@ -134,6 +135,7 @@ public class SettingsView extends LinearLayout implements View.OnClickListener {
     protected void onFinishInflate() {
         super.onFinishInflate();
 
+        mVolume = new VolumeController(mContext, (ToggleSlider)findViewById(R.id.volume));
         mBrightness = new BrightnessController(mContext, (ToggleSlider)findViewById(R.id.brightness));
         mDoNotDisturb = new DoNotDisturbController(mContext, (CompoundButton)findViewById(R.id.do_not_disturb_checkbox));
 
