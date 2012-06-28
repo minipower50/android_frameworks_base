@@ -1116,7 +1116,7 @@ public class TabletStatusBar extends StatusBar implements
         if ((diff & StatusBarManager.DISABLE_CLOCK) != 0) {
             boolean show = (state & StatusBarManager.DISABLE_CLOCK) == 0;
             Slog.i(TAG, "DISABLE_CLOCK: " + (show ? "no" : "yes"));
-            showClock(show);
+            showClock(show && mShowClock);
         }
         if ((diff & StatusBarManager.DISABLE_SYSTEM_INFO) != 0) {
             boolean show = (state & StatusBarManager.DISABLE_SYSTEM_INFO) == 0;
