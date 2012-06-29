@@ -732,7 +732,7 @@ public class TabletStatusBar extends StatusBar implements
 
         // Set navigation button and clock visibility
         updateButtonVisibilitySettings();
-        updateClockVisibilitySettings();
+        showClock();
         updateButtonColorSettings();
         updateClockColorSettings();
         updateExpandedTransparency();
@@ -915,7 +915,7 @@ public class TabletStatusBar extends StatusBar implements
                     updateButtonVisibilitySettings();
                     break;
                 case MSG_CLOCK_VISIBILITY:
-                    updateClockVisibilitySettings();
+                    showClock();
                     break;
                 case MSG_LARGE_THUMBS:
                     mRecentsPanel.updateValuesFromResources();
@@ -1090,8 +1090,14 @@ public class TabletStatusBar extends StatusBar implements
         setAreThereNotifications();
     }
 
+    public void showClock() {
+        ContentResolver resolver = mContext.getContentResolver();
+        mShowClock = (Settings.System.getInt(resolver,
+                Settings.System.STATUS_BAR_CLOCK, 1) == 1);
+        showClock(mShowClock);
+    }
+
     public void showClock(boolean show) {
-        mShowClock = show;
         View clock = mBarContents.findViewById(R.id.clock);
         View network_text = mBarContents.findViewById(R.id.network_text);
         if (clock != null) {
@@ -1228,16 +1234,6 @@ public class TabletStatusBar extends StatusBar implements
         mHomeButton.setGlowBGColor(glowColor);
         mRecentButton.setGlowBGColor(glowColor);
         mMenuButton.setGlowBGColor(glowColor);
-    }
-
-    private void updateClockVisibilitySettings() {
-        ContentResolver resolver = mContext.getContentResolver();
-        mShowClock = (Settings.System.getInt(resolver,
-                Settings.System.STATUS_BAR_CLOCK, 1) == 1);
-        View clock = mBarContents.findViewById(R.id.clock);
-        if (clock != null) {
-            clock.setVisibility(mShowClock ? View.VISIBLE : View.GONE);
-        }
     }
 
     private void updateClockColorSettings() {
