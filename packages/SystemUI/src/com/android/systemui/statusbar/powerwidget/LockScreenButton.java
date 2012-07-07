@@ -2,29 +2,24 @@ package com.android.systemui.statusbar.powerwidget;
 
 import com.android.systemui.R;
 
+import android.app.KeyguardManager;
+import android.app.KeyguardManager.KeyguardLock;
+import android.content.Context;
 import android.content.Intent;
-
-import com.android.internal.widget.LockPatternUtils;
+import android.content.SharedPreferences;
+import android.view.View;
 
 public class LockScreenButton extends PowerButton {
+    private static final String KEY_DISABLED = "lockscreen_disabled";
 
-    private LockPatternUtils mLockPatternUtils;
-    private boolean mLockScreenState;
+    private KeyguardLock mLock = null;
+    private boolean mDisabledLockscreen = false;
 
-    public LockScreenButton() {
-        mType = BUTTON_LOCKSCREEN;
-    }
+    public LockScreenButton() { mType = BUTTON_LOCKSCREEN; }
 
     @Override
-    protected void updateState() {
-        if (mLockPatternUtils == null) {
-            mLockPatternUtils = new LockPatternUtils(mView.getContext());
-        }
-        mLockScreenState = !mLockPatternUtils.isLockScreenDisabled();
-        if (mLockPatternUtils.isSecure()) {
-            mIcon = R.drawable.stat_lock_screen_off;
-            mState = STATE_INTERMEDIATE;
-        } else if (mLockScreenState) {
+    protected void updateState(Context context) {
+        if (!mDisabledLockscreen) {
             mIcon = R.drawable.stat_lock_screen_on;
             mState = STATE_ENABLED;
         } else {
@@ -34,36 +29,50 @@ public class LockScreenButton extends PowerButton {
     }
 
     @Override
-    protected void toggleState() {
-        if (mLockPatternUtils == null) {
-            mLockPatternUtils = new LockPatternUtils(mView.getContext());
-        }
-        mLockScreenState = !mLockPatternUtils.isLockScreenDisabled();
-        if (!mLockPatternUtils.isSecure()) {
-            if (mLockScreenState) {
-                mLockPatternUtils.setLockScreenDisabled(true);
-            } else {
-                mLockPatternUtils.setLockScreenDisabled(false);
-            }
-        } else {
-            launchSecuritySettings();
-        }
+    protected void setupButton(View view) {
+        super.setupButton(view);
 
-        // we're handling this, so just update our buttons now
-        // this is UGLY, do it better later >.>
-        update();
+        if (view == null && mDisabledLockscreen) {
+            mLock.reenableKeyguard();
+            mLock = null;
+        } else if (view != null) {
+            Context context = view.getContext();
+            mDisabledLockscreen = getPreferences(context).getBoolean(KEY_DISABLED, false);
+            applyState(context);
+        }
     }
 
     @Override
-    protected boolean handleLongClick() {
-        launchSecuritySettings();
-        return true;
+    protected void toggleState(Context context) {
+        mDisabledLockscreen = !mDisabledLockscreen;
+
+        SharedPreferences.Editor editor = getPreferences(context).edit();
+        editor.putBoolean(KEY_DISABLED, mDisabledLockscreen);
+        editor.apply();
+
+        applyState(context);
     }
 
-    private void launchSecuritySettings() {
+    @Override
+    protected boolean handleLongClick(Context context) {
         Intent intent = new Intent("android.settings.SECURITY_SETTINGS");
         intent.addCategory(Intent.CATEGORY_DEFAULT);
         intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-        mView.getContext().startActivity(intent);
+        context.startActivity(intent);
+        return true;
+    }
+
+    private void applyState(Context context) {
+        if (mLock == null) {
+            KeyguardManager keyguardManager = (KeyguardManager)
+                    context.getSystemService(Context.KEYGUARD_SERVICE);
+            mLock = keyguardManager.newKeyguardLock("PowerWidget");
+        }
+        if (mDisabledLockscreen) {
+            mLock.disableKeyguard();
+        } else {
+            mLock.reenableKeyguard();
+        }
     }
 }
+
