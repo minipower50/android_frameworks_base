@@ -121,7 +121,6 @@ public class NotificationPanel extends RelativeLayout implements StatusBarPanel,
 
         mPowerWidget = (PowerWidget) findViewById(R.id.exp_power_stat);
         if (mPowerWidget != null) {
-            mPowerWidget.setupSettingsObserver(mHandler);
             mPowerWidget.setGlobalButtonOnClickListener(new View.OnClickListener() {
                     public void onClick(View v) {
                         vibrate(v);
