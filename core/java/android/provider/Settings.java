@@ -2930,7 +2930,7 @@ public final class Settings {
         /**
          * @hide
          */
-        public static final String POWER_MENU_SILENT_MODE_ENABLED = "power_menu_silent_mode_enabled";
+        public static final String POWER_MENU_SILENT_ENABLED = "power_menu_silent_mode_enabled";
 
         /**
          * @hide
@@ -2940,7 +2940,7 @@ public final class Settings {
         /**
          * @hide
          */
-        public static final String POWER_MENU_AIRPLANE_MODE_ENABLED = "power_menu_airplane_mode_enabled";
+        public static final String POWER_MENU_AIRPLANE_ENABLED = "power_menu_airplane_mode_enabled";
 
         /**
          * @hide
@@ -3119,6 +3119,8 @@ public final class Settings {
             POWER_MENU_SCREENSHOT_ENABLED,
             POWER_MENU_REBOOT_ENABLED,
             POWER_MENU_PROFILES_ENABLED,
+            POWER_MENU_AIRPLANE_ENABLED,
+            POWER_MENU_SILENT_ENABLED,
             LOCKSCREEN_VIBRATE_ENABLED,
         };
 

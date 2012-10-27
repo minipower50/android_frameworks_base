@@ -342,7 +342,7 @@ class GlobalActions implements DialogInterface.OnDismissListener, DialogInterfac
 
         // next: airplane mode
         if (Settings.System.getInt(mContext.getContentResolver(),
-                Settings.System.POWER_MENU_AIRPLANE_MODE_ENABLED, 1) == 1) {
+                Settings.System.POWER_MENU_AIRPLANE_ENABLED, 1) == 1) {
             mItems.add(mAirplaneModeOn);
         }
 
@@ -446,7 +446,7 @@ class GlobalActions implements DialogInterface.OnDismissListener, DialogInterfac
 
         // last: silent mode
         if (Settings.System.getInt(mContext.getContentResolver(),
-                Settings.System.POWER_MENU_SILENT_MODE_ENABLED, 1) == 1) {
+                Settings.System.POWER_MENU_SILENT_ENABLED, 1) == 1) {
             mItems.add(mSilentModeAction);
         }
 
