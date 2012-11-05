@@ -1316,6 +1316,11 @@
     <!-- label for item that screenshots in phone options dialog -->
     <string name="global_action_screenshot">Скриншот</string>
 
+    <!-- label for item that toggles expand desktop mode -->
+    <string name="global_actions_toggle_expanded_desktop_mode">Расширенный экран</string>
+    <string name="global_actions_expanded_desktop_mode_on_status">Включен</string>
+    <string name="global_actions_expanded_desktop_mode_off_status">Выключен</string>
+
     <!-- Button to reboot the phone, within the Reboot Options dialog -->
     <string name="global_action_reboot">Перезагрузка</string>
 
@@ -1393,6 +1398,7 @@
     <string name="weather_no_data">Нет данных</string>
     <string name="weather_tap_to_refresh">Нажмите для обновления</string>
     <string name="weather_refreshing">Обновление...</string>
+    <string name="weather_last_sync_just_now">Только что</string>
 
     <string name="app_killed_message">Приложение закрыто</string>
 </resources>
