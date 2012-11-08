@@ -3946,4 +3946,10 @@
   <java-symbol type="id" name="navbarhome" />
   <java-symbol type="id" name="navbarback" />
   <java-symbol type="id" name="navbarmenu" />
+
+  <!-- IME Picker showing upon pressing Sym Key -->
+  <java-symbol type="bool" name="config_symKeyShowsImePicker" />
+
+  <!-- Stylus gestures -->
+  <java-symbol type="bool" name="config_stylusGestures" />
 </resources>
