@@ -42,11 +42,7 @@ import com.android.internal.widget.ActionBarView;
 import android.app.ActivityManager;
 import android.app.ActivityManager.RunningAppProcessInfo;
 import android.app.KeyguardManager;
-
 import android.app.StatusBarManager;
-import android.content.ContentResolver;
-import android.content.Context;
-import android.content.Intent;
 import android.content.ComponentName;
 import android.content.ContentResolver;
 import android.content.Context;
@@ -207,9 +203,6 @@ public class PhoneWindow extends Window implements MenuBuilder.Callback {
 
     private boolean mAlwaysReadCloseOnTouchAttr = false;
 
-    private boolean mEnableGestures;
-
-    private Context mContext;
     private ContextMenuBuilder mContextMenu;
     private MenuDialogHelper mContextMenuHelper;
     private boolean mClosingActionMenu;
@@ -218,33 +211,6 @@ public class PhoneWindow extends Window implements MenuBuilder.Callback {
 
     private AudioManager mAudioManager;
     private KeyguardManager mKeyguardManager;
-
-    private Handler mConfigHandler;
-
-    private final class SettingsObserver extends ContentObserver {
-        SettingsObserver(Handler handler) {
-            super(handler);
-        }
-
-        void observe() {
-            ContentResolver resolver = mContext.getContentResolver();
-            resolver.registerContentObserver(Settings.System
-                    .getUriFor(Settings.System.ENABLE_STYLUS_GESTURES), false,
-                    this);
-            checkGestures();
-        }
-
-        @Override
-        public void onChange(boolean selfChange) {
-            checkGestures();
-        }
-
-        void checkGestures() {
-            mEnableGestures = Settings.System.getInt(
-                    mContext.getContentResolver(),
-                    Settings.System.ENABLE_STYLUS_GESTURES, 0) == 1;
-        }
-    }
 
     private int mUiOptions = 0;
 
@@ -257,11 +223,7 @@ public class PhoneWindow extends Window implements MenuBuilder.Callback {
 
     public PhoneWindow(Context context) {
         super(context);
-        mContext = context;
         mLayoutInflater = LayoutInflater.from(context);
-        mConfigHandler = new Handler();
-        SettingsObserver settingsObserver = new SettingsObserver(mConfigHandler);
-        settingsObserver.observe();
     }
 
     @Override
@@ -1885,6 +1847,8 @@ public class PhoneWindow extends Window implements MenuBuilder.Callback {
 
         private ActivityManager mActivityManager;
 
+        private boolean mEnableGestures;
+
         public DecorView(Context context, int featureId) {
             super(context);
             mFeatureId = featureId;
@@ -1947,6 +1911,8 @@ public class PhoneWindow extends Window implements MenuBuilder.Callback {
                     Settings.System.GESTURE_SWIPE_DISTANCE), false, this);
                 getContext().getContentResolver().registerContentObserver(Settings.System.getUriFor(
                     Settings.System.SHOW_GESTURES), false, this);
+                getContext().getContentResolver().registerContentObserver(Settings.System.getUriFor(
+                    Settings.System.ENABLE_STYLUS_GESTURES), false, this);
             }
 
             public void unobserve() {
@@ -2023,6 +1989,9 @@ public class PhoneWindow extends Window implements MenuBuilder.Callback {
 
             mShowGestures = Settings.System.getInt(resolver,
                     Settings.System.SHOW_GESTURES, 0) == 1;
+
+            mEnableGestures = Settings.System.getInt(resolver,
+                    Settings.System.ENABLE_STYLUS_GESTURES, 0) == 1;
 
             invalidate();
         }
