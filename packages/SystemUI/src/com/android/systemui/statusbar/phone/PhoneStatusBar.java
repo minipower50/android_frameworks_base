@@ -483,7 +483,7 @@ public class PhoneStatusBar extends BaseStatusBar {
                 Settings.System.NOTIFICATION_PANEL_COLOR, 0xFF000000);
         boolean fullscreen = Settings.System.getInt(mContext.getContentResolver(),
                 Settings.System.FULLSCREEN_MODE, 0) == 1;
-        if (!fullscreen) color = Color.rgb(Color.red(color), Color.green(color), Color.blue(color));
+        //if (!fullscreen) color = Color.rgb(Color.red(color), Color.green(color), Color.blue(color));
 
         if (!ActivityManager.isHighEndGfx(mDisplay)) {
             mStatusBarWindow.setBackground(null);
@@ -862,7 +862,7 @@ public class PhoneStatusBar extends BaseStatusBar {
                 Settings.System.NAVIGATION_BAR_COLOR, 0xFF000000);
         boolean fullscreen = Settings.System.getInt(mContext.getContentResolver(),
                 Settings.System.FULLSCREEN_MODE, 0) == 1;
-        if (!fullscreen) color = Color.rgb(Color.red(color), Color.green(color), Color.blue(color));
+        //if (!fullscreen) color = Color.rgb(Color.red(color), Color.green(color), Color.blue(color));
         mNavigationBarView.setBackgroundColor(color);
     }
 
@@ -2428,7 +2428,7 @@ public class PhoneStatusBar extends BaseStatusBar {
                 Settings.System.STATUS_BAR_COLOR, 0xFF000000);
         boolean fullscreen = Settings.System.getInt(mContext.getContentResolver(),
                 Settings.System.FULLSCREEN_MODE, 0) == 1;
-        if (!fullscreen) color = Color.rgb(Color.red(color), Color.green(color), Color.blue(color));
+        //if (!fullscreen) color = Color.rgb(Color.red(color), Color.green(color), Color.blue(color));
         mStatusBarView.setBackgroundColor(color);
 
         showClock(true);
@@ -2775,7 +2775,7 @@ public class PhoneStatusBar extends BaseStatusBar {
                 Settings.System.STATUS_BAR_COLOR, 0xFF000000);
         boolean fullscreen = Settings.System.getInt(mContext.getContentResolver(),
                 Settings.System.FULLSCREEN_MODE, 0) == 1;
-        if (!fullscreen) color = Color.rgb(Color.red(color), Color.green(color), Color.blue(color));
+        //if (!fullscreen) color = Color.rgb(Color.red(color), Color.green(color), Color.blue(color));
         mStatusBarView.setBackgroundColor(color);
     }
 
