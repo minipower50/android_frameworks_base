@@ -391,7 +391,7 @@ class GlobalActions implements DialogInterface.OnDismissListener, DialogInterfac
         // next: statusbar
         if (Settings.System.getInt(mContext.getContentResolver(),
                 Settings.System.POWER_MENU_SYSTEMBAR_TOGGLE_ENABLED, 1) == 1) {
-            mItems.add(new SinglePressAction(R.drawable.ic_lock_hide_statusbar,
+            mItems.add(new SinglePressAction(R.drawable.ic_lock_expanded_desktop,
                     R.string.global_actions_toggle_statusbar) {
                 public void onPress() {
                     mStatusBarManager.toggleVisibility();
