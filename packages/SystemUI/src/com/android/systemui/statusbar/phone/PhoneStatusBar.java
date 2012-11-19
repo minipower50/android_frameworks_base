@@ -756,7 +756,7 @@ public class PhoneStatusBar extends BaseStatusBar {
         // a bit jarring
         mRecentsPanel.setMinSwipeAlpha(0.03f);
         if (mNavigationBarView != null) {
-            mNavigationBarView.setListener(mRecentsClickListener, mRecentsPanel, mHomeSearchActionListener);
+            mNavigationBarView.setListener(mRecentsClickListener, mRecentsPanel, mHomeSearchActionListener, mExpandActionListener, mHideActionListener);
         }
     }
 
@@ -840,9 +840,25 @@ public class PhoneStatusBar extends BaseStatusBar {
         }
     };
 
+    private View.OnClickListener mHideActionListener = new View.OnClickListener() {
+        public void onClick(View v) {
+            toggleVisibility();
+        }
+    };
+
+    private View.OnClickListener mExpandActionListener = new View.OnClickListener() {
+        public void onClick(View v) {
+            if (mExpanded) {
+                animateCollapse();
+            } else {
+                animateExpand();
+            }
+        }
+    };
+
     private void prepareNavigationBarView() {
         mNavigationBarView.reorient();
-        mNavigationBarView.setListener(mRecentsClickListener,mRecentsPanel, mHomeSearchActionListener);
+        mNavigationBarView.setListener(mRecentsClickListener,mRecentsPanel, mHomeSearchActionListener, mExpandActionListener, mHideActionListener);
         updateSearchPanel();
     }
 

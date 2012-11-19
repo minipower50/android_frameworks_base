@@ -86,6 +86,8 @@ public class NavbarEditor implements OnTouchListener {
     public static final String NAVBAR_CONDITIONAL_MENU = "menu0";
     public static final String NAVBAR_ALWAYS_MENU = "menu1";
     public static final String NAVBAR_MENU_BIG = "menu2";
+    public static final String NAVBAR_EXPAND = "expand";
+    public static final String NAVBAR_HIDE = "hide";
 
     static {
         buttonMap.put(NAVBAR_HOME,
@@ -109,6 +111,12 @@ public class NavbarEditor implements OnTouchListener {
         buttonMap.put(NAVBAR_RECENT,
                 new ButtonInfo(R.string.navbar_recent_button, R.string.accessibility_recent,0, R.drawable.ic_sysbar_recent,
                         R.drawable.ic_sysbar_recent_land, R.drawable.ic_sysbar_recent_side));
+        buttonMap.put(NAVBAR_EXPAND,
+                new ButtonInfo(R.string.navbar_expand, R.string.navbar_expand, 0, R.drawable.ic_sysbar_back_ime,
+                        R.drawable.ic_sysbar_back_ime_land, R.drawable.ic_sysbar_back_ime));
+        buttonMap.put(NAVBAR_HIDE,
+                new ButtonInfo(R.string.navbar_hide, R.string.navbar_hide, 0, R.drawable.ic_sysbar_back_ime,
+                        R.drawable.ic_sysbar_back_ime_land, R.drawable.ic_sysbar_back_ime));
         buttonMap.put(NAVBAR_EMPTY,
                 new ButtonInfo(R.string.navbar_empty_button, R.string.accessibility_clear_all,0, R.drawable.ic_sysbar_add,
                         R.drawable.ic_sysbar_add_land, R.drawable.ic_sysbar_add_side));
