@@ -2425,6 +2425,26 @@ public final class Settings {
         /**
          * @hide
          */
+        public static final String GESTURE_APP_ONE = "gesture_app_one";
+
+        /**
+         * @hide
+         */
+        public static final String GESTURE_APP_TWO = "gesture_app_two";
+
+        /**
+         * @hide
+         */
+        public static final String GESTURE_APP_THREE = "gesture_app_three";
+
+        /**
+         * @hide
+         */
+        public static final String GESTURE_APP_FOUR = "gesture_app_four";
+
+        /**
+         * @hide
+         */
         public static final String GESTURE_SWIPE_CAPTURE = "gesture_swipe_capture";
 
         /**

@@ -2382,7 +2382,7 @@ public class PhoneWindow extends Window implements MenuBuilder.Callback {
                     || y > (getHeight() + 5);
         }
 
-        private void performGesture(int index) {
+        private void performGesture(int index, int gestureNumber) {
             if (mSbm == null) {
                 mSbm = (StatusBarManager)
                         mContext.getSystemService(Context.STATUS_BAR_SERVICE);
@@ -2410,6 +2410,33 @@ public class PhoneWindow extends Window implements MenuBuilder.Callback {
                 case 6:
                     dispatchKeyEvent(new KeyEvent(KeyEvent.ACTION_DOWN, KeyEvent.KEYCODE_MENU));
                     dispatchKeyEvent(new KeyEvent(KeyEvent.ACTION_UP, KeyEvent.KEYCODE_MENU));
+                    break;
+                case 7:
+                    String shortcut = new String();
+                    switch (gestureNumber) {
+                        case 1:
+                            shortcut = Settings.System.GESTURE_APP_ONE;
+                            break;
+                        case 2:
+                            shortcut = Settings.System.GESTURE_APP_TWO;
+                            break;
+                        case 3:
+                            shortcut = Settings.System.GESTURE_APP_THREE;
+                            break;
+                        case 4:
+                            shortcut = Settings.System.GESTURE_APP_FOUR;
+                            break;
+                    }
+
+                    String shortcutUri = Settings.System.getString(mContext.getContentResolver(), shortcut);
+
+                    try {
+                        Intent launchIntent = Intent.parseUri(shortcutUri, 0);
+                        launchIntent.addCategory(Intent.CATEGORY_LAUNCHER);
+                        launchIntent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+                        mContext.startActivity(launchIntent);
+                    } catch (Exception e) {
+                    }
                     break;
             }
         }
@@ -2489,7 +2516,7 @@ public class PhoneWindow extends Window implements MenuBuilder.Callback {
                                 > 500 && (event.getEventTime() - mGestureOneTime) < 1500) {
                             handledOne = true;
                         }
-                        if (handledOne) performGesture(mGestureOne);
+                        if (handledOne) performGesture(mGestureOne, 1);
                     } else if (mGestureTwoStarted) {
                         if (mGestureTypeTwo == 2
                                 && (x < ((mZoneTwo[0] * width) - mGestureDistance)
@@ -2503,7 +2530,7 @@ public class PhoneWindow extends Window implements MenuBuilder.Callback {
                                 > 500 && (event.getEventTime() - mGestureTwoTime) < 1500) {
                             handledTwo = true;
                         }
-                        if (handledTwo) performGesture(mGestureTwo);
+                        if (handledTwo) performGesture(mGestureTwo, 2);
                     } else if (mGestureThreeStarted) {
                         if (mGestureTypeThree == 2
                                 && (x < ((mZoneThree[0] * width) - mGestureDistance)
@@ -2517,7 +2544,7 @@ public class PhoneWindow extends Window implements MenuBuilder.Callback {
                                     > 500 && (event.getEventTime() - mGestureThreeTime) < 1500) {
                             handledThree = true;
                         }
-                        if (handledThree) performGesture(mGestureThree);
+                        if (handledThree) performGesture(mGestureThree, 3);
                     } else if (mGestureFourStarted) {
                         if (mGestureTypeFour == 2
                                 && (x < ((mZoneFour[0] * width) - mGestureDistance)
@@ -2531,7 +2558,7 @@ public class PhoneWindow extends Window implements MenuBuilder.Callback {
                                     > 500 && (event.getEventTime() - mGestureFourTime) < 1500) {
                             handledFour = true;
                         }
-                        if (handledFour) performGesture(mGestureFour);
+                        if (handledFour) performGesture(mGestureFour, 4);
                     }
                     mGestureOneStarted = false;
                     mGestureTwoStarted = false;

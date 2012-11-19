@@ -72,6 +72,8 @@ public class NavigationBarView extends LinearLayout {
     private OnClickListener mRecentsClickListener;
     private RecentsPanelView mRecentsPanel;
     private OnTouchListener mHomeSearchActionListener;
+    private OnClickListener mExpandActionListener;
+    private OnClickListener mHideActionListener;
     private boolean mIs600dp;
 
     protected IStatusBarService mBarService;
@@ -144,10 +146,13 @@ public class NavigationBarView extends LinearLayout {
         return EDIT_MODE;
     }
 
-    protected void setListener(OnClickListener RecentsClickListener, RecentsPanelView RecentsPanel, OnTouchListener HomeSearchActionListener) {
+    protected void setListener(OnClickListener RecentsClickListener, RecentsPanelView RecentsPanel, OnTouchListener HomeSearchActionListener,
+            OnClickListener ExpandClickListener, OnClickListener HideClickListener) {
         mRecentsClickListener = RecentsClickListener;
         mRecentsPanel = RecentsPanel;
         mHomeSearchActionListener = HomeSearchActionListener;
+        mExpandActionListener = ExpandClickListener;
+        mHideActionListener = HideClickListener;
     }
 
     protected void toggleButtonListener(boolean enable) {
@@ -159,6 +164,14 @@ public class NavigationBarView extends LinearLayout {
         View homeView = mCurrentView.findViewWithTag(NavbarEditor.NAVBAR_HOME);
         if (homeView != null) {
             homeView.setOnTouchListener(enable ? mHomeSearchActionListener : null);
+        }
+        View expandView = mCurrentView.findViewWithTag(NavbarEditor.NAVBAR_EXPAND);
+        if (expandView != null) {
+            expandView.setOnClickListener(enable ? mExpandActionListener : null);
+        }
+        View hideView = mCurrentView.findViewWithTag(NavbarEditor.NAVBAR_HIDE);
+        if (hideView != null) {
+            hideView.setOnClickListener(enable ? mHideActionListener : null);
         }
     }
 
