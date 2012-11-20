@@ -2500,6 +2500,11 @@ public final class Settings {
         /**
          * @hide
          */
+        public static final String RECENTS_PANEL_COLOR = "recents_panel_color";
+
+        /**
+         * @hide
+         */
         public static final String COMBINED_BAR_SETTINGS = "combined_bar_settings";
 
         /**
@@ -2556,6 +2561,11 @@ public final class Settings {
          * @hide
          */
         public static final String PHONE_STATUS_BAR_VOLUME = "phone_status_bar_volume";
+
+        /**
+         * @hide
+         */
+        public static final String PHONE_STATUS_BAR_BRIGHTNESS = "phone_status_bar_brightness";
 
         /**
          * @hide

@@ -504,16 +504,32 @@ public class RecentsPanelView extends FrameLayout implements OnItemClickListener
             });
         }
 
+        if (mRecentsNoApps != null){
+            mRecentsNoApps.setOnClickListener(new OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    dismiss();
+                }
+            });
+        }
+
         if (mRecentsScrim != null) {
-            Display d = ((WindowManager)mContext.getSystemService(Context.WINDOW_SERVICE))
-                .getDefaultDisplay();
-            mHighEndGfx = ActivityManager.isHighEndGfx(d);
-            if (!mHighEndGfx) {
-                mRecentsScrim.setBackground(null);
-            } else if (mRecentsScrim.getBackground() instanceof BitmapDrawable) {
-                // In order to save space, we make the background texture repeat in the Y direction
-                ((BitmapDrawable) mRecentsScrim.getBackground()).setTileModeY(TileMode.REPEAT);
+            int color = Settings.System.getInt(mContext.getContentResolver(),
+                    Settings.System.RECENTS_PANEL_COLOR, 0xC0000000);
+            if (color == 0xC0000000) {
+                Display d = ((WindowManager)mContext.getSystemService(Context.WINDOW_SERVICE))
+                    .getDefaultDisplay();
+                mHighEndGfx = ActivityManager.isHighEndGfx(d);
+                if (!mHighEndGfx) {
+                    mRecentsScrim.setBackground(null);
+                } else if (mRecentsScrim.getBackground() instanceof BitmapDrawable) {
+                    // In order to save space, we make the background texture repeat in the Y direction
+                    ((BitmapDrawable) mRecentsScrim.getBackground()).setTileModeY(TileMode.REPEAT);
+                }
+            } else {
+                mRecentsScrim.setBackgroundColor(color);
             }
+
             if (Settings.System.getInt(mContext.getContentResolver(),
                     Settings.System.PHONE_STYLE_RECENTS, 0) == 1) {
                 setTabletMargins();
@@ -733,6 +749,14 @@ public class RecentsPanelView extends FrameLayout implements OnItemClickListener
         int statusBarHeight = getResources().
                 getDimensionPixelSize(com.android.internal.R.dimen.navigation_bar_height);
         lp.setMargins(0, 0, 0, fullscreen ? 0 : statusBarHeight);
+        mRecentsScrim.setLayoutParams(lp);
+    }
+
+    public void setFullscreenPhone(boolean fullscreen) {
+        FrameLayout.LayoutParams lp = (FrameLayout.LayoutParams) mRecentsScrim.getLayoutParams();
+        int statusBarHeight = getResources().
+                getDimensionPixelSize(com.android.internal.R.dimen.status_bar_height);
+        lp.setMargins(0, fullscreen ? 0 : statusBarHeight, 0, 0);
         mRecentsScrim.setLayoutParams(lp);
     }
 

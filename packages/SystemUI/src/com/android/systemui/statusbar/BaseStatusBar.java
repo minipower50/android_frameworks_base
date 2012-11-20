@@ -1028,6 +1028,10 @@ public abstract class BaseStatusBar extends SystemUI implements
                     Settings.System.EXPANDED_CLOCK_ONCLICK), false, this);
             mResolver.registerContentObserver(Settings.System.getUriFor(
                     Settings.System.PHONE_STYLE_RECENTS), false, this);
+            mResolver.registerContentObserver(Settings.System.getUriFor(
+                    Settings.System.NAVIGATION_BAR_COLOR), false, this);
+            mResolver.registerContentObserver(Settings.System.getUriFor(
+                    Settings.System.RECENTS_PANEL_COLOR), false, this);
         }
 
         @Override
@@ -1041,6 +1045,10 @@ public abstract class BaseStatusBar extends SystemUI implements
             } else if (uri.equals(Settings.System.getUriFor(Settings.System.EXPANDED_CLOCK_ONCLICK))) {
                 android.os.Process.killProcess(android.os.Process.myPid());
             } else if (uri.equals(Settings.System.getUriFor(Settings.System.PHONE_STYLE_RECENTS))) {
+                android.os.Process.killProcess(android.os.Process.myPid());
+            } else if (uri.equals(Settings.System.getUriFor(Settings.System.RECENTS_PANEL_COLOR))) {
+                android.os.Process.killProcess(android.os.Process.myPid());
+            } else if (uri.equals(Settings.System.getUriFor(Settings.System.NAVIGATION_BAR_COLOR))) {
                 android.os.Process.killProcess(android.os.Process.myPid());
             } else {
                 mHandler.removeMessages(MSG_RECREATE);

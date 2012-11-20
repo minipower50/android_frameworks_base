@@ -755,11 +755,8 @@ public class TabletStatusBar extends BaseStatusBar implements
 
     @Override
     protected WindowManager.LayoutParams getRecentsLayoutParams(LayoutParams layoutParams) {
-        boolean phoneStyle = Settings.System.getInt(mContext.getContentResolver(),
-                Settings.System.PHONE_STYLE_RECENTS, 0) == 1;
-        WindowManager.LayoutParams lp = new WindowManager.LayoutParams(phoneStyle ?
-                ViewGroup.LayoutParams.MATCH_PARENT :
-                (int) mContext.getResources().getDimension(R.dimen.status_bar_recents_width),
+        WindowManager.LayoutParams lp = new WindowManager.LayoutParams(
+                ViewGroup.LayoutParams.MATCH_PARENT,
                 ViewGroup.LayoutParams.MATCH_PARENT,
                 WindowManager.LayoutParams.TYPE_NAVIGATION_BAR_PANEL,
                 WindowManager.LayoutParams.FLAG_LAYOUT_IN_SCREEN

@@ -23,7 +23,7 @@
     xmlns:systemui="http://schemas.android.com/apk/res/com.android.systemui"
     android:id="@+id/recents_root"
     android:layout_height="match_parent"
-    android:layout_width="wrap_content"
+    android:layout_width="match_parent"
     android:clipToPadding="true"
     android:clipChildren="true"
     systemui:recentItemLayout="@layout/system_bar_recent_item"
@@ -57,7 +57,7 @@
             android:fadingEdge="vertical"
             android:scrollbars="none"
             android:fadingEdgeLength="20dip"
-            android:layout_gravity="bottom|left"
+            android:layout_gravity="bottom|right"
             android:clipToPadding="false"
             android:clipChildren="false">
 
@@ -77,6 +77,7 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_gravity="bottom|right"
+            android:layout_marginRight="540dip"
             android:src="@drawable/ic_notify_clear" />
 
         <include layout="@layout/system_bar_no_recent_apps_flipped"

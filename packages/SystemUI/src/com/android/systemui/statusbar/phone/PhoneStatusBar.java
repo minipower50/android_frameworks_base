@@ -111,6 +111,7 @@ import com.android.systemui.statusbar.policy.NetworkController;
 import com.android.systemui.statusbar.policy.NotificationRowLayout;
 
 import com.android.systemui.statusbar.policy.ToggleSlider;
+import com.android.systemui.statusbar.policy.BrightnessController;
 import com.android.systemui.statusbar.policy.VolumeController;
 
 import java.io.FileDescriptor;
@@ -282,6 +283,7 @@ public class PhoneStatusBar extends BaseStatusBar {
     // for disabling the status bar
     int mDisabled = 0;
 
+    BrightnessController mBrightness;
     VolumeController mVolume;
 
     // tracking calls to View.setSystemUiVisibility()
@@ -313,6 +315,8 @@ public class PhoneStatusBar extends BaseStatusBar {
                     Settings.System.ACTIVE_USER_ID), false, this);
             resolver.registerContentObserver(Settings.System.getUriFor(
                     Settings.System.PHONE_STATUS_BAR_VOLUME), false, this);
+            resolver.registerContentObserver(Settings.System.getUriFor(
+                    Settings.System.PHONE_STATUS_BAR_BRIGHTNESS), false, this);
             update();
         }
 
@@ -331,6 +335,7 @@ public class PhoneStatusBar extends BaseStatusBar {
             mSettingsButton.setVisibility(Settings.System.getInt(mContext.getContentResolver(),
                     Settings.System.ACTIVE_USER_ID, 0) != 0 ? View.GONE : View.VISIBLE);
             refreshStatusBarVolume();
+            refreshStatusBarBrightness();
         }
     }
 
@@ -685,6 +690,7 @@ public class PhoneStatusBar extends BaseStatusBar {
 
         mPowerWidget.setupWidget();
 
+        refreshStatusBarBrightness();
         refreshStatusBarVolume();
 
         mVelocityTracker = VelocityTracker.obtain();
@@ -699,6 +705,15 @@ public class PhoneStatusBar extends BaseStatusBar {
         volumeLayout.setVisibility(show ? View.VISIBLE : View.GONE);
         ToggleSlider volume = (ToggleSlider) mStatusBarWindow.findViewById(R.id.volume);
         if (show) mVolume = new VolumeController(mContext, volume);
+    }
+
+    private void refreshStatusBarBrightness() {
+        boolean show = Settings.System.getInt(mContext.getContentResolver(),
+                Settings.System.PHONE_STATUS_BAR_BRIGHTNESS, 0) == 1;
+        View brightnessLayout = mStatusBarWindow.findViewById(R.id.brightness_layout);
+        brightnessLayout.setVisibility(show ? View.VISIBLE : View.GONE);
+        ToggleSlider brightness = (ToggleSlider) mStatusBarWindow.findViewById(R.id.brightness);
+        if (show) mBrightness = new BrightnessController(mContext, brightness);
     }
 
     @Override
@@ -1065,6 +1080,7 @@ public class PhoneStatusBar extends BaseStatusBar {
             Log.d(TAG, "Reinflation failure for the recents panel, new theme is '" + newConfig.customTheme + "' vs current '" + mContext.getResources().getConfiguration().customTheme + "'");
         }
         updateShowSearchHoldoff();
+        mRecentsPanel.setFullscreenPhone(!mVisible);
     }
 
     private void updateShowSearchHoldoff() {
@@ -1292,10 +1308,12 @@ public class PhoneStatusBar extends BaseStatusBar {
         if (mVisible) {
             if (wm.hasView((View) mStatusBarContainer)) wm.removeView(mStatusBarContainer);
             if (wm.hasView(mNavigationBarView)) wm.removeView(mNavigationBarView);
+            mRecentsPanel.setFullscreenPhone(true);
         } else {
             addNavigationBar();
             addStatusBarWindow();
             recreateStatusBar();
+            mRecentsPanel.setFullscreenPhone(false);
         }
 
         mVisible = !mVisible;
