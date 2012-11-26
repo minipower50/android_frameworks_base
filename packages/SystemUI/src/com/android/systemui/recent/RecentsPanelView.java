@@ -323,7 +323,9 @@ public class RecentsPanelView extends FrameLayout implements OnItemClickListener
 
             // if no apps found, we just hide the "Clear" button as it's not needed
             if(mClearRecents != null){
-                mClearRecents.setVisibility(noApps ? View.GONE : View.VISIBLE);
+                boolean hide = Settings.System.getInt(mContext.getContentResolver(),
+                    Settings.System.RECENT_APPS_CLEAR_ALL, 1) == 0;
+                mClearRecents.setVisibility((noApps || hide) ? View.GONE : View.VISIBLE);
             }
 
             if (mRecentsNoApps != null) {

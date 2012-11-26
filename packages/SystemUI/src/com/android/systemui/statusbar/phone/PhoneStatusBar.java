@@ -771,7 +771,10 @@ public class PhoneStatusBar extends BaseStatusBar {
         // a bit jarring
         mRecentsPanel.setMinSwipeAlpha(0.03f);
         if (mNavigationBarView != null) {
-            mNavigationBarView.setListener(mRecentsClickListener, mRecentsPanel, mHomeSearchActionListener, mExpandActionListener, mHideActionListener);
+            boolean homeSearch = Settings.System.getInt(mContext.getContentResolver(),
+                    Settings.System.HOME_BUTTON_SEARCH, 1) == 1;
+            mNavigationBarView.setListener(mRecentsClickListener, mRecentsPanel,
+                    homeSearch ? mHomeSearchActionListener : null, mExpandActionListener, mHideActionListener);
         }
     }
 
@@ -782,8 +785,10 @@ public class PhoneStatusBar extends BaseStatusBar {
     @Override
     protected void updateSearchPanel() {
         super.updateSearchPanel();
-        mSearchPanelView.setStatusBarView(mNavigationBarView);
-        mNavigationBarView.setDelegateView(mSearchPanelView);
+        boolean homeSearch = Settings.System.getInt(mContext.getContentResolver(),
+                Settings.System.HOME_BUTTON_SEARCH, 1) == 1;
+        if (homeSearch) mSearchPanelView.setStatusBarView(mNavigationBarView);
+        mNavigationBarView.setDelegateView(homeSearch ? mSearchPanelView : null);
     }
 
     @Override
@@ -872,8 +877,11 @@ public class PhoneStatusBar extends BaseStatusBar {
     };
 
     private void prepareNavigationBarView() {
+        boolean homeSearch = Settings.System.getInt(mContext.getContentResolver(),
+                Settings.System.HOME_BUTTON_SEARCH, 1) == 1;
         mNavigationBarView.reorient();
-        mNavigationBarView.setListener(mRecentsClickListener,mRecentsPanel, mHomeSearchActionListener, mExpandActionListener, mHideActionListener);
+        mNavigationBarView.setListener(mRecentsClickListener,mRecentsPanel,
+                homeSearch ? mHomeSearchActionListener : null, mExpandActionListener, mHideActionListener);
         updateSearchPanel();
     }
 
@@ -2121,8 +2129,15 @@ public class PhoneStatusBar extends BaseStatusBar {
                     }
                 }
 
+                boolean hideLightsOut = Settings.System.getInt(mContext.getContentResolver(),
+                        Settings.System.SB_HIDE_LOW_PROFILE, 0) == 1;
+
                 if (mNavigationBarView != null) {
-                    mNavigationBarView.setLowProfile(lightsOut);
+                    if (hideLightsOut) {
+                        toggleVisibility();
+                    } else {
+                        mNavigationBarView.setLowProfile(lightsOut);
+                    }
                 }
 
                 setStatusBarLowProfile(lightsOut);

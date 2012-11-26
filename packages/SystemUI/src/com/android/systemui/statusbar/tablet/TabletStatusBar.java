@@ -392,7 +392,9 @@ public class TabletStatusBar extends BaseStatusBar implements
 
         // Search Panel
         mStatusBarView.setBar(this);
-        mHomeButton.setOnTouchListener(mHomeSearchActionListener);
+        boolean homeSearch = Settings.System.getInt(mContext.getContentResolver(),
+                Settings.System.HOME_BUTTON_SEARCH, 1) == 1;
+        mHomeButton.setOnTouchListener(homeSearch ? mHomeSearchActionListener : null);
         updateSearchPanel();
 
         // Input methods Panel
@@ -811,8 +813,10 @@ public class TabletStatusBar extends BaseStatusBar implements
     @Override
     protected void updateSearchPanel() {
         super.updateSearchPanel();
-        mSearchPanelView.setStatusBarView(mStatusBarView);
-        mStatusBarView.setDelegateView(mSearchPanelView);
+        boolean homeSearch = Settings.System.getInt(mContext.getContentResolver(),
+                Settings.System.HOME_BUTTON_SEARCH, 1) == 1;
+        if (homeSearch) mSearchPanelView.setStatusBarView(mStatusBarView);
+        mStatusBarView.setDelegateView(homeSearch ? mSearchPanelView : null);
     }
 
     @Override
@@ -869,6 +873,8 @@ public class TabletStatusBar extends BaseStatusBar implements
     private class H extends BaseStatusBar.H {
         public void handleMessage(Message m) {
             super.handleMessage(m);
+            boolean hideLightsOut = Settings.System.getInt(mContext.getContentResolver(),
+                    Settings.System.SB_HIDE_LOW_PROFILE, 0) == 1;
             switch (m.what) {
                 case MSG_OPEN_NOTIFICATION_PEEK:
                     if (DEBUG) Slog.d(TAG, "opening notification peek window; arg=" + m.arg1);
@@ -979,6 +985,7 @@ public class TabletStatusBar extends BaseStatusBar implements
                 case MSG_SHOW_CHROME:
                     if (DEBUG) Slog.d(TAG, "hiding shadows (lights on)");
                     mBarContents.setVisibility(View.VISIBLE);
+                    if (hideLightsOut) toggleVisibility();
                     mShadow.setVisibility(View.GONE);
                     mSystemUiVisibility &= ~View.SYSTEM_UI_FLAG_LOW_PROFILE;
                     notifyUiVisibilityChanged();
@@ -988,7 +995,8 @@ public class TabletStatusBar extends BaseStatusBar implements
                     animateCollapse();
                     visibilityChanged(false);
                     mBarContents.setVisibility(View.GONE);
-                    mShadow.setVisibility(View.VISIBLE);
+                    if (hideLightsOut) toggleVisibility();
+                    else mShadow.setVisibility(View.VISIBLE);
                     mSystemUiVisibility |= View.SYSTEM_UI_FLAG_LOW_PROFILE;
                     notifyUiVisibilityChanged();
                     break;
@@ -1169,7 +1177,9 @@ public class TabletStatusBar extends BaseStatusBar implements
 
         // Search Panel
         mStatusBarView.setBar(this);
-        mHomeButton.setOnTouchListener(mHomeSearchActionListener);
+        boolean homeSearch = Settings.System.getInt(mContext.getContentResolver(),
+                Settings.System.HOME_BUTTON_SEARCH, 1) == 1;
+        mHomeButton.setOnTouchListener(homeSearch ? mHomeSearchActionListener : null);
         updateSearchPanel();
     }
 

@@ -1032,23 +1032,23 @@ public abstract class BaseStatusBar extends SystemUI implements
                     Settings.System.NAVIGATION_BAR_COLOR), false, this);
             mResolver.registerContentObserver(Settings.System.getUriFor(
                     Settings.System.RECENTS_PANEL_COLOR), false, this);
+            mResolver.registerContentObserver(Settings.System.getUriFor(
+                    Settings.System.HOME_BUTTON_SEARCH), false, this);
+            mResolver.registerContentObserver(Settings.System.getUriFor(
+                    Settings.System.RECENT_APPS_CLEAR_ALL), false, this);
         }
 
         @Override
         public void onChange(boolean selfChange, Uri uri) {
-            if (uri.equals(Settings.System.getUriFor(Settings.System.TABLET_MODE))) {
-                android.os.Process.killProcess(android.os.Process.myPid());
-            } else if (uri.equals(Settings.System.getUriFor(Settings.System.NAVIGATION_CONTROLS))) {
-                android.os.Process.killProcess(android.os.Process.myPid());
-            } else if (uri.equals(Settings.System.getUriFor(Settings.System.TABLET_FLIPPED))) {
-                android.os.Process.killProcess(android.os.Process.myPid());
-            } else if (uri.equals(Settings.System.getUriFor(Settings.System.EXPANDED_CLOCK_ONCLICK))) {
-                android.os.Process.killProcess(android.os.Process.myPid());
-            } else if (uri.equals(Settings.System.getUriFor(Settings.System.PHONE_STYLE_RECENTS))) {
-                android.os.Process.killProcess(android.os.Process.myPid());
-            } else if (uri.equals(Settings.System.getUriFor(Settings.System.RECENTS_PANEL_COLOR))) {
-                android.os.Process.killProcess(android.os.Process.myPid());
-            } else if (uri.equals(Settings.System.getUriFor(Settings.System.NAVIGATION_BAR_COLOR))) {
+            if (uri.equals(Settings.System.getUriFor(Settings.System.TABLET_MODE)) ||
+                    uri.equals(Settings.System.getUriFor(Settings.System.NAVIGATION_CONTROLS)) ||
+                    uri.equals(Settings.System.getUriFor(Settings.System.TABLET_FLIPPED)) ||
+                    uri.equals(Settings.System.getUriFor(Settings.System.EXPANDED_CLOCK_ONCLICK)) ||
+                    uri.equals(Settings.System.getUriFor(Settings.System.PHONE_STYLE_RECENTS)) ||
+                    uri.equals(Settings.System.getUriFor(Settings.System.RECENTS_PANEL_COLOR)) ||
+                    uri.equals(Settings.System.getUriFor(Settings.System.NAVIGATION_BAR_COLOR)) ||
+                    uri.equals(Settings.System.getUriFor(Settings.System.HOME_BUTTON_SEARCH)) ||
+                    uri.equals(Settings.System.getUriFor(Settings.System.RECENT_APPS_CLEAR_ALL))) {
                 android.os.Process.killProcess(android.os.Process.myPid());
             } else {
                 mHandler.removeMessages(MSG_RECREATE);
