@@ -2588,6 +2588,21 @@ public final class Settings {
         public static final String UMS_NOTIFICATION_CONNECT = "ums_notification_connect";
 
         /**
+         * @hide
+         */
+        public static final String HOME_BUTTON_SEARCH = "home_button_search";
+
+        /**
+         * @hide
+         */
+        public static final String SB_HIDE_LOW_PROFILE = "sb_hide_low_profile";
+
+        /**
+         * @hide
+         */
+        public static final String RECENT_APPS_CLEAR_ALL = "recent_apps_clear_all";
+
+        /**
          * Use the Notification Power Widget? (Who wouldn't!)
          *
          * @hide
