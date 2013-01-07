@@ -2844,6 +2844,13 @@ public final class Settings {
          */
         public static final String STATUS_BAR_SIGNAL_TEXT = "status_bar_signal";
 
+        /**
+		 * whether to hide the Ram Usage Bar on recent switcher
+         *
+         * @hide
+         */
+        public static final String RECENTS_RAM_BAR = "recents_ram_bar";
+
          /**
          * Whether to control brightness from status bar
          *
@@ -2869,6 +2876,34 @@ public final class Settings {
         public static final int STATUS_BAR_COLLAPSE_IF_EMPTIED = 1;
         /** @hide */
         public static final int STATUS_BAR_COLLAPSE_IF_NO_CLEARABLE = 2;
+
+        /**
+         * whether which Ram Usage Bar mode is used on recent switcher
+         * 0 = none, 1 = only app use, 2 = app and cache use, 3 = app, cache and system use
+         * @hide
+         */
+        public static final String RECENTS_RAM_BAR_MODE = "recents_ram_bar_mode";
+
+        /**
+         * Ram Usage Bar system mem color
+         *
+         * @hide
+         */
+        public static final String RECENTS_RAM_BAR_MEM_COLOR = "recents_ram_bar_mem_color";
+
+        /**
+         * Ram Usage Bar cached mem color
+         *
+         * @hide
+         */
+        public static final String RECENTS_RAM_BAR_CACHE_COLOR = "recents_ram_bar_cache_color";
+
+        /**
+         * Ram Usage Bar app mem color
+         *
+         * @hide
+         */
+        public static final String RECENTS_RAM_BAR_ACTIVE_APPS_COLOR = "recents_ram_bar_active_apps_color";
 
          /**
          * Expanded desktop on/off state
