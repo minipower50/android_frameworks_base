@@ -319,10 +319,34 @@ public class NavbarEditor implements OnTouchListener {
      */
     protected void reInflate() {
         ((ViewGroup)mParent).removeAllViews();
+        int navAlign = Settings.System.getInt(mContext.getContentResolver(),
+                Settings.System.NAVIGATION_ALIGNMENT, 0);
         if (mVertical) {
-            View.inflate(mContext, R.layout.mid_navigation_bar_land, (ViewGroup) mParent);
+            switch (navAlign) {
+                case 0:
+                    navAlign = R.layout.mid_navigation_bar_land;
+                    break;
+                case 1:
+                    navAlign = R.layout.mid_navigation_bar_right_land;
+                    break;
+                case 2:
+                    navAlign = R.layout.mid_navigation_bar_left_land;
+                    break;
+            }
+            View.inflate(mContext, navAlign, (ViewGroup) mParent);
         } else {
-            View.inflate(mContext, R.layout.mid_navigation_bar_port, (ViewGroup) mParent);
+            switch (navAlign) {
+                case 0:
+                    navAlign = R.layout.mid_navigation_bar_port;
+                    break;
+                case 1:
+                    navAlign = R.layout.mid_navigation_bar_right_port;
+                    break;
+                case 2:
+                    navAlign = R.layout.mid_navigation_bar_left_port;
+                    break;
+            }
+            View.inflate(mContext, navAlign, (ViewGroup) mParent);
         }
     }
 
