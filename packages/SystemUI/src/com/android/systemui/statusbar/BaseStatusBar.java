@@ -1202,6 +1202,8 @@ public abstract class BaseStatusBar extends SystemUI implements
                     Settings.System.TABLET_FORCE_MENU), false, this);
             resolver.registerContentObserver(Settings.System.getUriFor(
                     Settings.System.LARGE_RECENT_THUMBS), false, this);
+            resolver.registerContentObserver(Settings.System.getUriFor(
+                    Settings.System.NAVIGATION_ALIGNMENT), false, this);
         }
 
         @Override

@@ -484,8 +484,21 @@ public class PhoneStatusBar extends BaseStatusBar {
             boolean showNav = mWindowManagerService.hasNavigationBar();
             if (DEBUG) Slog.v(TAG, "hasNavigationBar=" + showNav);
             if (showNav && !mRecreating) {
+                int navAlign = Settings.System.getInt(mContext.getContentResolver(),
+                        Settings.System.NAVIGATION_ALIGNMENT, 0);
+                switch (navAlign) {
+                    case 0:
+                        navAlign = R.layout.navigation_bar;
+                        break;
+                    case 1:
+                        navAlign = R.layout.navigation_bar_right;
+                        break;
+                    case 2:
+                        navAlign = R.layout.navigation_bar_left;
+                        break;
+                }
                 mNavigationBarView =
-                    (NavigationBarView) View.inflate(context, R.layout.navigation_bar, null);
+                    (NavigationBarView) View.inflate(context, navAlign, null);
 
                 mNavigationBarView.setDisabledFlags(mDisabled);
                 mNavigationBarView.setBar(this);

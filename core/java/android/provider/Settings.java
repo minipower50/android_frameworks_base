@@ -3161,6 +3161,11 @@ public final class Settings {
         public static final String LARGE_RECENT_THUMBS = "large_recent_thumbs";
 
         /**
+         * @hide
+         */
+        public static final String NAVIGATION_ALIGNMENT = "navigation_alignment";
+
+        /**
          * Settings to backup. This is here so that it's in the same place as the settings
          * keys and easy to update.
          *
