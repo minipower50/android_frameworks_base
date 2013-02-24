@@ -1381,8 +1381,12 @@ public class PhoneWindowManager implements WindowManagerPolicy {
             boolean keyRebindingEnabled = Settings.System.getInt(resolver,
                     Settings.System.HARDWARE_KEY_REBINDING, 0) == 1;
 
+            boolean hasNavigationControls = Settings.System.getInt(mContext.getContentResolver(),
+                    Settings.System.NAVIGATION_CONTROLS, mContext.getResources().getBoolean(
+                    com.android.internal.R.bool.config_showNavigationBar) ? 1 : 0) == 1;
+
             if (!keyRebindingEnabled) {
-                if (mHasHomeKey) {
+                if (mHasHomeKey && !hasNavigationControls) {
                     if (mHasAppSwitchKey) {
                         mLongPressOnHomeBehavior = KEY_ACTION_NOTHING;
                     } else {
