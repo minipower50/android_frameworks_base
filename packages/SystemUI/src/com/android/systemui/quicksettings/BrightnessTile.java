@@ -150,7 +150,18 @@ public class BrightnessTile extends QuickSettingsTile implements BrightnessState
     };
 
     @Override
-    public void onBrightnessLevelChanged() {
+    void onPostCreate() {
+        updateTile();
+        super.onPostCreate();
+    }
+
+    @Override
+    public void updateResources() {
+        updateTile();
+        super.updateResources();
+    }
+
+    private synchronized void updateTile() {
         int mode;
         try {
             mode = Settings.System.getIntForUser(mContext.getContentResolver(),
@@ -163,17 +174,16 @@ public class BrightnessTile extends QuickSettingsTile implements BrightnessState
                     : R.drawable.ic_qs_brightness_auto_off;
             mLabel = mContext.getString(R.string.quick_settings_brightness_label);
         } catch (SettingNotFoundException e) {
-            // TODO Auto-generated catch block
-            e.printStackTrace();
         }
-        if (mTile != null){
-            updateQuickSettings();
-        }
-        dismissBrightnessDialog(mBrightnessDialogLongTimeout);
+    }
+
+    @Override
+    public void onBrightnessLevelChanged() {
+        updateResources();
     }
 
     @Override
     public void onChangeUri(ContentResolver resolver, Uri uri) {
-        onBrightnessLevelChanged();
+        updateResources();
     }
 }
