@@ -47,6 +47,7 @@ import static com.android.internal.util.cm.QSUtils.deviceSupportsBluetooth;
 import static com.android.internal.util.cm.QSUtils.deviceSupportsTelephony;
 import static com.android.internal.util.cm.QSUtils.deviceSupportsUsbTether;
 import static com.android.internal.util.cm.QSUtils.systemProfilesEnabled;
+import static com.android.internal.util.cm.QSUtils.deviceSupportsLte;
 
 import android.content.BroadcastReceiver;
 import android.content.ContentResolver;
@@ -71,6 +72,7 @@ import com.android.systemui.quicksettings.BugReportTile;
 import com.android.systemui.quicksettings.DaydreamTile;
 import com.android.systemui.quicksettings.GPSTile;
 import com.android.systemui.quicksettings.InputMethodTile;
+import com.android.systemui.quicksettings.LteTile;
 import com.android.systemui.quicksettings.MobileNetworkTile;
 import com.android.systemui.quicksettings.MobileNetworkTypeTile;
 import com.android.systemui.quicksettings.NfcTile;
@@ -128,6 +130,7 @@ public class QuickSettingsController {
         // Filter items not compatible with device
         boolean bluetoothSupported = deviceSupportsBluetooth();
         boolean telephonySupported = deviceSupportsTelephony(mContext);
+        boolean lteSupported = deviceSupportsLte(mContext);
 
         if (!bluetoothSupported) {
             TILES_DEFAULT.remove(TILE_BLUETOOTH);
@@ -137,6 +140,10 @@ public class QuickSettingsController {
             TILES_DEFAULT.remove(TILE_WIFIAP);
             TILES_DEFAULT.remove(TILE_MOBILEDATA);
             TILES_DEFAULT.remove(TILE_NETWORKMODE);
+        }
+
+        if (!lteSupported) {
+            TILES_DEFAULT.remove(TILE_LTE);
         }
 
         // Read the stored list of tiles
@@ -198,7 +205,7 @@ public class QuickSettingsController {
             } else if (tile.equals(TILE_WIMAX)) {
                 // Not available yet
             } else if (tile.equals(TILE_LTE)) {
-                // Not available yet
+                qs = new LteTile(mContext, inflater, mContainerView, this);
             } else if (tile.equals(TILE_QUIETHOURS)) {
                 qs = new QuietHoursTile(mContext, inflater, mContainerView, this);
             } else if (tile.equals(TILE_VOLUME)) {
