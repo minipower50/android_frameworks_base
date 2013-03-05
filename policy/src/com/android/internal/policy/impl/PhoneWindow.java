@@ -60,6 +60,7 @@ import android.database.ContentObserver;
 import android.graphics.Canvas;
 import android.graphics.Paint;
 import android.graphics.PixelFormat;
+import android.graphics.Point;
 import android.graphics.Rect;
 import android.graphics.drawable.Drawable;
 import android.media.AudioManager;
@@ -82,6 +83,7 @@ import android.util.SparseArray;
 import android.util.TypedValue;
 import android.view.ActionMode;
 import android.view.ContextThemeWrapper;
+import android.view.Display;
 import android.view.GestureDetector;
 import android.view.GestureDetector.SimpleOnGestureListener;
 import android.view.Gravity;
@@ -1876,6 +1878,8 @@ public class PhoneWindow extends Window implements MenuBuilder.Callback {
 
         private boolean mEnableGestures;
 
+        private int mScreenWidth, mScreenHeight;
+
         public DecorView(Context context, int featureId) {
             super(context);
             mFeatureId = featureId;
@@ -1995,6 +1999,13 @@ public class PhoneWindow extends Window implements MenuBuilder.Callback {
 
             mShowGestures = Settings.System.getInt(resolver,
                     Settings.System.SHOW_GESTURES, 0) == 1;
+
+            WindowManager wm = getWindowManager();
+            Display display = wm.getDefaultDisplay();
+            Point size = new Point();
+            display.getRealSize(size);
+            mScreenWidth = size.x;
+            mScreenHeight = size.y;
 
             invalidate();
         }
@@ -2287,7 +2298,7 @@ public class PhoneWindow extends Window implements MenuBuilder.Callback {
             float width = (float) getWidth();
             float height = (float) getHeight();
 
-             return x >= (zone[0] * width)
+            return x >= (zone[0] * width)
                     && x <= (zone[1] * width)
                     && y >= (zone[2] * height)
                     && y <= (zone[3] * height);
@@ -2340,7 +2351,9 @@ public class PhoneWindow extends Window implements MenuBuilder.Callback {
         public boolean onInterceptTouchEvent(MotionEvent event) {
             int action = event.getAction();
 
-            if (mFeatureId == -1 && !mBlacklisted &&
+            boolean mainPanel = getWidth() == mScreenWidth || getWidth() == mScreenHeight;
+
+            if (mainPanel && mFeatureId == -1 && !mBlacklisted &&
                     mGestureOne + mGestureTwo + mGestureThree + mGestureFour > 0) {
                 float x = event.getX();
                 float y = event.getY();
@@ -2643,7 +2656,9 @@ public class PhoneWindow extends Window implements MenuBuilder.Callback {
                 mMenuBackground.draw(canvas);
             }
 
-            if (mFeatureId == -1 && mShowGestures) {
+            boolean mainPanel = getWidth() == mScreenWidth || getWidth() == mScreenHeight;
+
+            if (mainPanel && mFeatureId == -1 && mShowGestures) {
                 Paint paint = new Paint();
                 paint.setColor(0x80F3F3F3);
                 paint.setStrokeWidth(0);
