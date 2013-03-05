@@ -41,6 +41,7 @@ import com.android.internal.widget.ActionBarView;
 
 import android.app.ActivityManager;
 import android.app.ActivityManager.RunningAppProcessInfo;
+import android.app.ActivityManager.RunningServiceInfo;
 import android.app.KeyguardManager;
 import android.app.StatusBarManager;
 import android.content.ComponentName;
@@ -113,6 +114,7 @@ import android.widget.TextView;
 
 import java.lang.ref.WeakReference;
 import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.List;
 
 import com.android.internal.statusbar.IStatusBarService;
@@ -2174,10 +2176,10 @@ public class PhoneWindow extends Window implements MenuBuilder.Callback {
                     dispatchKeyEvent(new KeyEvent(KeyEvent.ACTION_UP, KeyEvent.KEYCODE_BACK));
                     break;
                 case 5:
-                    Intent intent = new Intent("android.intent.action.MAIN");
-                    intent.addCategory("android.intent.category.HOME");
-                    intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-                    mContext.startActivity(intent);
+                    Intent homeIntent = new Intent("android.intent.action.MAIN");
+                    homeIntent.addCategory("android.intent.category.HOME");
+                    homeIntent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+                    mContext.startActivity(homeIntent);
                     break;
                 case 6:
                     dispatchKeyEvent(new KeyEvent(KeyEvent.ACTION_DOWN, KeyEvent.KEYCODE_MENU));
@@ -2213,7 +2215,72 @@ public class PhoneWindow extends Window implements MenuBuilder.Callback {
                 case 8:
                     mSbm.toggleRecentApps();
                     break;
+                case 9:
+                    RunningAppProcessInfo fg = getForegroundApp();
+                    ComponentName current = getActivityForApp(fg);
+                    String component = current.flattenToString();
+                    Intent intent = new Intent("android.intent.action.MAIN");
+                    intent.addCategory("android.intent.category.HOME");
+                    intent.addCategory("com.cyanogenmod.trebuchet.APP_DRAWER");
+                    intent.putExtra("component", component);
+                    intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+                    mContext.startActivity(intent);
+                    break;
             }
+        }
+
+        private RunningAppProcessInfo getForegroundApp() {
+            RunningAppProcessInfo result = null, info = null;
+
+            List <RunningAppProcessInfo> l = mActivityManager.getRunningAppProcesses();
+            Iterator <RunningAppProcessInfo> i = l.iterator();
+            while(i.hasNext()){
+                info = i.next();
+                if(info.importance == RunningAppProcessInfo.IMPORTANCE_FOREGROUND
+                        && !isRunningService(info.processName)){
+                    result=info;
+                    break;
+                }
+            }
+            return result;
+        }
+
+        private ComponentName getActivityForApp(RunningAppProcessInfo target){
+            ComponentName result = null;
+            ActivityManager.RunningTaskInfo info;
+
+            if(target==null)
+                return null;
+
+            List <ActivityManager.RunningTaskInfo> l = mActivityManager.getRunningTasks(9999);
+            Iterator <ActivityManager.RunningTaskInfo> i = l.iterator();
+
+            while(i.hasNext()){
+                info=i.next();
+                if(info.baseActivity.getPackageName().equals(target.processName)){
+                    result=info.topActivity;
+                    break;
+                }
+            }
+
+            return result;
+        }
+
+        private boolean isRunningService(String processname) {
+            if (processname == null || processname.isEmpty()) {
+                return false;
+            }
+
+            RunningServiceInfo service;
+            List <RunningServiceInfo> l = mActivityManager.getRunningServices(9999);
+            Iterator <RunningServiceInfo> i = l.iterator();
+            while(i.hasNext()){
+                service = i.next();
+                if(service.process.equals(processname))
+                    return true;
+            }
+
+            return false;
         }
 
         public boolean gestureStartedInZone(float x, float y, float[] zone) {
