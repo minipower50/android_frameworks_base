@@ -99,10 +99,11 @@
             android:layout_width="128dp"
             android:id="@+id/search_light"
             android:layout_height="match_parent"
-            android:layout_gravity="center_horizontal"
+            android:layout_gravity="right"
             android:src="@drawable/search_light"
             android:scaleType="center"
             android:visibility="gone"
+            android:layout_marginRight="176dp"
             />
 
         <com.android.systemui.statusbar.policy.DeadZone
@@ -199,10 +200,11 @@
             android:layout_width="162dp"
             android:id="@+id/search_light"
             android:layout_height="match_parent"
-            android:layout_gravity="center_horizontal"
+            android:layout_gravity="right"
             android:src="@drawable/search_light"
             android:scaleType="center"
             android:visibility="gone"
+            android:layout_marginRight="210dp"
             />
 
         <com.android.systemui.statusbar.policy.DeadZone
