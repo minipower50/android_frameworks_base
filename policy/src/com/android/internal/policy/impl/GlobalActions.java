@@ -1047,6 +1047,10 @@ class GlobalActions implements DialogInterface.OnDismissListener, DialogInterfac
             } else {
                 mAudioManager.setRingerMode(AudioManager.RINGER_MODE_NORMAL);
             }
+            final int stream = mAudioManager.isMusicActive() ? AudioManager.STREAM_MUSIC :
+                    AudioManager.STREAM_NOTIFICATION;
+            final int volume = mAudioManager.getStreamVolume(stream);
+            mAudioManager.setStreamVolume(stream, volume, AudioManager.FLAG_SHOW_UI);
         }
 
         public boolean showDuringKeyguard() {
@@ -1124,6 +1128,10 @@ class GlobalActions implements DialogInterface.OnDismissListener, DialogInterfac
 
             int index = (Integer) v.getTag();
             mAudioManager.setRingerMode(indexToRingerMode(index));
+            final int stream = mAudioManager.isMusicActive() ? AudioManager.STREAM_MUSIC :
+                    AudioManager.STREAM_NOTIFICATION;
+            final int volume = mAudioManager.getStreamVolume(stream);
+            mAudioManager.setStreamVolume(stream, volume, AudioManager.FLAG_SHOW_UI);
             mHandler.sendEmptyMessageDelayed(MESSAGE_DISMISS, DIALOG_DISMISS_DELAY);
         }
     }
