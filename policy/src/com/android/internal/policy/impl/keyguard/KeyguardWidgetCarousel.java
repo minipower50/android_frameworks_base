@@ -20,6 +20,7 @@ import android.animation.AnimatorSet;
 import android.animation.ObjectAnimator;
 import android.animation.PropertyValuesHolder;
 import android.content.Context;
+import android.provider.Settings;
 import android.util.AttributeSet;
 import android.view.View;
 import android.view.animation.AccelerateInterpolator;
@@ -37,6 +38,7 @@ public class KeyguardWidgetCarousel extends KeyguardWidgetPager {
     private static float CAMERA_DISTANCE = 10000;
     protected AnimatorSet mChildrenTransformsAnimator;
     float[] mTmpTransform = new float[3];
+    private boolean mHideFrames;
 
     public KeyguardWidgetCarousel(Context context, AttributeSet attrs) {
         this(context, attrs, 0);
@@ -49,6 +51,8 @@ public class KeyguardWidgetCarousel extends KeyguardWidgetPager {
     public KeyguardWidgetCarousel(Context context, AttributeSet attrs, int defStyle) {
         super(context, attrs, defStyle);
         mAdjacentPagesAngle = context.getResources().getInteger(R.integer.kg_carousel_angle);
+        mHideFrames = Settings.System.getInt(context.getContentResolver(),
+                Settings.System.KG_HIDE_OUTLINE, 0) == 1;
     }
 
     protected float getMaxScrollProgress() {
@@ -108,7 +112,7 @@ public class KeyguardWidgetCarousel extends KeyguardWidgetPager {
             boolean inVisibleRange = i >= getNextPage() - 1 && i <= getNextPage() + 1;
             KeyguardWidgetFrame child = getWidgetPageAt(i);
             if (inVisibleRange) {
-                child.setBackgroundAlpha(KeyguardWidgetFrame.OUTLINE_ALPHA_MULTIPLIER);
+                child.setBackgroundAlpha(mHideFrames ? 0f : KeyguardWidgetFrame.OUTLINE_ALPHA_MULTIPLIER);
                 child.setContentAlpha(1f);
             } else {
                 child.setBackgroundAlpha(0f);
@@ -172,7 +176,7 @@ public class KeyguardWidgetCarousel extends KeyguardWidgetPager {
                 child.setRotationY(0f);
             }
             alpha = PropertyValuesHolder.ofFloat("contentAlpha", 1.0f);
-            outlineAlpha = PropertyValuesHolder.ofFloat("backgroundAlpha",
+            outlineAlpha = PropertyValuesHolder.ofFloat("backgroundAlpha", mHideFrames ? 0f :
                     KeyguardWidgetFrame.OUTLINE_ALPHA_MULTIPLIER);
             rotationY = PropertyValuesHolder.ofFloat("rotationY", 0f);
             ObjectAnimator a = ObjectAnimator.ofPropertyValuesHolder(child, alpha, outlineAlpha, rotationY);

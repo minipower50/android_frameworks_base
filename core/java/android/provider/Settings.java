@@ -3041,6 +3041,16 @@ public final class Settings {
         /**
          * @hide
          */
+        public static final String KG_ALL_WIDGETS = "kg_all_widgets";
+
+        /**
+         * @hide
+         */
+        public static final String KG_HIDE_OUTLINE = "kg_hide_outline";
+
+        /**
+         * @hide
+         */
         public static final String KG_CAMERA_WIDGET = "kg_camera_widget";
 
         /**
