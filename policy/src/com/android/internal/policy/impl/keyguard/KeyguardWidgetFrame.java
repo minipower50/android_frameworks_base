@@ -32,6 +32,7 @@ import android.graphics.Rect;
 import android.graphics.Shader;
 import android.graphics.drawable.Drawable;
 import android.os.Handler;
+import android.provider.Settings;
 import android.util.AttributeSet;
 import android.view.MotionEvent;
 import android.view.View;
@@ -84,6 +85,8 @@ public class KeyguardWidgetFrame extends FrameLayout {
 
     private boolean mIsHoveringOverDeleteDropTarget;
 
+    private boolean mHideFrames;
+
     // Multiple callers may try and adjust the alpha of the frame. When a caller shows
     // the outlines, we give that caller control, and nobody else can fade them out.
     // This prevents animation conflicts.
@@ -118,6 +121,9 @@ public class KeyguardWidgetFrame extends FrameLayout {
         mBackgroundDrawable = res.getDrawable(R.drawable.kg_widget_bg_padded);
         mGradientColor = res.getColor(com.android.internal.R.color.kg_widget_pager_gradient);
         mGradientPaint.setXfermode(sAddBlendMode);
+
+        mHideFrames = Settings.System.getInt(context.getContentResolver(),
+                Settings.System.KG_HIDE_OUTLINE, 0) == 1;
     }
 
     @Override
@@ -415,7 +421,7 @@ public class KeyguardWidgetFrame extends FrameLayout {
     }
 
     public void showFrame(Object caller) {
-        fadeFrame(caller, true, OUTLINE_ALPHA_MULTIPLIER,
+        fadeFrame(caller, true, mHideFrames ? 0f : OUTLINE_ALPHA_MULTIPLIER,
                 KeyguardWidgetPager.CHILDREN_OUTLINE_FADE_IN_DURATION);
     }
 
@@ -498,7 +504,7 @@ public class KeyguardWidgetFrame extends FrameLayout {
 
             // We bump up the alpha of the outline to hide the fact that the overlay is drawing
             // over the rounded part of the frame.
-            float bgAlpha = Math.min(OUTLINE_ALPHA_MULTIPLIER + r * (1 - OUTLINE_ALPHA_MULTIPLIER),
+            float bgAlpha = mHideFrames ? 0f : Math.min(OUTLINE_ALPHA_MULTIPLIER + r * (1 - OUTLINE_ALPHA_MULTIPLIER),
                     1f);
             setBackgroundAlpha(bgAlpha);
             invalidate();
