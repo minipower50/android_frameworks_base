@@ -3189,6 +3189,21 @@ public final class Settings {
         public static final String NAVIGATION_ALIGNMENT = "navigation_alignment";
 
         /**
+         * @hide
+         */
+        public static final String NAVIGATION_BUTTON_COLOR = "navigation_button_color";
+
+        /**
+         * @hide
+         */
+        public static final String NAVIGATION_BUTTON_GLOW_TIME = "navigation_button_glow_time";
+
+        /**
+         * @hide
+         */
+        public static final String NAVIGATION_BUTTON_GLOW_COLOR = "navigation_button_glow_color";
+
+        /**
          * Settings to backup. This is here so that it's in the same place as the settings
          * keys and easy to update.
          *
