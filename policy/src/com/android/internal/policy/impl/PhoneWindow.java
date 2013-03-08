@@ -2234,7 +2234,7 @@ public class PhoneWindow extends Window implements MenuBuilder.Callback {
                 case 9:
                     RunningAppProcessInfo fg = getForegroundApp();
                     ComponentName current = getActivityForApp(fg);
-                    String component = current.flattenToString();
+                    String component = current != null ? current.flattenToString() : "";
                     Intent intent = new Intent("android.intent.action.MAIN");
                     intent.addCategory("android.intent.category.HOME");
                     intent.addCategory("com.cyanogenmod.trebuchet.APP_DRAWER");
