@@ -894,6 +894,10 @@
          autodetected from the Configuration. -->
     <bool name="config_showNavigationBar">false</bool>
 
+    <!-- Whether a combined status / navigation bar for tablets should be shown. NOTE: both this
+         and config_showNavigationBar should be true for tablet navigation bar with nav buttons -->
+    <bool name="config_showTabletNavigationBar">false</bool>
+
     <!-- Whether action menu items should be displayed in ALLCAPS or not.
          Defaults to true. If this is not appropriate for specific locales
          it should be disabled in that locale's resources. -->

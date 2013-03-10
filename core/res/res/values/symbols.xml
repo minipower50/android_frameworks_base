@@ -1223,6 +1223,7 @@
   <java-symbol type="bool" name="config_lidControlsSleep" />
   <java-symbol type="bool" name="config_reverseDefaultRotation" />
   <java-symbol type="bool" name="config_showNavigationBar" />
+  <java-symbol type="bool" name="config_showTabletNavigationBar" />
   <java-symbol type="bool" name="kg_enable_camera_default_widget" />
   <java-symbol type="bool" name="kg_share_status_area" />
   <java-symbol type="bool" name="kg_sim_puk_account_full_screen" />

@@ -42,7 +42,8 @@ public class DelegateViewHelper {
         mFlippedTabletStatusBar = (Settings.System.getInt(sourceView.getContext().getContentResolver(),
                 Settings.System.TABLET_FLIPPED, 0) == 1) &&
                 (Settings.System.getInt(sourceView.getContext().getContentResolver(),
-                Settings.System.TABLET_MODE, 0) == 1);
+                Settings.System.TABLET_MODE, sourceView.getContext().getResources().getBoolean(
+                com.android.internal.R.bool.config_showTabletNavigationBar) ? 1 : 0) == 1);
     }
 
     public void setDelegateView(View view) {
