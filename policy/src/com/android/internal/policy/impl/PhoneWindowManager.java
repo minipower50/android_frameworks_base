@@ -1303,7 +1303,8 @@ public class PhoneWindowManager implements WindowManagerPolicy {
 
         ContentResolver resolver = mContext.getContentResolver();
         boolean tabletModeOverride = Settings.System.getInt(resolver,
-                        Settings.System.TABLET_MODE, 0) == 1;
+                Settings.System.TABLET_MODE, mContext.getResources().getBoolean(
+                com.android.internal.R.bool.config_showTabletNavigationBar) ? 1 : 0) == 1;
 
         if (shortSizeDp < 600 && !tabletModeOverride) {
             // 0-599dp: "phone" UI with a separate status & navigation bar

@@ -124,10 +124,6 @@ public class BrightnessTile extends QuickSettingsTile implements BrightnessState
             }
         }
         if (!mBrightnessDialog.isShowing()) {
-            try {
-                WindowManagerGlobal.getWindowManagerService().dismissKeyguard();
-            } catch (RemoteException e) {
-            }
             mBrightnessDialog.show();
             dismissBrightnessDialog(mBrightnessDialogLongTimeout);
         }

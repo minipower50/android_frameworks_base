@@ -459,15 +459,16 @@ public abstract class BaseStatusBar extends SystemUI implements
             visible = mSearchPanelView.isShowing();
             mWindowManager.removeView(mSearchPanelView);
         }
-        boolean tabletModeOverride = (Settings.System.getInt(
-                        mContext.getContentResolver(),
-                        Settings.System.TABLET_MODE, 0) == 1);
-        boolean tabletFlipped = (Settings.System.getInt(
-                        mContext.getContentResolver(),
-                        Settings.System.TABLET_FLIPPED, 0) == 1);
+        boolean tabletModeOverride = Settings.System.getInt(
+                mContext.getContentResolver(),
+                Settings.System.TABLET_MODE, mContext.getResources().getBoolean(
+                com.android.internal.R.bool.config_showTabletNavigationBar) ? 1 : 0) == 1;
+        boolean tabletFlipped = Settings.System.getInt(
+                mContext.getContentResolver(),
+                Settings.System.TABLET_FLIPPED, 0) == 1;
         int navAlignment = Settings.System.getInt(
-                        mContext.getContentResolver(),
-                        Settings.System.NAVIGATION_ALIGNMENT, 0);
+                mContext.getContentResolver(),
+                Settings.System.NAVIGATION_ALIGNMENT, 0);
         switch (navAlignment) {
             case 0:
                 navAlignment = R.layout.status_bar_search_panel;

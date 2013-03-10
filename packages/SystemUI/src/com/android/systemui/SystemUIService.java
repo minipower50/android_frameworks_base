@@ -77,9 +77,10 @@ public class SystemUIService extends Service {
         AccessibilityManager.createAsSharedAcrossUsers(this);
 
         // Pick status bar or system bar.
-        boolean tabletModeOverride = (Settings.System.getInt(
-                        context.getContentResolver(),
-                        Settings.System.TABLET_MODE, 0) == 1);
+        boolean tabletModeOverride = Settings.System.getInt(
+                context.getContentResolver(),
+                Settings.System.TABLET_MODE, context.getResources().getBoolean(
+                com.android.internal.R.bool.config_showTabletNavigationBar) ? 1 : 0) == 1;
         SERVICES[0] = tabletModeOverride
                 ? R.string.config_systemBarComponent
                 : R.string.config_statusBarComponent;
