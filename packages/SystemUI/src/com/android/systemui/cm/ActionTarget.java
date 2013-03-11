@@ -35,6 +35,7 @@ import android.os.Messenger;
 import android.os.RemoteException;
 import android.os.ServiceManager;
 import android.os.SystemClock;
+import android.os.UserHandle;
 import android.os.Vibrator;
 import android.text.TextUtils;
 import android.util.Log;
@@ -109,7 +110,7 @@ public class ActionTarget {
         } else if (action.equals(ACTION_ASSIST)) {
             Intent intent = new Intent(Intent.ACTION_ASSIST);
             intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-            mContext.startActivity(intent);
+            mContext.startActivityAsUser(intent, new UserHandle(UserHandle.USER_CURRENT));
             return true;
         } else if (action.equals(ACTION_KILL)) {
             mHandler.post(mKillRunnable);
@@ -153,7 +154,7 @@ public class ActionTarget {
             try {
                 Intent intent = Intent.parseUri(action, 0);
                 intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-                mContext.startActivity(intent);
+                mContext.startActivityAsUser(intent, new UserHandle(UserHandle.USER_CURRENT));
                 return true;
             } catch (URISyntaxException e) {
                 Log.e(TAG, "URISyntaxException: [" + action + "]");
