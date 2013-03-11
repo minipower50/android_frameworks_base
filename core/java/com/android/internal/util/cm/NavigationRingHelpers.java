@@ -52,13 +52,13 @@ public class NavigationRingHelpers {
         boolean isDefault = true;
 
         for (int i = 0; i < MAX_ACTIONS; i++) {
-            result[i] = Settings.System.getString(cr, Settings.System.NAVIGATION_RING_TARGETS[i]);
+            result[i] = Settings.System.getStringForUser(cr,
+                    Settings.System.NAVIGATION_RING_TARGETS[i], UserHandle.USER_CURRENT);
             if (result[i] != null) {
                 isDefault = false;
             }
         }
         if (isDefault) {
-            resetActionsToDefaults(context);
             result[1] = ACTION_ASSIST;
         }
 
