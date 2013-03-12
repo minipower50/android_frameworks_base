@@ -78,6 +78,8 @@ public class CircleBattery extends ImageView {
     private Paint   mPaintSystem;
     private Paint   mPaintRed;
 
+    private boolean mTabletMode;
+
     // runnable to invalidate view via mHandler.postDelayed() call
     private final Runnable mInvalidate = new Runnable() {
         public void run() {
@@ -189,6 +191,10 @@ public class CircleBattery extends ImageView {
 
         mContext = context;
         mHandler = new Handler();
+
+        mTabletMode = Settings.System.getInt(mContext.getContentResolver(),
+                Settings.System.TABLET_MODE, mContext.getResources().getBoolean(
+                com.android.internal.R.bool.config_showTabletNavigationBar) ? 1 : 0) == 1;
 
         SettingsObserver settingsObserver = new SettingsObserver(mHandler);
         settingsObserver.observe();
@@ -415,5 +421,6 @@ public class CircleBattery extends ImageView {
                 mCircleSize++;
             }
         }
+        if (mTabletMode) mCircleSize = (int) (mCircleSize * 4f / 3f);
     }
 }

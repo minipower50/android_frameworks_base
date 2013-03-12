@@ -54,6 +54,8 @@ public class SignalClusterView
     private int mAirplaneIconId = 0;
     private String mWifiDescription, mMobileDescription, mMobileTypeDescription;
 
+    private boolean mTabletMode;
+
     ViewGroup mWifiGroup, mMobileGroup;
     ImageView mWifi, mMobile, mWifiActivity, mMobileActivity, mMobileType, mAirplane;
     View mSpacer;
@@ -89,6 +91,10 @@ public class SignalClusterView
         super(context, attrs, defStyle);
 
         mHandler = new Handler();
+
+        mTabletMode = Settings.System.getInt(context.getContentResolver(),
+                Settings.System.TABLET_MODE, context.getResources().getBoolean(
+                com.android.internal.R.bool.config_showTabletNavigationBar) ? 1 : 0) == 1;
 
         SettingsObserver settingsObserver = new SettingsObserver(mHandler);
         settingsObserver.observe();
@@ -176,6 +182,41 @@ public class SignalClusterView
 
     // Run after each indicator change.
     private void apply() {
+        if (mTabletMode) {
+            final float scale = 4f / 3f;
+            if (mWifi != null) {
+                mWifi.setScaleX(scale);
+                mWifi.setScaleY(scale);
+                mWifi.setScaleType(ImageView.ScaleType.CENTER_INSIDE);
+            }
+            if (mWifiActivity != null) {
+                mWifiActivity.setScaleX(scale);
+                mWifiActivity.setScaleY(scale);
+                mWifiActivity.setScaleType(ImageView.ScaleType.CENTER);
+            }
+            if (mMobile != null) {
+                mMobile.setScaleX(scale);
+                mMobile.setScaleY(scale);
+                mMobile.setScaleType(ImageView.ScaleType.CENTER);
+            }
+            if (mMobileActivity != null) {
+                mMobileActivity.setScaleX(scale);
+                mMobileActivity.setScaleY(scale);
+                mMobileActivity.setScaleType(ImageView.ScaleType.CENTER);
+            }
+            if (mMobileType != null) {
+                mMobileType.setScaleX(scale);
+                mMobileType.setScaleY(scale);
+                mMobileType.setScaleType(ImageView.ScaleType.CENTER);
+            }
+            if (mAirplane != null) {
+                mAirplane.setScaleX(scale);
+                mAirplane.setScaleY(scale);
+                mAirplane.setScaleType(ImageView.ScaleType.CENTER);
+            }
+        }
+
+
         if (mWifiGroup == null) return;
 
         if (mWifiVisible) {

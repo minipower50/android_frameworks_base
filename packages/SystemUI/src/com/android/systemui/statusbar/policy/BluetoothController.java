@@ -23,6 +23,7 @@ import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
+import android.provider.Settings;
 import android.view.View;
 import android.widget.ImageView;
 
@@ -42,6 +43,8 @@ public class BluetoothController extends BroadcastReceiver {
     private int mContentDescriptionId = 0;
     private boolean mEnabled = false;
 
+    private boolean mTabletMode;
+
     private Set<BluetoothDevice> mBondedDevices = new HashSet<BluetoothDevice>();
 
     private ArrayList<BluetoothStateChangeCallback> mChangeCallbacks =
@@ -49,6 +52,10 @@ public class BluetoothController extends BroadcastReceiver {
 
     public BluetoothController(Context context) {
         mContext = context;
+
+        mTabletMode = Settings.System.getInt(mContext.getContentResolver(),
+                Settings.System.TABLET_MODE, mContext.getResources().getBoolean(
+                com.android.internal.R.bool.config_showTabletNavigationBar) ? 1 : 0) == 1;
 
         IntentFilter filter = new IntentFilter();
         filter.addAction(BluetoothAdapter.ACTION_STATE_CHANGED);
@@ -65,7 +72,16 @@ public class BluetoothController extends BroadcastReceiver {
         updateBondedBluetoothDevices();
     }
 
+    public void addPanelIconView(ImageView v) {
+        mIconViews.add(v);
+    }
+
     public void addIconView(ImageView v) {
+        if (mTabletMode) {
+            v.setScaleX(4f / 3f);
+            v.setScaleY(4f / 3f);
+            v.setScaleType(ImageView.ScaleType.CENTER);
+        }
         mIconViews.add(v);
     }
 

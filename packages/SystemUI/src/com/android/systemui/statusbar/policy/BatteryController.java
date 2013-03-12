@@ -60,6 +60,7 @@ public class BatteryController extends BroadcastReceiver {
     private boolean mBatteryPlugged = false;
     private int mBatteryStatus = BatteryManager.BATTERY_STATUS_UNKNOWN;
     private int mBatteryStyle;
+    private boolean mTabletMode;
 
     Handler mHandler;
 
@@ -97,9 +98,23 @@ public class BatteryController extends BroadcastReceiver {
         IntentFilter filter = new IntentFilter();
         filter.addAction(Intent.ACTION_BATTERY_CHANGED);
         mContext.registerReceiver(this, filter);
+
+        mTabletMode = Settings.System.getInt(mContext.getContentResolver(),
+                Settings.System.TABLET_MODE, mContext.getResources().getBoolean(
+                com.android.internal.R.bool.config_showTabletNavigationBar) ? 1 : 0) == 1;
+    }
+
+    public void addPanelIconView(ImageView v) {
+        mIconViews.add(v);
     }
 
     public void addIconView(ImageView v) {
+        if (mTabletMode) {
+            v.setScaleX(4f / 3f);
+            v.setScaleY(4f / 3f);
+            v.setScaleType(ImageView.ScaleType.CENTER);
+        }
+
         mIconViews.add(v);
     }
 
