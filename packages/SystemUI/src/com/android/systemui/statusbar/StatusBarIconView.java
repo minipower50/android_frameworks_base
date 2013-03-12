@@ -72,6 +72,9 @@ public class StatusBarIconView extends AnimatedImageView {
         mShowNotificationCount = Settings.System.getInt(mContext.getContentResolver(),
                 Settings.System.STATUS_BAR_NOTIF_COUNT, 0) == 1;
         setContentDescription(notification);
+        final boolean tabletMode = Settings.System.getInt(mContext.getContentResolver(),
+                Settings.System.TABLET_MODE, mContext.getResources().getBoolean(
+                com.android.internal.R.bool.config_showTabletNavigationBar) ? 1 : 0) == 1;
 
         SettingsObserver observer = new SettingsObserver(new Handler());
         observer.observe();
@@ -80,7 +83,7 @@ public class StatusBarIconView extends AnimatedImageView {
         if (notification != null) {
             final int outerBounds = res.getDimensionPixelSize(R.dimen.status_bar_icon_size);
             final int imageBounds = res.getDimensionPixelSize(R.dimen.status_bar_icon_drawing_size);
-            final float scale = (float)imageBounds / (float)outerBounds;
+            final float scale = tabletMode ? 1f : (float)imageBounds / (float)outerBounds;
             setScaleX(scale);
             setScaleY(scale);
             final float alpha = res.getFraction(R.dimen.status_bar_icon_drawing_alpha, 1, 1);
@@ -92,10 +95,15 @@ public class StatusBarIconView extends AnimatedImageView {
 
     public StatusBarIconView(Context context, AttributeSet attrs) {
         super(context, attrs);
+
+        final boolean tabletMode = Settings.System.getInt(mContext.getContentResolver(),
+                Settings.System.TABLET_MODE, mContext.getResources().getBoolean(
+                com.android.internal.R.bool.config_showTabletNavigationBar) ? 1 : 0) == 1;
+
         final Resources res = context.getResources();
         final int outerBounds = res.getDimensionPixelSize(R.dimen.status_bar_icon_size);
         final int imageBounds = res.getDimensionPixelSize(R.dimen.status_bar_icon_drawing_size);
-        final float scale = (float)imageBounds / (float)outerBounds;
+        final float scale = tabletMode ? 1f : (float)imageBounds / (float)outerBounds;
         setScaleX(scale);
         setScaleY(scale);
         final float alpha = res.getFraction(R.dimen.status_bar_icon_drawing_alpha, 1, 1);

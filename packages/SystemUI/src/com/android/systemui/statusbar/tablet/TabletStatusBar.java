@@ -270,12 +270,12 @@ public class TabletStatusBar extends BaseStatusBar implements
                 new TouchOutsideListener(MSG_CLOSE_NOTIFICATION_PANEL, mNotificationPanel));
 
         // the battery icon
-        mBatteryController.addIconView((ImageView)mNotificationPanel.findViewById(R.id.battery));
+        mBatteryController.addPanelIconView((ImageView)mNotificationPanel.findViewById(R.id.battery));
         mBatteryController.addLabelView(
                 (TextView)mNotificationPanel.findViewById(R.id.battery_text));
 
         // Bt
-        mBluetoothController.addIconView(
+        mBluetoothController.addPanelIconView(
                 (ImageView)mNotificationPanel.findViewById(R.id.bluetooth));
 
         // network icons: either a combo icon that switches between mobile and data, or distinct
