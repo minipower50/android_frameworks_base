@@ -26,6 +26,7 @@ import android.content.IntentFilter;
 import android.provider.Settings;
 import android.view.View;
 import android.widget.ImageView;
+import android.widget.CompoundButton;
 
 import com.android.systemui.R;
 
@@ -33,14 +34,17 @@ import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.Set;
 
-public class BluetoothController extends BroadcastReceiver {
+public class BluetoothController extends BroadcastReceiver
+        implements CompoundButton.OnCheckedChangeListener {
     private static final String TAG = "StatusBar.BluetoothController";
 
+    private final BluetoothAdapter mAdapter;
     private Context mContext;
     private ArrayList<ImageView> mIconViews = new ArrayList<ImageView>();
-
+    private CompoundButton mCheckBox;
     private int mIconId = R.drawable.stat_sys_data_bluetooth;
     private int mContentDescriptionId = 0;
+    private int mState = BluetoothAdapter.ERROR;
     private boolean mEnabled = false;
 
     private boolean mTabletMode;
@@ -63,13 +67,32 @@ public class BluetoothController extends BroadcastReceiver {
         filter.addAction(BluetoothDevice.ACTION_BOND_STATE_CHANGED);
         context.registerReceiver(this, filter);
 
-        final BluetoothAdapter adapter = BluetoothAdapter.getDefaultAdapter();
-        if (adapter != null) {
-            handleAdapterStateChange(adapter.getState());
-            handleConnectionStateChange(adapter.getConnectionState());
+        mAdapter = BluetoothAdapter.getDefaultAdapter();
+        if (mAdapter != null) {
+            handleAdapterStateChange(mAdapter.getState());
+            handleConnectionStateChange(mAdapter.getConnectionState());
         }
         refreshViews();
         updateBondedBluetoothDevices();
+    }
+
+    public BluetoothController(Context context, CompoundButton checkbox) {
+        mContext = context;
+        mCheckBox = checkbox;
+        mCheckBox.setChecked(mEnabled);
+        mCheckBox.setOnCheckedChangeListener(this);
+
+        IntentFilter filter = new IntentFilter();
+        filter.addAction(BluetoothAdapter.ACTION_STATE_CHANGED);
+        filter.addAction(BluetoothAdapter.ACTION_CONNECTION_STATE_CHANGED);
+        context.registerReceiver(this, filter);
+
+        mAdapter = BluetoothAdapter.getDefaultAdapter();
+        if (mAdapter != null) {
+            handleAdapterStateChange(mAdapter.getState());
+            handleConnectionStateChange(mAdapter.getConnectionState());
+        }
+        refreshViews();
     }
 
     public void addPanelIconView(ImageView v) {
@@ -156,4 +179,49 @@ public class BluetoothController extends BroadcastReceiver {
             cb.onBluetoothStateChange(mEnabled);
         }
     }
+
+    public void onCheckedChanged(CompoundButton view, boolean checked) {
+        if (checked != mEnabled) {
+            mEnabled = checked;
+	    setBluetoothEnabled(mEnabled);
+	    setBluetoothStateInt(mAdapter.getState());
+	    syncBluetoothState();
+        }
+    }
+
+    public void setBluetoothEnabled(boolean enabled) {
+        boolean success = enabled
+                ? mAdapter.enable()
+                : mAdapter.disable();
+
+        if (success) {
+            setBluetoothStateInt(enabled
+				 ? BluetoothAdapter.STATE_TURNING_ON
+                : BluetoothAdapter.STATE_TURNING_OFF);
+        } else {
+	    syncBluetoothState();
+        }
+    }
+
+    boolean syncBluetoothState() {
+        int currentState = mAdapter.getState();
+        if (currentState != mState) {
+            setBluetoothStateInt(mState);
+            return true;
+        }
+	return false;
+}
+
+    synchronized void setBluetoothStateInt(int state) {
+        mState = state;
+	if (state == BluetoothAdapter.STATE_ON)
+	    {
+		if (mCheckBox != null)
+		    mCheckBox.setChecked(true);
+	    }
+	else
+	    if (mCheckBox != null)
+		mCheckBox.setChecked(false);
+    }
+
 }
