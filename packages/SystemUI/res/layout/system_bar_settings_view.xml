@@ -31,7 +31,7 @@
         android:orientation="vertical"
         >
 
-    <!-- Airplane mode
+    <!-- Airplane mode -->
     <LinearLayout
             android:id="@+id/airplane"
             style="@style/SystemBarPanelSettingsRow"
@@ -54,9 +54,9 @@
                 android:layout_marginRight="5dp"
                 />
     </LinearLayout>
-    <View style="@style/SystemBarPanelSettingsPanelSeparator" /> -->
+    <View style="@style/SystemBarPanelSettingsPanelSeparator" />
 
-    <!-- Network
+    <!-- Network -->
     <LinearLayout
             android:id="@+id/network"
             style="@style/SystemBarPanelSettingsRow"
@@ -72,7 +72,7 @@
                 android:text="@string/status_bar_settings_wifi_button"
                 />
     </LinearLayout>
-    <View style="@style/SystemBarPanelSettingsPanelSeparator" /> -->
+    <View style="@style/SystemBarPanelSettingsPanelSeparator" />
 
     <!-- Rotation lock -->
     <LinearLayout
@@ -100,30 +100,6 @@
     <View
             android:id="@+id/rotate_separator"
             style="@style/SystemBarPanelSettingsPanelSeparator" />
-
-    <!-- Notifications / Do not disturb -->
-    <LinearLayout
-            android:id="@+id/do_not_disturb"
-            style="@style/SystemBarPanelSettingsRow"
-            >
-        <ImageView
-                android:id="@+id/do_not_disturb_icon"
-                style="@style/SystemBarPanelSettingsIcon"
-                android:src="@drawable/ic_notification_open"
-                />
-        <TextView
-                style="@style/SystemBarPanelSettingsContents"
-                android:text="@string/status_bar_settings_notifications"
-                />
-        <Switch
-                android:id="@+id/do_not_disturb_checkbox"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_gravity="center_vertical"
-                android:layout_marginRight="5dp"
-                />
-    </LinearLayout>
-    <View style="@style/SystemBarPanelSettingsPanelSeparator" />
 
     <!-- Brightness -->
     <LinearLayout style="@style/SystemBarPanelSettingsRow" >
@@ -157,6 +133,30 @@
                 android:layout_weight="1"
                 android:layout_marginRight="2dp"
                 systemui:text="@string/status_bar_settings_mute_label"
+                />
+    </LinearLayout>
+    <View style="@style/SystemBarPanelSettingsPanelSeparator" />
+
+    <!-- Notifications / Do not disturb -->
+    <LinearLayout
+            android:id="@+id/do_not_disturb"
+            style="@style/SystemBarPanelSettingsRow"
+            >
+        <ImageView
+                android:id="@+id/do_not_disturb_icon"
+                style="@style/SystemBarPanelSettingsIcon"
+                android:src="@drawable/ic_notification_open"
+                />
+        <TextView
+                style="@style/SystemBarPanelSettingsContents"
+                android:text="@string/status_bar_settings_notifications"
+                />
+        <Switch
+                android:id="@+id/do_not_disturb_checkbox"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center_vertical"
+                android:layout_marginRight="5dp"
                 />
     </LinearLayout>
     <View style="@style/SystemBarPanelSettingsPanelSeparator" />
