@@ -60,4 +60,9 @@
     <dimen name="status_bar_battery_cluster_padding">4dip</dimen>
     <!-- The margin adjusment of the text items of the battery cluster -->
     <dimen name="status_bar_battery_cluster_text_margin">-3dip</dimen>
+
+    <dimen name="panel_float">56dp</dimen>
+
+    <!-- The width of the ticker, including the icon -->
+    <dimen name="notification_ticker_width">360dp</dimen>
 </resources>

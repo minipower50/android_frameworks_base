@@ -6889,11 +6889,7 @@ public class WindowManagerService extends IWindowManager.Stub
         sl = reduceConfigLayout(sl, Surface.ROTATION_90, density, unrotDh, unrotDw);
         sl = reduceConfigLayout(sl, Surface.ROTATION_180, density, unrotDw, unrotDh);
         sl = reduceConfigLayout(sl, Surface.ROTATION_270, density, unrotDh, unrotDw);
-        boolean forceTablet = Settings.System.getInt(mContext.getContentResolver(),
-                Settings.System.TABLET_MODE, mContext.getResources().getBoolean(
-                com.android.internal.R.bool.config_showTabletNavigationBar) ? 1 : 0) == 1 &&
-                (int) (displayInfo.smallestNominalAppWidth / density) < 720;
-        outConfig.smallestScreenWidthDp = forceTablet ? 720 : (int)(displayInfo.smallestNominalAppWidth / density);
+        outConfig.smallestScreenWidthDp = (int)(displayInfo.smallestNominalAppWidth / density);
         outConfig.screenLayout = sl;
     }
 
