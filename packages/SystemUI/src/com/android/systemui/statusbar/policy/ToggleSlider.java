@@ -137,6 +137,10 @@ public class ToggleSlider extends RelativeLayout
         mToggle.setChecked(checked);
     }
 
+    public void setLabel(int label) {
+        mLabel.setText(label);
+    }
+
     public boolean isChecked() {
         return mToggle.isChecked();
     }

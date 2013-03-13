@@ -37,6 +37,9 @@ import java.util.ArrayList;
 public class BrightnessController implements ToggleSlider.Listener {
     private static final String TAG = "StatusBar.BrightnessController";
 
+    private int mScreenBrightnessDim;
+    private static final int MAXIMUM_BACKLIGHT = android.os.PowerManager.BRIGHTNESS_ON;
+
     private final int mMinimumBacklight;
     private final int mMaximumBacklight;
 
@@ -105,6 +108,50 @@ public class BrightnessController implements ToggleSlider.Listener {
 
         control.setMax(mMaximumBacklight - mMinimumBacklight);
         control.setValue(value - mMinimumBacklight);
+    }
+
+    public BrightnessController(Context context, ToggleSlider control) {
+        mContext = context;
+        mControl = control;
+
+        PowerManager pm = (PowerManager)context.getSystemService(Context.POWER_SERVICE);
+        mMinimumBacklight = pm.getMinimumScreenBrightnessSetting();
+        mMaximumBacklight = pm.getMaximumScreenBrightnessSetting();
+		mIcon = null;
+        mUserTracker = new CurrentUserTracker(mContext);
+
+        mAutomaticAvailable = context.getResources().getBoolean(
+                com.android.internal.R.bool.config_automatic_brightness_available);
+        mPower = IPowerManager.Stub.asInterface(ServiceManager.getService("power"));
+
+        mScreenBrightnessDim = context.getResources().getInteger(
+                com.android.internal.R.integer.config_screenBrightnessDim);
+
+        if (mAutomaticAvailable) {
+            int automatic;
+            try {
+                automatic = Settings.System.getInt(mContext.getContentResolver(),
+                        Settings.System.SCREEN_BRIGHTNESS_MODE);
+            } catch (SettingNotFoundException snfe) {
+                automatic = 0;
+            }
+            control.setChecked(automatic != 0);
+        } else {
+            control.hideToggle();
+        }
+        
+        int value;
+        try {
+            value = Settings.System.getInt(mContext.getContentResolver(), 
+                    Settings.System.SCREEN_BRIGHTNESS);
+        } catch (SettingNotFoundException ex) {
+            value = MAXIMUM_BACKLIGHT;
+        }
+
+        control.setMax(MAXIMUM_BACKLIGHT - mScreenBrightnessDim);
+        control.setValue(value - mScreenBrightnessDim);
+
+        control.setOnChangedListener(this);
     }
 
     public void onChanged(ToggleSlider view, boolean tracking, boolean automatic, int value) {

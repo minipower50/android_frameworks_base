@@ -3204,6 +3204,11 @@ public final class Settings {
         public static final String NAVIGATION_BUTTON_GLOW_COLOR = "navigation_button_glow_color";
 
         /**
+         * @hide
+         */
+        public static final String COMBINED_BAR_SETTINGS = "combined_bar_settings";
+
+        /**
          * Settings to backup. This is here so that it's in the same place as the settings
          * keys and easy to update.
          *

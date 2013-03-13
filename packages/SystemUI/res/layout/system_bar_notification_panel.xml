@@ -21,8 +21,8 @@
     android:id="@+id/content_parent"
     android:layout_height="match_parent"
     android:layout_width="match_parent"
-    android:paddingTop="16dp"
     android:gravity="right"
+    android:paddingTop="8dp"
     >
 
     <!-- lift the panel up off the status bar while leaving a touchable are -->
@@ -60,6 +60,7 @@
             android:layout_width="match_parent"
             android:overScrollMode="ifContentScrolls"
             android:layout_weight="1"
+            android:layout_marginBottom="8dp"
             >
             <com.android.systemui.statusbar.policy.NotificationRowLayout
                 android:id="@+id/content"
