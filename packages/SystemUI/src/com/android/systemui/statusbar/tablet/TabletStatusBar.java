@@ -681,6 +681,8 @@ public class TabletStatusBar extends BaseStatusBar implements
                 Settings.System.NAVIGATION_CONTROLS, hasNavigationBar ? 1 : 0) == 0;
         setNavigationDisabled(mNavigationDisabled);
 
+        showClock(true);
+
         return sb;
     }
 
@@ -970,7 +972,7 @@ public class TabletStatusBar extends BaseStatusBar implements
 
     public void showClock(boolean show) {
         ContentResolver resolver = mContext.getContentResolver();
-        View clock = mBarContents.findViewById(R.id.clock);
+        TextView clock = (TextView) mBarContents.findViewById(R.id.clock);
         View network_text = mBarContents.findViewById(R.id.network_text);
         mShowClock = (Settings.System.getInt(resolver,
                 Settings.System.STATUS_BAR_CLOCK, 1) == 1);
@@ -979,6 +981,17 @@ public class TabletStatusBar extends BaseStatusBar implements
         }
         if (network_text != null) {
             network_text.setVisibility((!show) ? View.VISIBLE : View.GONE);
+        }
+
+        if (Settings.System.getInt(resolver, Settings.System.TABLET_SCALED_ICONS, 1) == 0) {
+            clock.setTextSize(16);
+        }
+
+        int clockColor = Settings.System.getInt(resolver, Settings.System.STATUS_BAR_CLOCK_COLOR,
+                0xff33b5e5);
+
+        if (clockColor != 0xff33b5e5) {
+            clock.setTextColor(clockColor);
         }
     }
 

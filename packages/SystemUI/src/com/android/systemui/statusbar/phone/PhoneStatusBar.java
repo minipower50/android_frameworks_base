@@ -761,6 +761,8 @@ public class PhoneStatusBar extends BaseStatusBar {
 
         mVelocityTracker = VelocityTracker.obtain();
 
+        showClock(true);
+
         return mStatusBarView;
     }
 
@@ -1323,6 +1325,13 @@ public class PhoneStatusBar extends BaseStatusBar {
                 Settings.System.STATUS_BAR_CLOCK, 1) == 1);
         if (clock != null) {
             clock.setVisibility(show ? (mShowClock ? View.VISIBLE : View.GONE) : View.GONE);
+        }
+
+        int clockColor = Settings.System.getInt(resolver, Settings.System.STATUS_BAR_CLOCK_COLOR,
+                0xff33b5e5);
+
+        if (clockColor != 0xff33b5e5) {
+            clock.setTextColor(clockColor);
         }
     }
 

@@ -3066,6 +3066,11 @@ public final class Settings {
         /**
          * @hide
          */
+        public static final String TABLET_SCALED_ICONS = "tablet_scaled_icons";
+
+        /**
+         * @hide
+         */
         public static final String DUAL_PANE_PREFS = "dual_pane_prefs";
 
         /**
@@ -3207,6 +3212,11 @@ public final class Settings {
          * @hide
          */
         public static final String COMBINED_BAR_SETTINGS = "combined_bar_settings";
+
+        /**
+         * @hide
+         */
+        public static final String STATUS_BAR_CLOCK_COLOR = "status_bar_clock_color";
 
         /**
          * Settings to backup. This is here so that it's in the same place as the settings
