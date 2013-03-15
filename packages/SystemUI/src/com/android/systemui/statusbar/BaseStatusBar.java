@@ -1218,11 +1218,15 @@ public abstract class BaseStatusBar extends SystemUI implements
             resolver.registerContentObserver(Settings.System.getUriFor(
                     Settings.System.TABLET_FLIPPED), false, this);
             resolver.registerContentObserver(Settings.System.getUriFor(
+                    Settings.System.TABLET_SCALED_ICONS), false, this);
+            resolver.registerContentObserver(Settings.System.getUriFor(
                     Settings.System.TABLET_FORCE_MENU), false, this);
             resolver.registerContentObserver(Settings.System.getUriFor(
                     Settings.System.LARGE_RECENT_THUMBS), false, this);
             resolver.registerContentObserver(Settings.System.getUriFor(
                     Settings.System.NAVIGATION_ALIGNMENT), false, this);
+            resolver.registerContentObserver(Settings.System.getUriFor(
+                    Settings.System.STATUS_BAR_CLOCK_COLOR), false, this);
         }
 
         @Override

@@ -74,7 +74,9 @@ public class StatusBarIconView extends AnimatedImageView {
         setContentDescription(notification);
         final boolean tabletMode = Settings.System.getInt(mContext.getContentResolver(),
                 Settings.System.TABLET_MODE, mContext.getResources().getBoolean(
-                com.android.internal.R.bool.config_showTabletNavigationBar) ? 1 : 0) == 1;
+                com.android.internal.R.bool.config_showTabletNavigationBar) ? 1 : 0) == 1 &&
+                Settings.System.getInt(context.getContentResolver(),
+                Settings.System.TABLET_SCALED_ICONS, 1) == 1;
 
         SettingsObserver observer = new SettingsObserver(new Handler());
         observer.observe();
@@ -98,7 +100,9 @@ public class StatusBarIconView extends AnimatedImageView {
 
         final boolean tabletMode = Settings.System.getInt(mContext.getContentResolver(),
                 Settings.System.TABLET_MODE, mContext.getResources().getBoolean(
-                com.android.internal.R.bool.config_showTabletNavigationBar) ? 1 : 0) == 1;
+                com.android.internal.R.bool.config_showTabletNavigationBar) ? 1 : 0) == 1 &&
+                Settings.System.getInt(context.getContentResolver(),
+                Settings.System.TABLET_SCALED_ICONS, 1) == 1;
 
         final Resources res = context.getResources();
         final int outerBounds = res.getDimensionPixelSize(R.dimen.status_bar_icon_size);

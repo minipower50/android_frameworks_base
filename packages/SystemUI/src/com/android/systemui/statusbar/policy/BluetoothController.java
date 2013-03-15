@@ -59,7 +59,9 @@ public class BluetoothController extends BroadcastReceiver
 
         mTabletMode = Settings.System.getInt(mContext.getContentResolver(),
                 Settings.System.TABLET_MODE, mContext.getResources().getBoolean(
-                com.android.internal.R.bool.config_showTabletNavigationBar) ? 1 : 0) == 1;
+                com.android.internal.R.bool.config_showTabletNavigationBar) ? 1 : 0) == 1 &&
+                Settings.System.getInt(context.getContentResolver(),
+                Settings.System.TABLET_SCALED_ICONS, 1) == 1;
 
         IntentFilter filter = new IntentFilter();
         filter.addAction(BluetoothAdapter.ACTION_STATE_CHANGED);
