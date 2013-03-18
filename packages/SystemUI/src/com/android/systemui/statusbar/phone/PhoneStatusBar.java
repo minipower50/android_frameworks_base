@@ -763,6 +763,10 @@ public class PhoneStatusBar extends BaseStatusBar {
 
         showClock(true);
 
+        int barColor = Settings.System.getInt(mContext.getContentResolver(), Settings.System.STATUS_BAR_COLOR,
+                0xff000000);
+        if (barColor != 0xff000000) mStatusBarView.setBackgroundColor(barColor);
+
         return mStatusBarView;
     }
 
@@ -917,6 +921,9 @@ public class PhoneStatusBar extends BaseStatusBar {
         mNavigationBarView.reorient();
         mNavigationBarView.setListener(mRecentsClickListener,mRecentsPreloadOnTouchListener, mHomeSearchActionListener);
         updateSearchPanel();
+        int navColor = Settings.System.getInt(mContext.getContentResolver(), Settings.System.NAVIGATION_BAR_COLOR,
+                0xff000000);
+        if (navColor != 0xff000000) mNavigationBarView.setBackgroundColor(navColor);
     }
 
     // For small-screen devices (read: phones) that lack hardware navigation buttons
@@ -958,7 +965,7 @@ public class PhoneStatusBar extends BaseStatusBar {
                     | WindowManager.LayoutParams.FLAG_NOT_TOUCH_MODAL
                     | WindowManager.LayoutParams.FLAG_WATCH_OUTSIDE_TOUCH
                     | WindowManager.LayoutParams.FLAG_SPLIT_TOUCH,
-                PixelFormat.OPAQUE);
+                PixelFormat.TRANSLUCENT);
         // this will allow the navbar to run in an overlay on devices that support this
         if (ActivityManager.isHighEndGfx()) {
             lp.flags |= WindowManager.LayoutParams.FLAG_HARDWARE_ACCELERATED;

@@ -1852,6 +1852,8 @@ public class PhoneWindow extends Window implements MenuBuilder.Callback {
         private boolean mGestureCapture;
         private int mGestureDistance;
 
+        private boolean mFullscreenMode = false;
+
         private String mBlacklist;
         private boolean mBlacklisted;
 
@@ -1885,6 +1887,13 @@ public class PhoneWindow extends Window implements MenuBuilder.Callback {
             super(context);
             mFeatureId = featureId;
             mSettingsObserver = new SettingsObserver();
+
+            if (mFullscreenMode) {
+                final int flags = View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN
+                        | View.SYSTEM_UI_FLAG_LAYOUT_HIDE_NAVIGATION
+                        | View.SYSTEM_UI_FLAG_LAYOUT_STABLE;
+                setSystemUiVisibility(flags);
+            }
 
             mActivityManager =
                     (ActivityManager) context.getSystemService(Context.ACTIVITY_SERVICE);
@@ -1929,6 +1938,8 @@ public class PhoneWindow extends Window implements MenuBuilder.Callback {
                 getContext().getContentResolver().registerContentObserver(Settings.System.getUriFor(
                     Settings.System.TOUCH_ZONE_FOUR), false, this);
                 getContext().getContentResolver().registerContentObserver(Settings.System.getUriFor(
+                    Settings.System.FULLSCREEN_MODE), false, this);
+                getContext().getContentResolver().registerContentObserver(Settings.System.getUriFor(
                     Settings.System.GESTURE_SWIPE_CAPTURE), false, this);
                 getContext().getContentResolver().registerContentObserver(Settings.System.getUriFor(
                     Settings.System.GESTURE_SWIPE_DISTANCE), false, this);
@@ -1970,6 +1981,16 @@ public class PhoneWindow extends Window implements MenuBuilder.Callback {
                     Settings.System.GESTURE_SWIPE_CAPTURE, 0) == 1;
             mGestureDistance = Settings.System.getInt(resolver,
                     Settings.System.GESTURE_SWIPE_DISTANCE, 0);
+
+            boolean fullscreenMode = Settings.System.getInt(resolver,
+                    Settings.System.FULLSCREEN_MODE, 0) == 1;
+            if (fullscreenMode != mFullscreenMode) {
+                mFullscreenMode = fullscreenMode;
+                final int flags = View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN
+                        | View.SYSTEM_UI_FLAG_LAYOUT_HIDE_NAVIGATION
+                        | View.SYSTEM_UI_FLAG_LAYOUT_STABLE;
+                setSystemUiVisibility(mFullscreenMode ? flags : 0);
+            }
 
             mBlacklist = Settings.System.getString(resolver,
                     Settings.System.GESTURE_BLACKLIST);
