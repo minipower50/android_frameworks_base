@@ -238,7 +238,7 @@ public class TabletStatusBar extends BaseStatusBar implements
                 WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE
                     | WindowManager.LayoutParams.FLAG_TOUCHABLE_WHEN_WAKING
                     | WindowManager.LayoutParams.FLAG_SPLIT_TOUCH,
-                PixelFormat.OPAQUE);
+                PixelFormat.TRANSLUCENT);
 
         // We explicitly leave FLAG_HARDWARE_ACCELERATED out of the flags.  The status bar occupies
         // very little screen real-estate and is updated fairly frequently.  By using CPU rendering
@@ -682,6 +682,10 @@ public class TabletStatusBar extends BaseStatusBar implements
         setNavigationDisabled(mNavigationDisabled);
 
         showClock(true);
+
+        int barColor = Settings.System.getInt(mContext.getContentResolver(), Settings.System.STATUS_BAR_COLOR,
+                0xff000000);
+        if (barColor != 0xff000000) sb.setBackgroundColor(barColor);
 
         return sb;
     }

@@ -3219,6 +3219,21 @@ public final class Settings {
         public static final String STATUS_BAR_CLOCK_COLOR = "status_bar_clock_color";
 
         /**
+         * @hide
+         */
+        public static final String STATUS_BAR_COLOR = "status_bar_color";
+
+        /**
+         * @hide
+         */
+        public static final String NAVIGATION_BAR_COLOR = "navigation_bar_color";
+
+        /**
+         * @hide
+         */
+        public static final String FULLSCREEN_MODE = "fullscreen_mode";
+
+        /**
          * Settings to backup. This is here so that it's in the same place as the settings
          * keys and easy to update.
          *
