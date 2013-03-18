@@ -1567,7 +1567,22 @@ public class PhoneWindowManager implements WindowManagerPolicy {
 
         mFullscreenMode = Settings.System.getInt(resolver,
                 Settings.System.FULLSCREEN_MODE, 0) == 1;
+
+        int fullscreenTimeout = Settings.System.getInt(resolver,
+                Settings.System.FULLSCREEN_TIMEOUT, 0);
+
+        if (fullscreenTimeout > 0) {
+            mHandler.removeCallbacks(mStatusBarTimeout);
+            mHandler.postDelayed(mStatusBarTimeout, fullscreenTimeout * 1000);
+        }
     }
+
+    private final Runnable mStatusBarTimeout = new Runnable() {
+        public void run() {
+            Settings.System.putInt(mContext.getContentResolver(),
+                    Settings.System.EXPANDED_DESKTOP_STATE, 1);
+        }
+    };
 
     private void enablePointerLocation() {
         if (mPointerLocationView == null) {
@@ -1899,7 +1914,7 @@ public class PhoneWindowManager implements WindowManagerPolicy {
     }
 
     public boolean hasSystemNavBar() {
-        return mHasSystemNavBar;
+        return mFullscreenMode ? false : mHasSystemNavBar;
     }
 
     public int getNonDecorDisplayWidth(int fullWidth, int fullHeight, int rotation) {
@@ -5245,7 +5260,7 @@ public class PhoneWindowManager implements WindowManagerPolicy {
     // Use this instead of checking config_showNavigationBar so that it can be consistently
     // overridden by qemu.hw.mainkeys in the emulator.
     public boolean hasNavigationBar() {
-        return mHasNavigationBar;
+        return mFullscreenMode ? false : mHasNavigationBar;
     }
 
     @Override

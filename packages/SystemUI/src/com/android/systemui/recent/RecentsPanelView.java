@@ -465,13 +465,20 @@ public class RecentsPanelView extends FrameLayout implements OnItemClickListener
             });
         }
 
+        int color = Settings.System.getInt(mContext.getContentResolver(),
+                Settings.System.RECENTS_PANEL_COLOR, 0xe0000000);
+
         if (mRecentsScrim != null) {
             mHighEndGfx = ActivityManager.isHighEndGfx();
-            if (!mHighEndGfx) {
-                mRecentsScrim.setBackground(null);
-            } else if (mRecentsScrim.getBackground() instanceof BitmapDrawable) {
-                // In order to save space, we make the background texture repeat in the Y direction
-                ((BitmapDrawable) mRecentsScrim.getBackground()).setTileModeY(TileMode.REPEAT);
+            if (color == 0xe0000000) {
+                if (!mHighEndGfx) {
+                    mRecentsScrim.setBackground(null);
+                } else if (mRecentsScrim.getBackground() instanceof BitmapDrawable) {
+                    // In order to save space, we make the background texture repeat in the Y direction
+                    ((BitmapDrawable) mRecentsScrim.getBackground()).setTileModeY(TileMode.REPEAT);
+                }
+            } else {
+                mRecentsScrim.setBackgroundColor(color);
             }
         }
     }
