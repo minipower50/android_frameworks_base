@@ -226,4 +226,16 @@ public class NotificationPanelView extends PanelView {
         }
         return result;
     }
+
+    @Override
+    public void collapse() {
+        super.collapse();
+        if (mStatusBar != null) mStatusBar.barExpanded(false);
+    }
+
+    @Override
+    public void expand() {
+        super.expand();
+        if (mStatusBar != null) mStatusBar.barExpanded(true);
+    }
 }

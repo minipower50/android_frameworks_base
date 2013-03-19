@@ -147,6 +147,7 @@ public class NotificationPanel extends RelativeLayout implements StatusBarPanel,
             mShowing = show;
             setVisibility(show ? View.VISIBLE : View.GONE);
         }
+        mBar.barExpanded(show);
     }
 
     /**
