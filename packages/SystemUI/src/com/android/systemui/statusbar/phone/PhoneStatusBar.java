@@ -41,6 +41,7 @@ import android.content.res.CustomTheme;
 import android.content.res.Resources;
 import android.database.ContentObserver;
 import android.graphics.Canvas;
+import android.graphics.Color;
 import android.graphics.ColorFilter;
 import android.graphics.PixelFormat;
 import android.graphics.Point;
@@ -469,6 +470,21 @@ public class PhoneStatusBar extends BaseStatusBar {
                     }
                 });
 
+        int color = Settings.System.getInt(context.getContentResolver(),
+                Settings.System.NOTIFICATION_PANEL_COLOR, 0xFF000000);
+
+        if (color != 0xFF000000) {
+            Drawable background = mNotificationPanel.getBackground();
+            int top = mNotificationPanel.getPaddingTop();
+            int bottom = mNotificationPanel.getPaddingBottom();
+            int left = mNotificationPanel.getPaddingLeft();
+            int right = mNotificationPanel.getPaddingRight();
+            background.setColorFilter(color, PorterDuff.Mode.SRC_ATOP);
+            background.setAlpha(Color.alpha(color));
+            mNotificationPanel.setBackgroundDrawable(background);
+            mNotificationPanel.setPadding(left, top, right, bottom);
+        }
+
         if (ENABLE_INTRUDERS) {
             mIntruderAlertView = (IntruderAlertView) View.inflate(context, R.layout.intruder_alert, null);
             mIntruderAlertView.setVisibility(View.GONE);
@@ -732,6 +748,18 @@ public class PhoneStatusBar extends BaseStatusBar {
             }
         }
 
+        if (color != 0xFF000000 && mSettingsPanel != null) {
+            Drawable settingsBackground = mSettingsPanel.getBackground();
+			int padtop = mSettingsPanel.getPaddingTop();
+			int padbottom = mSettingsPanel.getPaddingBottom();
+			int padleft = mSettingsPanel.getPaddingLeft();
+			int padright = mSettingsPanel.getPaddingRight();
+            settingsBackground.setColorFilter(color, PorterDuff.Mode.SRC_ATOP);
+            settingsBackground.setAlpha(Color.alpha(color));
+            mSettingsPanel.setBackgroundDrawable(settingsBackground);
+			mSettingsPanel.setPadding(padleft, padtop, padright, padbottom);
+		}
+
         mClingShown = ! (DEBUG_CLINGS
             || !Prefs.read(mContext).getBoolean(Prefs.SHOWN_QUICK_SETTINGS_HELP, false));
 
@@ -766,6 +794,8 @@ public class PhoneStatusBar extends BaseStatusBar {
         int barColor = Settings.System.getInt(mContext.getContentResolver(), Settings.System.STATUS_BAR_COLOR,
                 0xff000000);
         if (barColor != 0xff000000) mStatusBarView.setBackgroundColor(barColor);
+
+        mStatusBarView.setOnTouchListener(mHideBarListener);
 
         return mStatusBarView;
     }
@@ -1533,6 +1563,7 @@ public class PhoneStatusBar extends BaseStatusBar {
         }
 
         visibilityChanged(true);
+        barExpanded(true);
     }
 
     public void animateCollapsePanels() {
@@ -1869,6 +1900,7 @@ public class PhoneStatusBar extends BaseStatusBar {
         if (mNavigationBarView != null)
             mNavigationBarView.setSlippery(false);
         visibilityChanged(false);
+        barExpanded(false);
 
         // Shrink the window to the size of the status bar only
         WindowManager.LayoutParams lp = (WindowManager.LayoutParams) mStatusBarContainer.getLayoutParams();
@@ -2676,7 +2708,7 @@ public class PhoneStatusBar extends BaseStatusBar {
         animateCollapsePanels();
         updateNotificationIcons();
         resetUserSetupObserver();
-        updateSearchPanel();
+        if (mNavigationBarView != null) updateSearchPanel();
     }
 
     private void resetUserSetupObserver() {

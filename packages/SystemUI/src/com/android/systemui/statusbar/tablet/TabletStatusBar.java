@@ -32,8 +32,10 @@ import android.content.SharedPreferences;
 import android.content.res.Configuration;
 import android.content.res.CustomTheme;
 import android.content.res.Resources;
+import android.graphics.Color;
 import android.graphics.PixelFormat;
 import android.graphics.Point;
+import android.graphics.PorterDuff;
 import android.graphics.drawable.Drawable;
 import android.graphics.drawable.LayerDrawable;
 import android.inputmethodservice.InputMethodService;
@@ -268,6 +270,28 @@ public class TabletStatusBar extends BaseStatusBar implements
         mNotificationPanel.show(false, false);
         mNotificationPanel.setOnTouchListener(
                 new TouchOutsideListener(MSG_CLOSE_NOTIFICATION_PANEL, mNotificationPanel));
+
+        int color = Settings.System.getInt(context.getContentResolver(),
+                Settings.System.NOTIFICATION_PANEL_COLOR, 0xFF000000);
+
+        if (color != 0xFF000000) {
+            Drawable background = mNotificationPanel.mContentFrame.getBackground();
+            int top = mNotificationPanel.mContentFrame.getPaddingTop();
+            int bottom = mNotificationPanel.mContentFrame.getPaddingBottom();
+            int left = mNotificationPanel.mContentFrame.getPaddingLeft();
+            int right = mNotificationPanel.mContentFrame.getPaddingRight();
+            background.setColorFilter(color, PorterDuff.Mode.SRC_ATOP);
+            background.setAlpha(Color.alpha(color));
+            mNotificationPanel.mContentFrame.setBackgroundDrawable(background);
+            mNotificationPanel.mContentFrame.setPadding(left, top, right, bottom);
+
+            top = mNotificationPanel.mTitleArea.getPaddingTop();
+            bottom = mNotificationPanel.mTitleArea.getPaddingBottom();
+            left = mNotificationPanel.mTitleArea.getPaddingLeft();
+            right = mNotificationPanel.mTitleArea.getPaddingRight();
+            mNotificationPanel.mTitleArea.setBackgroundResource(0);
+            mNotificationPanel.mTitleArea.setPadding(left, top, right, bottom);
+        }
 
         // the battery icon
         mBatteryController.addPanelIconView((ImageView)mNotificationPanel.findViewById(R.id.battery));
@@ -683,9 +707,11 @@ public class TabletStatusBar extends BaseStatusBar implements
 
         showClock(true);
 
-        int barColor = Settings.System.getInt(mContext.getContentResolver(), Settings.System.STATUS_BAR_COLOR,
-                0xff000000);
+        int barColor = Settings.System.getInt(mContext.getContentResolver(),
+                Settings.System.STATUS_BAR_COLOR, 0xff000000);
         if (barColor != 0xff000000) sb.setBackgroundColor(barColor);
+
+        sb.setOnTouchListener(mHideBarListener);
 
         return sb;
     }

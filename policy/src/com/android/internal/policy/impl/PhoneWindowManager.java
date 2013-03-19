@@ -501,7 +501,7 @@ public class PhoneWindowManager implements WindowManagerPolicy {
     boolean mSearchKeyShortcutPending;
     boolean mConsumeSearchKeyUp;
     boolean mAssistKeyLongPressed;
-    boolean mFullscreenMode;
+    boolean mFullscreenMode, mBootFullscreenMode = false;
 
     // Used when key is pressed and performing non-default action
     boolean mMenuDoCustomAction;
@@ -1129,6 +1129,10 @@ public class PhoneWindowManager implements WindowManagerPolicy {
     public void init(Context context, IWindowManager windowManager,
             WindowManagerFuncs windowManagerFuncs) {
         mContext = context;
+        mBootFullscreenMode = Settings.System.getInt(context.getContentResolver(),
+                Settings.System.FULLSCREEN_MODE, 0) == 1;
+        Settings.System.putInt(context.getContentResolver(),
+                Settings.System.FULLSCREEN_MODE, 0);
         mWindowManager = windowManager;
         mWindowManagerFuncs = windowManagerFuncs;
         mHeadless = "1".equals(SystemProperties.get("ro.config.headless", "0"));
@@ -1899,7 +1903,7 @@ public class PhoneWindowManager implements WindowManagerPolicy {
     }
 
     public boolean hasSystemNavBar() {
-        return mHasSystemNavBar;
+        return mFullscreenMode ? false : mHasSystemNavBar;
     }
 
     public int getNonDecorDisplayWidth(int fullWidth, int fullHeight, int rotation) {
@@ -4833,7 +4837,20 @@ public class PhoneWindowManager implements WindowManagerPolicy {
         synchronized (mLock) {
             mSystemBooted = true;
         }
+        if (mBootFullscreenMode) {
+            mHandler.removeCallbacks(mBootFullscreen);
+            mHandler.postDelayed(mBootFullscreen, 500);
+        }
     }
+
+    private final Runnable mBootFullscreen = new Runnable() {
+        public void run() {
+            Settings.System.putInt(mContext.getContentResolver(),
+                    Settings.System.FULLSCREEN_MODE, 1);
+            Settings.System.putInt(mContext.getContentResolver(),
+                    Settings.System.EXPANDED_DESKTOP_STATE, 0);
+        }
+    };
 
     ProgressDialog mBootMsgDialog = null;
 
@@ -5245,7 +5262,7 @@ public class PhoneWindowManager implements WindowManagerPolicy {
     // Use this instead of checking config_showNavigationBar so that it can be consistently
     // overridden by qemu.hw.mainkeys in the emulator.
     public boolean hasNavigationBar() {
-        return mHasNavigationBar;
+        return mFullscreenMode ? false : mHasNavigationBar;
     }
 
     @Override

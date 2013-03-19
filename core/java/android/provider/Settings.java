@@ -3231,7 +3231,22 @@ public final class Settings {
         /**
          * @hide
          */
+        public static final String RECENTS_PANEL_COLOR = "recents_panel_color";
+
+        /**
+         * @hide
+         */
+        public static final String NOTIFICATION_PANEL_COLOR = "notification_panel_color";
+
+        /**
+         * @hide
+         */
         public static final String FULLSCREEN_MODE = "fullscreen_mode";
+
+        /**
+         * @hide
+         */
+        public static final String FULLSCREEN_TIMEOUT = "fullscreen_timeout";
 
         /**
          * Settings to backup. This is here so that it's in the same place as the settings

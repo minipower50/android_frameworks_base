@@ -38,6 +38,7 @@ public class SettingsPanelView extends PanelView {
     Drawable mHandleBar;
     int mHandleBarHeight;
     View mHandleView;
+    private PhoneStatusBar mStatusBar;
     
     public SettingsPanelView(Context context, AttributeSet attrs) {
         super(context, attrs);
@@ -89,6 +90,8 @@ public class SettingsPanelView extends PanelView {
     }
 
     public void setService(PhoneStatusBar phoneStatusBar) {
+        mStatusBar = phoneStatusBar;
+
         if (mQS != null) {
             mQS.setService(phoneStatusBar);
         }
@@ -115,4 +118,15 @@ public class SettingsPanelView extends PanelView {
         canvas.translate(0, -off);
     }
 
+    @Override
+    public void collapse() {
+        super.collapse();
+        if (mStatusBar != null) mStatusBar.barExpanded(false);
+    }
+
+    @Override
+    public void expand() {
+        super.expand();
+        if (mStatusBar != null) mStatusBar.barExpanded(true);
+    }
 }

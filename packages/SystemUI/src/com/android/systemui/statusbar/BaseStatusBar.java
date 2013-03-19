@@ -97,6 +97,7 @@ public abstract class BaseStatusBar extends SystemUI implements
     protected static final int MSG_CLOSE_SEARCH_PANEL = 1025;
     protected static final int MSG_SHOW_INTRUDER = 1026;
     protected static final int MSG_HIDE_INTRUDER = 1027;
+    protected static final int MSG_HIDE_STATUSBAR = 1028;
 
     protected static final boolean ENABLE_INTRUDERS = false;
 
@@ -118,6 +119,7 @@ public abstract class BaseStatusBar extends SystemUI implements
 
     // used to notify status bar for suppressing notification LED
     protected boolean mPanelSlightlyVisible;
+    protected boolean mPanelVisible;
 
     // Search panel
     protected SearchPanelView mSearchPanelView;
@@ -724,6 +726,20 @@ public abstract class BaseStatusBar extends SystemUI implements
                      mSearchPanelView.show(false, true);
                  }
                  break;
+             case MSG_HIDE_STATUSBAR:
+                 int fullscreenTimeout = Settings.System.getInt(mContext.getContentResolver(),
+                         Settings.System.FULLSCREEN_TIMEOUT, 0);
+
+                 if (fullscreenTimeout > 0) {
+                     mHandler.removeCallbacks(mStatusBarTimeout);
+                     if (!mPanelVisible) {
+                         mHandler.postDelayed(mStatusBarTimeout, fullscreenTimeout * 1000);
+                     } else {
+                         mHandler.removeMessages(MSG_HIDE_STATUSBAR);
+                         mHandler.sendEmptyMessageDelayed(MSG_HIDE_STATUSBAR, 1000);
+                     }
+                 }
+                 break;
             }
         }
     }
@@ -923,6 +939,12 @@ public abstract class BaseStatusBar extends SystemUI implements
                 // Won't fail unless the world has ended.
             }
         }
+    }
+
+    public void barExpanded(boolean visible) {
+        mPanelVisible = visible;
+        mHandler.removeMessages(MSG_HIDE_STATUSBAR);
+        mHandler.sendEmptyMessage(MSG_HIDE_STATUSBAR);
     }
 
     /**
@@ -1231,11 +1253,38 @@ public abstract class BaseStatusBar extends SystemUI implements
                     Settings.System.STATUS_BAR_COLOR), false, this);
             resolver.registerContentObserver(Settings.System.getUriFor(
                     Settings.System.NAVIGATION_BAR_COLOR), false, this);
+            resolver.registerContentObserver(Settings.System.getUriFor(
+                    Settings.System.NOTIFICATION_PANEL_COLOR), false, this);
+            resolver.registerContentObserver(Settings.System.getUriFor(
+                    Settings.System.RECENTS_PANEL_COLOR), false, this);
+            resolver.registerContentObserver(Settings.System.getUriFor(
+                    Settings.System.EXPANDED_DESKTOP_STATE), false, this);
         }
 
         @Override
-        public void onChange(boolean selfChange) {
-            android.os.Process.killProcess(android.os.Process.myPid());
+        public void onChange(boolean selfChange, Uri uri) {
+            if (uri.equals(Settings.System.getUriFor(Settings.System.EXPANDED_DESKTOP_STATE))) {
+                mHandler.removeMessages(MSG_HIDE_STATUSBAR);
+                mHandler.sendEmptyMessage(MSG_HIDE_STATUSBAR);
+            } else {
+                android.os.Process.killProcess(android.os.Process.myPid());
+            }
+        }
+    };
+
+    public final Runnable mStatusBarTimeout = new Runnable() {
+        public void run() {
+            Settings.System.putInt(mContext.getContentResolver(),
+                    Settings.System.EXPANDED_DESKTOP_STATE, 1);
+        }
+    };
+
+    public View.OnTouchListener mHideBarListener = new View.OnTouchListener() {
+        @Override
+        public boolean onTouch(View v, MotionEvent event) {
+            mHandler.removeMessages(MSG_HIDE_STATUSBAR);
+            mHandler.sendEmptyMessage(MSG_HIDE_STATUSBAR);
+            return false;
         }
     };
 }
