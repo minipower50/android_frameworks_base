@@ -3241,6 +3241,11 @@ public final class Settings {
         /**
          * @hide
          */
+        public static final String SETTINGS_TILE_COLOR = "settings_tile_color";
+
+        /**
+         * @hide
+         */
         public static final String FULLSCREEN_MODE = "fullscreen_mode";
 
         /**
