@@ -97,8 +97,9 @@ public class TabletStatusBar extends BaseStatusBar implements
 
     public static final int MSG_OPEN_NOTIFICATION_PANEL = 1000;
     public static final int MSG_CLOSE_NOTIFICATION_PANEL = 1001;
-    public static final int MSG_OPEN_NOTIFICATION_PEEK = 1002;
-    public static final int MSG_CLOSE_NOTIFICATION_PEEK = 1003;
+    public static final int MSG_OPEN_SETTINGS_PANEL = 1002;
+    public static final int MSG_OPEN_NOTIFICATION_PEEK = 1003;
+    public static final int MSG_CLOSE_NOTIFICATION_PEEK = 1004;
     // 1020-1029 reserved for BaseStatusBar
     public static final int MSG_SHOW_CHROME = 1030;
     public static final int MSG_HIDE_CHROME = 1031;
@@ -909,6 +910,13 @@ public class TabletStatusBar extends BaseStatusBar implements
                         mNotificationArea.setVisibility(View.VISIBLE);
                     }
                     break;
+                case MSG_OPEN_SETTINGS_PANEL:
+                    if (!mNotificationPanel.isShowing()) {
+                        mNotificationPanel.show(true, true);
+                        mNotificationPanel.swapPanels();
+                        mNotificationArea.setVisibility(View.INVISIBLE);
+                    }
+                    break;
                 case MSG_OPEN_INPUT_METHODS_PANEL:
                     if (DEBUG) Slog.d(TAG, "opening input methods panel");
                     if (mInputMethodsPanel != null) mInputMethodsPanel.openPanel();
@@ -1178,7 +1186,8 @@ public class TabletStatusBar extends BaseStatusBar implements
 
     @Override
     public void animateExpandSettingsPanel() {
-        // TODO: Implement when TabletStatusBar begins to be used.
+        mHandler.removeMessages(MSG_OPEN_SETTINGS_PANEL);
+        mHandler.sendEmptyMessage(MSG_OPEN_SETTINGS_PANEL)
     }
 
     @Override // CommandQueue
