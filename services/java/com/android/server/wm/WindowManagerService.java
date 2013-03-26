@@ -6925,54 +6925,52 @@ public class WindowManagerService extends IWindowManager.Stub
         return sw;
     }
 
-    private static class ApplicationDisplayMetrics {
-        boolean rotated;
-        int dh;
-        int dw;
-    }
+    boolean computeScreenConfigurationLocked(Configuration config) {
+        if (!mDisplayReady) {
+            return false;
+        }
 
-    private ApplicationDisplayMetrics calculateDisplayMetrics(DisplayContent displayContent) {
-        ApplicationDisplayMetrics dm = new ApplicationDisplayMetrics();
+        final DisplayContent displayContent = getDefaultDisplayContentLocked();
 
-        dm.rotated = (mRotation == Surface.ROTATION_90 || mRotation == Surface.ROTATION_270);
-        final int realdw = dm.rotated ?
+        final boolean rotated = (mRotation == Surface.ROTATION_90
+                || mRotation == Surface.ROTATION_270);
+        final int realdw = rotated ?
                 displayContent.mBaseDisplayHeight : displayContent.mBaseDisplayWidth;
-        final int realdh = dm.rotated ?
+        final int realdh = rotated ?
                 displayContent.mBaseDisplayWidth : displayContent.mBaseDisplayHeight;
 
-        dm.dw = realdw;
-        dm.dh = realdh;
+        int dw = realdw;
+        int dh = realdh;
 
         if (mAltOrientation) {
             if (realdw > realdh) {
                 // Turn landscape into portrait.
                 int maxw = (int)(realdh/1.3f);
                 if (maxw < realdw) {
-                    dm.dw = maxw;
+                    dw = maxw;
                 }
             } else {
                 // Turn portrait into landscape.
                 int maxh = (int)(realdw/1.3f);
                 if (maxh < realdh) {
-                    dm.dh = maxh;
+                    dh = maxh;
                 }
             }
         }
 
-        return dm;
-    }
+        if (config != null) {
+            config.orientation = (dw <=dh) ? Configuration.ORIENTATION_PORTRAIT :
+                    Configuration.ORIENTATION_LANDSCAPE;
+        }
 
-    private ApplicationDisplayMetrics updateApplicationDisplayMetricsLocked(
-            DisplayContent displayContent) {
-        final ApplicationDisplayMetrics m = calculateDisplayMetrics(displayContent);
-        final int appWidth = mPolicy.getNonDecorDisplayWidth(m.dw, m.dh, mRotation);
-        final int appHeight = mPolicy.getNonDecorDisplayHeight(m.dw, m.dh, mRotation);
+        // Update application display metrics
+        final int appWidth = mPolicy.getNonDecorDisplayWidth(dw, dh, mRotation);
+        final int appHeight = mPolicy.getNonDecorDisplayHeight(dw, dh, mRotation);
         final DisplayInfo displayInfo = displayContent.getDisplayInfo();
-
         synchronized(displayContent.mDisplaySizeLock) {
             displayInfo.rotation = mRotation;
-            displayInfo.logicalWidth = m.dw;
-            displayInfo.logicalHeight = m.dh;
+            displayInfo.logicalWidth = dw;
+            displayInfo.logicalHeight = dh;
             displayInfo.logicalDensityDpi = displayContent.mBaseDisplayDensity;
             displayInfo.appWidth = appWidth;
             displayInfo.appHeight = appHeight;
@@ -6981,37 +6979,12 @@ public class WindowManagerService extends IWindowManager.Stub
             mDisplayManagerService.setDisplayInfoOverrideFromWindowManager(
                     displayContent.getDisplayId(), displayInfo);
 
-            mAnimator.setDisplayDimensions(m.dw, m.dh, appWidth, appHeight);
+            mAnimator.setDisplayDimensions(dw, dh, appWidth, appHeight);
         }
-
         if (false) {
             Slog.i(TAG, "Set app display size: " + appWidth + " x " + appHeight);
         }
 
-        return m;
-    }
-
-    boolean computeScreenConfigurationLocked(Configuration config) {
-        if (!mDisplayReady) {
-            return false;
-        }
-
-        // TODO(multidisplay): For now, apply Configuration to main screen only.
-        final DisplayContent displayContent = getDefaultDisplayContentLocked();
-
-        // Update application display metrics.
-        final ApplicationDisplayMetrics appDm = updateApplicationDisplayMetricsLocked(
-                displayContent);
-        final boolean rotated = appDm.rotated;
-        final int dw = appDm.dw;
-        final int dh = appDm.dh;
-
-        if (config != null) {
-            config.orientation = (dw <= dh) ? Configuration.ORIENTATION_PORTRAIT :
-                    Configuration.ORIENTATION_LANDSCAPE;
-        }
-
-        final DisplayInfo displayInfo = displayContent.getDisplayInfo();
         final DisplayMetrics dm = mDisplayMetrics;
         mCompatibleScreenScale = CompatibilityInfo.computeCompatibleScaling(dm,
                 mCompatDisplayMetrics);
@@ -10469,17 +10442,6 @@ public class WindowManagerService extends IWindowManager.Stub
             return;
         }
         mPolicy.showAssistant();
-    }
-
-    public void updateDisplayMetrics() {
-        long origId = Binder.clearCallingIdentity();
-
-        synchronized (mWindowMap) {
-            final DisplayContent displayContent = getDefaultDisplayContentLocked();
-            updateApplicationDisplayMetricsLocked(displayContent);
-        }
-
-        Binder.restoreCallingIdentity(origId);
     }
 
     void dumpPolicyLocked(PrintWriter pw, String[] args, boolean dumpAll) {

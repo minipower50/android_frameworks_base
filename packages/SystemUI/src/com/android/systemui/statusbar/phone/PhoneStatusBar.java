@@ -107,6 +107,7 @@ import com.android.systemui.statusbar.policy.NetworkController;
 import com.android.systemui.statusbar.policy.NotificationRowLayout;
 import com.android.systemui.statusbar.policy.OnSizeChangedListener;
 import com.android.systemui.statusbar.policy.Prefs;
+import com.android.systemui.statusbar.policy.PieController.Position;
 import com.android.systemui.statusbar.powerwidget.PowerWidget;
 
 public class PhoneStatusBar extends BaseStatusBar {
@@ -303,6 +304,8 @@ public class PhoneStatusBar extends BaseStatusBar {
 
     // for disabling the status bar
     int mDisabled = 0;
+
+    private boolean mRestoreExpandedDesktop = false;
 
     // tracking calls to View.setSystemUiVisibility()
     int mSystemUiVisibility = View.SYSTEM_UI_FLAG_VISIBLE;
@@ -519,6 +522,7 @@ public class PhoneStatusBar extends BaseStatusBar {
 
                 mNavigationBarView.setDisabledFlags(mDisabled);
                 mNavigationBarView.setBar(this);
+                addNavigationBarCallback(mNavigationBarView);
             }
         } catch (RemoteException ex) {
             // no window manager? good luck with that
@@ -1447,8 +1451,9 @@ public class PhoneStatusBar extends BaseStatusBar {
                         | StatusBarManager.DISABLE_RECENT
                         | StatusBarManager.DISABLE_BACK
                         | StatusBarManager.DISABLE_SEARCH)) != 0) {
-            // the nav bar will take care of these
-            if (mNavigationBarView != null) mNavigationBarView.setDisabledFlags(state);
+
+            // all navigation bar listeners will take care of these
+            propagateDisabledFlags(state);
 
             if ((state & StatusBarManager.DISABLE_RECENT) != 0) {
                 // close recents if it's visible
@@ -1567,6 +1572,14 @@ public class PhoneStatusBar extends BaseStatusBar {
     }
 
     public void animateCollapsePanels() {
+        if (mRestoreExpandedDesktop) {
+            mRestoreExpandedDesktop = false;
+            if (Settings.System.getInt(mContext.getContentResolver(),
+                     Settings.System.FULLSCREEN_TIMEOUT, 0) == 0) {
+                Settings.System.putInt(mContext.getContentResolver(),
+                        Settings.System.EXPANDED_DESKTOP_STATE, 1);
+            }
+        }
         animateCollapsePanels(CommandQueue.FLAG_EXCLUDE_NONE);
     }
 
@@ -1650,6 +1663,15 @@ public class PhoneStatusBar extends BaseStatusBar {
             return ;
         }
 
+        if (Settings.System.getInt(mContext.getContentResolver(),
+                Settings.System.EXPANDED_DESKTOP_STATE, 0) == 1 &&
+                Settings.System.getInt(mContext.getContentResolver(),
+                Settings.System.EXPANDED_DESKTOP_STYLE, 0) == 2) {
+            mRestoreExpandedDesktop = true;
+            Settings.System.putInt(mContext.getContentResolver(),
+                    Settings.System.EXPANDED_DESKTOP_STATE, 0);
+        }
+
         mNotificationPanel.expand();
         if (mHasFlipSettings && mScrollView.getVisibility() != View.VISIBLE) {
             flipToNotifications();
@@ -1715,6 +1737,15 @@ public class PhoneStatusBar extends BaseStatusBar {
         if (SPEW) Slog.d(TAG, "animateExpand: mExpandedVisible=" + mExpandedVisible);
         if ((mDisabled & StatusBarManager.DISABLE_EXPAND) != 0) {
             return;
+        }
+
+        if (Settings.System.getInt(mContext.getContentResolver(),
+                Settings.System.EXPANDED_DESKTOP_STATE, 0) == 1 &&
+                Settings.System.getInt(mContext.getContentResolver(),
+                Settings.System.EXPANDED_DESKTOP_STYLE, 0) == 2) {
+            mRestoreExpandedDesktop = true;
+            Settings.System.putInt(mContext.getContentResolver(),
+                    Settings.System.EXPANDED_DESKTOP_STATE, 0);
         }
 
         // Settings are not available in setup
@@ -2145,9 +2176,7 @@ public class PhoneStatusBar extends BaseStatusBar {
 
         mNavigationIconHints = hints;
 
-        if (mNavigationBarView != null) {
-            mNavigationBarView.setNavigationIconHints(hints);
-        }
+        propagateNavigationIconHints(hints);
     }
 
     @Override // CommandQueue
@@ -2284,8 +2313,21 @@ public class PhoneStatusBar extends BaseStatusBar {
         if (DEBUG) {
             Slog.d(TAG, (showMenu?"showing":"hiding") + " the MENU button");
         }
-        if (mNavigationBarView != null) {
-            mNavigationBarView.setMenuVisibility(showMenu);
+        propagateMenuVisibility(showMenu);
+
+        // hide pie triggers when keyguard is visible
+        try {
+            if (mWindowManagerService.isKeyguardLocked()) {
+                updatePieTriggerMask(Position.BOTTOM.FLAG
+                        | Position.TOP.FLAG);
+            } else {
+                updatePieTriggerMask(Position.LEFT.FLAG
+                        | Position.BOTTOM.FLAG
+                        | Position.RIGHT.FLAG
+                        | Position.TOP.FLAG);
+            }
+        } catch (RemoteException e) {
+            // nothing else to do ...
         }
 
         // See above re: lights-out policy for legacy apps.
@@ -2324,11 +2366,6 @@ public class PhoneStatusBar extends BaseStatusBar {
         if (n.notification.tickerText != null && mStatusBarContainer.getWindowToken() != null) {
             if (0 == (mDisabled & (StatusBarManager.DISABLE_NOTIFICATION_ICONS
                             | StatusBarManager.DISABLE_NOTIFICATION_TICKER))) {
-                if (Settings.System.getInt(mContext.getContentResolver(),
-                        Settings.System.EXPANDED_DESKTOP_STATE, 0) == 1) {
-                    Settings.System.putInt(mContext.getContentResolver(),
-                            Settings.System.EXPANDED_DESKTOP_STATE, 0);
-                }
                 mTicker.addEntry(n);
             }
         }
@@ -2346,6 +2383,14 @@ public class PhoneStatusBar extends BaseStatusBar {
             mTickerView.setVisibility(View.VISIBLE);
             mTickerView.startAnimation(loadAnim(com.android.internal.R.anim.push_up_in, null));
             mStatusBarContents.startAnimation(loadAnim(com.android.internal.R.anim.push_up_out, null));
+            if (Settings.System.getInt(mContext.getContentResolver(),
+                    Settings.System.EXPANDED_DESKTOP_STATE, 0) == 1 &&
+                Settings.System.getInt(mContext.getContentResolver(),
+                Settings.System.EXPANDED_DESKTOP_STYLE, 0) == 2) {
+                mRestoreExpandedDesktop = true;
+                Settings.System.putInt(mContext.getContentResolver(),
+                        Settings.System.EXPANDED_DESKTOP_STATE, 0);
+            }
         }
 
         @Override
@@ -2355,6 +2400,14 @@ public class PhoneStatusBar extends BaseStatusBar {
             mStatusBarContents.startAnimation(loadAnim(com.android.internal.R.anim.push_down_in, null));
             mTickerView.startAnimation(loadAnim(com.android.internal.R.anim.push_down_out,
                         mTickingDoneListener));
+            if (mRestoreExpandedDesktop) {
+                mRestoreExpandedDesktop = false;
+                if (Settings.System.getInt(mContext.getContentResolver(),
+                         Settings.System.FULLSCREEN_TIMEOUT, 0) == 0) {
+                    Settings.System.putInt(mContext.getContentResolver(),
+                            Settings.System.EXPANDED_DESKTOP_STATE, 1);
+                }
+            }
         }
 
         @Override
@@ -2363,6 +2416,14 @@ public class PhoneStatusBar extends BaseStatusBar {
             mTickerView.setVisibility(View.GONE);
             mStatusBarContents.startAnimation(loadAnim(com.android.internal.R.anim.fade_in, null));
             // we do not animate the ticker away at this point, just get rid of it (b/6992707)
+            if (mRestoreExpandedDesktop) {
+                mRestoreExpandedDesktop = false;
+                if (Settings.System.getInt(mContext.getContentResolver(),
+                         Settings.System.FULLSCREEN_TIMEOUT, 0) == 0) {
+                    Settings.System.putInt(mContext.getContentResolver(),
+                            Settings.System.EXPANDED_DESKTOP_STATE, 1);
+                }
+            }
         }
     }
 
