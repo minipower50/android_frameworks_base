@@ -205,6 +205,8 @@ public class ViewConfiguration {
      */
     private static final int OVERFLING_DISTANCE = 6;
 
+    private static final int KEY_MASK_MENU = 0x04;
+
     private final int mEdgeSlop;
     private final int mFadingEdgeLength;
     private final int mMinimumFlingVelocity;
@@ -294,8 +296,11 @@ public class ViewConfiguration {
 
         if (!sHasPermanentMenuKeySet) {
             IWindowManager wm = WindowManagerGlobal.getWindowManagerService();
+            boolean hasMenuKey = (context.getResources().getInteger(
+                    com.android.internal.R.integer.config_deviceHardwareKeys) & KEY_MASK_MENU) != 0;
             try {
-                sHasPermanentMenuKey = !wm.hasSystemNavBar() && !wm.hasNavigationBar();
+                sHasPermanentMenuKey = hasMenuKey ?
+                        (!wm.hasSystemNavBar() && !wm.hasNavigationBar()) : false;
                 sHasPermanentMenuKeySet = true;
             } catch (RemoteException ex) {
                 sHasPermanentMenuKey = false;
