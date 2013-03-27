@@ -16,11 +16,15 @@
  */
 package com.android.systemui.statusbar.policy;
 
+import android.app.ActivityManager;
+import android.app.ActivityManager.RunningAppProcessInfo;
+import android.app.ActivityManager.RunningServiceInfo;
 import android.app.ActivityOptions;
 import android.app.SearchManager;
 import android.app.StatusBarManager;
 import android.content.ActivityNotFoundException;
 import android.content.BroadcastReceiver;
+import android.content.ComponentName;
 import android.content.ContentResolver;
 import android.content.Context;
 import android.content.Intent;
@@ -61,6 +65,9 @@ import com.android.systemui.statusbar.pie.PieLayout.PieSlice;
 import com.android.systemui.statusbar.pie.PieSliceContainer;
 import com.android.systemui.statusbar.pie.PieSysInfo;
 
+import java.util.Iterator;
+import java.util.List;
+
 /**
  * Controller class for the default pie control.
  * <p>
@@ -78,7 +85,10 @@ public class PieController implements BaseStatusBar.NavigationBarCallback,
         RECENT,
         MENU,
         SEARCH,
-        SEARCHLIGHT
+        SEARCHLIGHT,
+        NOTIFICATIONS,
+        SETTINGS,
+        DRAWER
     };
 
     public static final float EMPTY_ANGLE = 10;
@@ -110,6 +120,7 @@ public class PieController implements BaseStatusBar.NavigationBarCallback,
     private boolean mShowMenu = false;
     private Drawable mBackIcon;
     private Drawable mBackAltIcon;
+    private ActivityManager mActivityManager;
 
     /**
      * Defines the positions in which pie controls may appear. This enumeration is used to store
@@ -245,6 +256,12 @@ public class PieController implements BaseStatusBar.NavigationBarCallback,
             ContentResolver resolver = mContext.getContentResolver();
             resolver.registerContentObserver(Settings.System.getUriFor(
                     Settings.System.PIE_SEARCH), false, this);
+            resolver.registerContentObserver(Settings.System.getUriFor(
+                    Settings.System.PIE_SETTINGS), false, this);
+            resolver.registerContentObserver(Settings.System.getUriFor(
+                    Settings.System.PIE_NOTIFICATIONS), false, this);
+            resolver.registerContentObserver(Settings.System.getUriFor(
+                    Settings.System.PIE_DRAWER), false, this);
         }
 
         @Override
@@ -293,6 +310,9 @@ public class PieController implements BaseStatusBar.NavigationBarCallback,
 
         mBackIcon = res.getDrawable(R.drawable.ic_sysbar_back);
         mBackAltIcon = res.getDrawable(R.drawable.ic_sysbar_back_ime);
+
+        mActivityManager =
+                (ActivityManager) context.getSystemService(Context.ACTIVITY_SERVICE);
     }
 
     public void attachTo(BaseStatusBar statusBar) {
@@ -348,17 +368,32 @@ public class PieController implements BaseStatusBar.NavigationBarCallback,
         int minimumImageSize = (int)mContext.getResources().getDimension(R.dimen.pie_item_size);
 
         mNavigationSlice.clear();
+        if (Settings.System.getInt(mContext.getContentResolver(),
+                Settings.System.PIE_SETTINGS, 0) == 1) {
+            mNavigationSlice.addItem(constructItem(1, ButtonType.SETTINGS,
+                    R.drawable.ic_qs_settings, minimumImageSize));
+        }
+        if (Settings.System.getInt(mContext.getContentResolver(),
+                Settings.System.PIE_NOTIFICATIONS, 0) == 1) {
+            mNavigationSlice.addItem(constructItem(1, ButtonType.NOTIFICATIONS,
+                    R.drawable.ic_notification_open, minimumImageSize));
+        }
+        if (Settings.System.getInt(mContext.getContentResolver(),
+                Settings.System.PIE_SEARCH, 0) == 1) {
+            mNavigationSlice.addItem(constructItem(1, ButtonType.SEARCH,
+                    R.drawable.ic_sysbar_search_side, minimumImageSize));
+        }
+        if (Settings.System.getInt(mContext.getContentResolver(),
+                Settings.System.PIE_DRAWER, 0) == 1) {
+            mNavigationSlice.addItem(constructItem(1, ButtonType.DRAWER,
+                    R.drawable.search_light, minimumImageSize));
+        }
         mNavigationSlice.addItem(constructItem(2, ButtonType.BACK,
                 R.drawable.ic_sysbar_back, minimumImageSize));
         mNavigationSlice.addItem(constructItem(2, ButtonType.HOME,
                 R.drawable.ic_sysbar_home, minimumImageSize));
         mNavigationSlice.addItem(constructItem(2, ButtonType.RECENT,
                 R.drawable.ic_sysbar_recent, minimumImageSize));
-        if (Settings.System.getInt(mContext.getContentResolver(),
-                Settings.System.PIE_SEARCH, 0) == 1) {
-            mNavigationSlice.addItem(constructItem(1, ButtonType.SEARCH,
-                    R.drawable.ic_sysbar_search_side, minimumImageSize));
-        }
 
         // search light has a width of 6 to take the complete space that normally
         // BACK HOME RECENT would occupy
@@ -467,6 +502,7 @@ public class PieController implements BaseStatusBar.NavigationBarCallback,
         final boolean disableBack = ((disabledFlags & View.STATUS_BAR_DISABLE_BACK) != 0)
                 && ((mNavigationIconHints & StatusBarManager.NAVIGATION_HINT_BACK_ALT) == 0);
         final boolean disableSearch = ((disabledFlags & View.STATUS_BAR_DISABLE_SEARCH) != 0);
+        final boolean searchLight = disableHome && disableRecent && disableBack && !disableSearch;
 
         PieItem item = findItem(ButtonType.BACK);
         if (item != null) {
@@ -484,9 +520,21 @@ public class PieController implements BaseStatusBar.NavigationBarCallback,
         if (item != null) {
             item.show(!disableRecent && !disableSearch);
         }
+        item = findItem(ButtonType.NOTIFICATIONS);
+        if (item != null) {
+            item.show(!searchLight);
+        }
+        item = findItem(ButtonType.SETTINGS);
+        if (item != null) {
+            item.show(!searchLight);
+        }
+        item = findItem(ButtonType.DRAWER);
+        if (item != null) {
+            item.show(!searchLight);
+        }
         // enable searchlight when nothing except search is enabled
         if (mSearchLight != null) {
-            mSearchLight.show(disableHome && disableRecent && disableBack && !disableSearch);
+            mSearchLight.show(searchLight);
         }
         setMenuVisibility(mShowMenu);
     }
@@ -496,6 +544,7 @@ public class PieController implements BaseStatusBar.NavigationBarCallback,
         // this call may come from outside
         if (mMenuButton != null) {
             final boolean disableRecent = ((mDisabledFlags & View.STATUS_BAR_DISABLE_RECENT) != 0);
+            
             mMenuButton.show(showMenu && !disableRecent);
         }
 
@@ -549,7 +598,81 @@ public class PieController implements BaseStatusBar.NavigationBarCallback,
             case SEARCHLIGHT:
                 launchAssistAction(type == ButtonType.SEARCHLIGHT);
                 break;
+            case NOTIFICATIONS:
+                if (mStatusBar != null) {
+                    mStatusBar.animateExpandNotificationsPanel();
+                }
+                break;
+            case SETTINGS:
+                if (mStatusBar != null) {
+                    mStatusBar.animateExpandSettingsPanel();
+                }
+                break;
+            case DRAWER:
+                RunningAppProcessInfo fg = getForegroundApp();
+                ComponentName current = getActivityForApp(fg);
+                String component = current != null ? current.flattenToString() : "";
+                Intent intent = new Intent("android.intent.action.MAIN");
+                intent.addCategory("android.intent.category.HOME");
+                intent.addCategory("com.cyanogenmod.trebuchet.APP_DRAWER");
+                intent.putExtra("component", component);
+                intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+                mContext.startActivity(intent);
+                break;
         }
+    }
+
+    private RunningAppProcessInfo getForegroundApp() {
+        RunningAppProcessInfo result = null, info = null;
+
+        List <RunningAppProcessInfo> l = mActivityManager.getRunningAppProcesses();
+        Iterator <RunningAppProcessInfo> i = l.iterator();
+        while(i.hasNext()){
+            info = i.next();
+            if(info.importance == RunningAppProcessInfo.IMPORTANCE_FOREGROUND
+                    && !isRunningService(info.processName)){
+                result=info;
+                break;
+            }
+        }
+        return result;
+    }
+
+    private ComponentName getActivityForApp(RunningAppProcessInfo target){
+        ComponentName result = null;
+        ActivityManager.RunningTaskInfo info;
+
+        if(target==null)
+            return null;
+
+        List <ActivityManager.RunningTaskInfo> l = mActivityManager.getRunningTasks(9999);
+        Iterator <ActivityManager.RunningTaskInfo> i = l.iterator();
+
+        while(i.hasNext()){
+            info=i.next();
+            if(info.baseActivity.getPackageName().equals(target.processName)){
+                result=info.topActivity;
+                break;
+            }
+        }
+
+        return result;
+    }
+
+    private boolean isRunningService(String processname) {
+        if (processname == null || processname.isEmpty()) {
+            return false;
+        }
+        RunningServiceInfo service;
+        List <RunningServiceInfo> l = mActivityManager.getRunningServices(9999);
+        Iterator <RunningServiceInfo> i = l.iterator();
+        while(i.hasNext()){
+            service = i.next();
+            if(service.process.equals(processname))
+                return true;
+        }
+
+        return false;
     }
 
     private void doHapticTriggerFeedback() {
