@@ -558,7 +558,7 @@ public class PhoneWindow extends Window implements MenuBuilder.Callback {
 
         // Don't open an options panel for honeycomb apps on xlarge devices.
         // (The app should be using an action bar for menu items.)
-        if (st.featureId == FEATURE_OPTIONS_PANEL) {
+/*        if (st.featureId == FEATURE_OPTIONS_PANEL) {
             Context context = getContext();
             Configuration config = context.getResources().getConfiguration();
             boolean isXLarge = (config.screenLayout & Configuration.SCREENLAYOUT_SIZE_MASK) ==
@@ -570,7 +570,7 @@ public class PhoneWindow extends Window implements MenuBuilder.Callback {
                 return;
             }
         }
-
+*/
         Callback cb = getCallback();
         if ((cb != null) && (!cb.onMenuOpened(st.featureId, st.menu))) {
             // Callback doesn't want the menu to open, reset any state
