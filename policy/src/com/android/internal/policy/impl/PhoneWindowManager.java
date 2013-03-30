@@ -510,11 +510,11 @@ public class PhoneWindowManager implements WindowManagerPolicy {
 
     // Tracks user-customisable behavior for certain key events
     private int mLongPressOnHomeBehavior = -1;
-    private int mPressOnMenuBehavior = -1;
+    private int mPressOnMenuBehavior = KEY_ACTION_MENU;
     private int mLongPressOnMenuBehavior = -1;
-    private int mPressOnAssistBehavior = -1;
+    private int mPressOnAssistBehavior = KEY_ACTION_SEARCH;
     private int mLongPressOnAssistBehavior = -1;
-    private int mPressOnAppSwitchBehavior = -1;
+    private int mPressOnAppSwitchBehavior = KEY_ACTION_APP_SWITCH;
     private int mLongPressOnAppSwitchBehavior = -1;
 
     // To identify simulated keypresses, so we can perform

@@ -3311,6 +3311,31 @@ public final class Settings {
         public static final String PIE_DRAWER = "pie_drawer";
 
         /**
+         * @hide
+         */
+        public static final String PIE_COLOR = "pie_color";
+
+        /**
+         * @hide
+         */
+        public static final String PIE_OUTLINE_COLOR = "pie_outline_color";
+
+        /**
+         * @hide
+         */
+        public static final String PIE_SELECTED_COLOR = "pie_selected_color";
+
+        /**
+         * @hide
+         */
+        public static final String PIE_START = "pie_start";
+
+        /**
+         * @hide
+         */
+        public static final String PIE_DISTANCE = "pie_distance";
+
+        /**
          * Settings to backup. This is here so that it's in the same place as the settings
          * keys and easy to update.
          *
