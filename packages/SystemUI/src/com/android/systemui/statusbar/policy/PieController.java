@@ -16,15 +16,11 @@
  */
 package com.android.systemui.statusbar.policy;
 
-import android.app.ActivityManager;
-import android.app.ActivityManager.RunningAppProcessInfo;
-import android.app.ActivityManager.RunningServiceInfo;
 import android.app.ActivityOptions;
 import android.app.SearchManager;
 import android.app.StatusBarManager;
 import android.content.ActivityNotFoundException;
 import android.content.BroadcastReceiver;
-import android.content.ComponentName;
 import android.content.ContentResolver;
 import android.content.Context;
 import android.content.Intent;
@@ -50,23 +46,26 @@ import android.telephony.TelephonyManager;
 import android.util.Slog;
 import android.view.HapticFeedbackConstants;
 import android.view.IWindowManager;
+import android.view.InputDevice;
+import android.view.KeyCharacterMap;
 import android.view.KeyEvent;
 import android.view.MotionEvent;
+import android.view.SoundEffectConstants;
 import android.view.View;
 import android.view.ViewGroup.LayoutParams;
+import android.view.accessibility.AccessibilityEvent;
 import android.widget.ImageView;
 
 import com.android.systemui.R;
 import com.android.systemui.statusbar.BaseStatusBar;
+import com.android.systemui.statusbar.NavigationButtons;
+import com.android.systemui.statusbar.NavigationButtons.ButtonInfo;
 import com.android.systemui.statusbar.pie.PieItem;
 import com.android.systemui.statusbar.pie.PieLayout;
 import com.android.systemui.statusbar.pie.PieLayout.PieDrawable;
 import com.android.systemui.statusbar.pie.PieLayout.PieSlice;
 import com.android.systemui.statusbar.pie.PieSliceContainer;
 import com.android.systemui.statusbar.pie.PieSysInfo;
-
-import java.util.Iterator;
-import java.util.List;
 
 /**
  * Controller class for the default pie control.
@@ -79,22 +78,14 @@ public class PieController implements BaseStatusBar.NavigationBarCallback,
     public static final String TAG = "PieController";
     public static final boolean DEBUG = false;
 
-    private enum ButtonType {
-        BACK,
-        HOME,
-        RECENT,
-        MENU,
-        SEARCH,
-        SEARCHLIGHT,
-        NOTIFICATIONS,
-        SETTINGS,
-        DRAWER
-    };
+    private static final ButtonInfo SEARCHLIGHT = new ButtonInfo(0, 0, 0,
+            R.drawable.search_light, R.drawable.search_light, 0);
 
     public static final float EMPTY_ANGLE = 10;
     public static final float START_ANGLE = 180 + EMPTY_ANGLE;
 
-    private static final int MSG_INJECT_KEY = 1066;
+    private static final int MSG_INJECT_KEY_DOWN = 1066;
+    private static final int MSG_INJECT_KEY_UP = 1067;
 
     private Context mContext;
     private PieLayout mPieContainer;
@@ -120,7 +111,6 @@ public class PieController implements BaseStatusBar.NavigationBarCallback,
     private boolean mShowMenu = false;
     private Drawable mBackIcon;
     private Drawable mBackAltIcon;
-    private ActivityManager mActivityManager;
 
     /**
      * Defines the positions in which pie controls may appear. This enumeration is used to store
@@ -224,27 +214,37 @@ public class PieController implements BaseStatusBar.NavigationBarCallback,
 
     private class H extends Handler {
         public void handleMessage(Message m) {
+            final InputManager inputManager = InputManager.getInstance();
             switch (m.what) {
-                case MSG_INJECT_KEY:
-                    final long eventTime = SystemClock.uptimeMillis();
-                    final InputManager inputManager = InputManager.getInstance();
-
-                    inputManager.injectInputEvent(new KeyEvent(eventTime - 50, eventTime - 50,
-                            KeyEvent.ACTION_DOWN, m.arg1, 0),
+                case MSG_INJECT_KEY_DOWN:
+                    inputManager.injectInputEvent((KeyEvent) m.obj,
                             InputManager.INJECT_INPUT_EVENT_MODE_ASYNC);
-                    inputManager.injectInputEvent(new KeyEvent(eventTime - 50, eventTime - 25,
-                            KeyEvent.ACTION_UP, m.arg1, 0),
+                    mPieContainer.playSoundEffect(SoundEffectConstants.CLICK);
+                    break;
+                case MSG_INJECT_KEY_UP:
+                    inputManager.injectInputEvent((KeyEvent) m.obj,
                             InputManager.INJECT_INPUT_EVENT_MODE_ASYNC);
-
                     break;
             }
         }
     }
     private H mHandler = new H();
 
-    private void injectKeyDelayed(int keycode) {
-        mHandler.removeMessages(MSG_INJECT_KEY);
-        mHandler.sendMessageDelayed(Message.obtain(mHandler, MSG_INJECT_KEY, keycode, 0), 50);
+    private void injectKeyDelayed(int keyCode, long when) {
+        mHandler.removeMessages(MSG_INJECT_KEY_DOWN);
+        mHandler.removeMessages(MSG_INJECT_KEY_UP);
+
+        KeyEvent down = new KeyEvent(when, when + 10, KeyEvent.ACTION_DOWN, keyCode, 0, 0,
+                KeyCharacterMap.VIRTUAL_KEYBOARD, 0,
+                KeyEvent.FLAG_FROM_SYSTEM | KeyEvent.FLAG_VIRTUAL_HARD_KEY,
+                InputDevice.SOURCE_KEYBOARD);
+        KeyEvent up = new KeyEvent(when, when + 30, KeyEvent.ACTION_UP, keyCode, 0, 0,
+                KeyCharacterMap.VIRTUAL_KEYBOARD, 0,
+                KeyEvent.FLAG_FROM_SYSTEM | KeyEvent.FLAG_VIRTUAL_HARD_KEY,
+                InputDevice.SOURCE_KEYBOARD);
+
+        mHandler.sendMessageDelayed(Message.obtain(mHandler, MSG_INJECT_KEY_DOWN, down), 10);
+        mHandler.sendMessageDelayed(Message.obtain(mHandler, MSG_INJECT_KEY_UP, up), 30);
     }
 
     private final class SettingsObserver extends ContentObserver {
@@ -255,13 +255,7 @@ public class PieController implements BaseStatusBar.NavigationBarCallback,
         void observe() {
             ContentResolver resolver = mContext.getContentResolver();
             resolver.registerContentObserver(Settings.System.getUriFor(
-                    Settings.System.PIE_SEARCH), false, this);
-            resolver.registerContentObserver(Settings.System.getUriFor(
-                    Settings.System.PIE_SETTINGS), false, this);
-            resolver.registerContentObserver(Settings.System.getUriFor(
-                    Settings.System.PIE_NOTIFICATIONS), false, this);
-            resolver.registerContentObserver(Settings.System.getUriFor(
-                    Settings.System.PIE_DRAWER), false, this);
+                    Settings.System.NAV_BUTTONS), false, this);
         }
 
         @Override
@@ -312,9 +306,6 @@ public class PieController implements BaseStatusBar.NavigationBarCallback,
 
         mBackIcon = res.getDrawable(R.drawable.ic_sysbar_back);
         mBackAltIcon = res.getDrawable(R.drawable.ic_sysbar_back_ime);
-
-        mActivityManager =
-                (ActivityManager) context.getSystemService(Context.ACTIVITY_SERVICE);
     }
 
     public void attachTo(BaseStatusBar statusBar) {
@@ -368,50 +359,35 @@ public class PieController implements BaseStatusBar.NavigationBarCallback,
 
     private void setupNavigationItems() {
         int minimumImageSize = (int)mContext.getResources().getDimension(R.dimen.pie_item_size);
+        ButtonInfo[] buttons = NavigationButtons.loadButtonMap(mContext);
 
         mNavigationSlice.clear();
-        if (Settings.System.getInt(mContext.getContentResolver(),
-                Settings.System.PIE_SETTINGS, 0) == 1) {
-            mNavigationSlice.addItem(constructItem(1, ButtonType.SETTINGS,
-                    R.drawable.ic_qs_settings, minimumImageSize));
-        }
-        if (Settings.System.getInt(mContext.getContentResolver(),
-                Settings.System.PIE_NOTIFICATIONS, 0) == 1) {
-            mNavigationSlice.addItem(constructItem(1, ButtonType.NOTIFICATIONS,
-                    R.drawable.ic_notification_open, minimumImageSize));
-        }
-        if (Settings.System.getInt(mContext.getContentResolver(),
-                Settings.System.PIE_SEARCH, 0) == 1) {
-            mNavigationSlice.addItem(constructItem(1, ButtonType.SEARCH,
-                    R.drawable.ic_sysbar_search_side, minimumImageSize));
-        }
-        if (Settings.System.getInt(mContext.getContentResolver(),
-                Settings.System.PIE_DRAWER, 0) == 1) {
-            mNavigationSlice.addItem(constructItem(1, ButtonType.DRAWER,
-                    R.drawable.search_light, minimumImageSize));
-        }
-        mNavigationSlice.addItem(constructItem(2, ButtonType.BACK,
-                R.drawable.ic_sysbar_back, minimumImageSize));
-        mNavigationSlice.addItem(constructItem(2, ButtonType.HOME,
-                R.drawable.ic_sysbar_home, minimumImageSize));
-        mNavigationSlice.addItem(constructItem(2, ButtonType.RECENT,
-                R.drawable.ic_sysbar_recent, minimumImageSize));
 
-        // search light has a width of 6 to take the complete space that normally
-        // BACK HOME RECENT would occupy
-        mSearchLight = constructItem(6, ButtonType.SEARCHLIGHT,
-                R.drawable.search_light, minimumImageSize);
-        mNavigationSlice.addItem(mSearchLight);
+        for (int i = 0; i < buttons.length; i++) {
+            if (buttons[i] != NavigationButtons.EMPTY) {
+                ButtonInfo bi = buttons[i];
 
-        mMenuButton = constructItem(1, ButtonType.MENU,
-                R.drawable.ic_sysbar_menu, minimumImageSize);
-        mNavigationSlice.addItem(mMenuButton);
+                // search light is at the same position as the home button
+                if (bi == NavigationButtons.HOME) {
+                    // search light has a width of 6 to take the complete space that normally
+                    // BACK HOME RECENT would occupy
+                    mSearchLight = constructItem(6, SEARCHLIGHT,
+                            SEARCHLIGHT.portResource, minimumImageSize);
+                    mNavigationSlice.addItem(mSearchLight);
+                }
+
+                boolean isSmall = NavigationButtons.IS_SLOT_SMALL[i];
+                mNavigationSlice.addItem(constructItem(isSmall ? 1 : 2, bi,
+                        isSmall ? bi.sideResource : bi.portResource, minimumImageSize));
+            }
+        }
+        mMenuButton = findItem(NavigationButtons.CONDITIONAL_MENU);
 
         setNavigationIconHints(mNavigationIconHints, true);
         setMenuVisibility(mShowMenu);
     }
 
-    private PieItem constructItem(int width, ButtonType type, int image, int minimumImageSize) {
+    private PieItem constructItem(int width, ButtonInfo type, int image, int minimumImageSize) {
         ImageView view = new ImageView(mContext);
         view.setImageResource(image);
         view.setMinimumWidth(minimumImageSize);
@@ -421,6 +397,23 @@ public class PieController implements BaseStatusBar.NavigationBarCallback,
         PieItem item = new PieItem(mContext, mPieContainer, width, type, view);
         item.setOnClickListener(this);
         return item;
+    }
+
+    private PieItem findItem(ButtonInfo type) {
+        for (PieItem item : mNavigationSlice.getItems()) {
+            if (type == item.tag) {
+                return item;
+            }
+        }
+
+        return null;
+    }
+
+    private void setItemWithTagVisibility(ButtonInfo type, boolean show) {
+        PieItem item = findItem(type);
+        if (item != null) {
+            item.show(show);
+        }
     }
 
     public void activateFromTrigger(View view, MotionEvent event, Position position) {
@@ -452,17 +445,17 @@ public class PieController implements BaseStatusBar.NavigationBarCallback,
 
         mNavigationIconHints = hints;
 
-        PieItem item = findItem(ButtonType.HOME);
+        PieItem item = findItem(NavigationButtons.HOME);
         if (item != null) {
             boolean isNop = (hints & StatusBarManager.NAVIGATION_HINT_HOME_NOP) != 0;
             item.setAlpha(isNop ? 0.5f : 1.0f);
         }
-        item = findItem(ButtonType.RECENT);
+        item = findItem(NavigationButtons.RECENT);
         if (item != null) {
             boolean isNop = (hints & StatusBarManager.NAVIGATION_HINT_RECENT_NOP) != 0;
             item.setAlpha(isNop ? 0.5f : 1.0f);
         }
-        item = findItem(ButtonType.BACK);
+        item = findItem(NavigationButtons.BACK);
         if (item != null) {
             boolean isNop = (hints & StatusBarManager.NAVIGATION_HINT_BACK_NOP) != 0;
             boolean isAlt = (hints & StatusBarManager.NAVIGATION_HINT_BACK_ALT) != 0;
@@ -470,17 +463,6 @@ public class PieController implements BaseStatusBar.NavigationBarCallback,
             item.setImageDrawable(isAlt ? mBackAltIcon : mBackIcon);
         }
         setDisabledFlags(mDisabledFlags, true);
-    }
-
-    private PieItem findItem(ButtonType type) {
-        for (PieItem item : mNavigationSlice.getItems()) {
-            ButtonType itemType = (ButtonType) item.tag;
-            if (type == itemType) {
-                return item;
-            }
-        }
-
-        return null;
     }
 
     @Override
@@ -504,39 +486,16 @@ public class PieController implements BaseStatusBar.NavigationBarCallback,
         final boolean disableBack = ((disabledFlags & View.STATUS_BAR_DISABLE_BACK) != 0)
                 && ((mNavigationIconHints & StatusBarManager.NAVIGATION_HINT_BACK_ALT) == 0);
         final boolean disableSearch = ((disabledFlags & View.STATUS_BAR_DISABLE_SEARCH) != 0);
-        final boolean searchLight = disableHome && disableRecent && disableBack && !disableSearch;
 
-        PieItem item = findItem(ButtonType.BACK);
-        if (item != null) {
-            item.show(!disableBack);
-        }
-        item = findItem(ButtonType.HOME);
-        if (item != null) {
-            item.show(!disableHome);
-        }
-        item = findItem(ButtonType.RECENT);
-        if (item != null) {
-            item.show(!disableRecent);
-        }
-        item = findItem(ButtonType.SEARCH);
-        if (item != null) {
-            item.show(!disableRecent && !disableSearch);
-        }
-        item = findItem(ButtonType.NOTIFICATIONS);
-        if (item != null) {
-            item.show(!searchLight);
-        }
-        item = findItem(ButtonType.SETTINGS);
-        if (item != null) {
-            item.show(!searchLight);
-        }
-        item = findItem(ButtonType.DRAWER);
-        if (item != null) {
-            item.show(!searchLight);
-        }
-        // enable searchlight when nothing except search is enabled
+        setItemWithTagVisibility(NavigationButtons.BACK, !disableBack);
+        setItemWithTagVisibility(NavigationButtons.HOME, !disableHome);
+        setItemWithTagVisibility(NavigationButtons.RECENT, !disableRecent);
+        setItemWithTagVisibility(NavigationButtons.ALWAYS_MENU, !disableRecent);
+        setItemWithTagVisibility(NavigationButtons.MENU_BIG, !disableRecent);
+        setItemWithTagVisibility(NavigationButtons.SEARCH, !disableRecent);
+        // enable search light when nothing except search is enabled
         if (mSearchLight != null) {
-            mSearchLight.show(searchLight);
+            mSearchLight.show(disableHome && disableRecent && disableBack && !disableSearch);
         }
         setMenuVisibility(mShowMenu);
     }
@@ -545,9 +504,7 @@ public class PieController implements BaseStatusBar.NavigationBarCallback,
     public void setMenuVisibility(boolean showMenu) {
         // this call may come from outside
         if (mMenuButton != null) {
-            final boolean disableRecent = ((mDisabledFlags & View.STATUS_BAR_DISABLE_RECENT) != 0);
-            
-            mMenuButton.show(showMenu && !disableRecent);
+            mMenuButton.show(showMenu);
         }
 
         mShowMenu = showMenu;
@@ -566,115 +523,33 @@ public class PieController implements BaseStatusBar.NavigationBarCallback,
         }
 
         int triggerSlots = Settings.System.getInt(mContext.getContentResolver(),
-                Settings.System.PIE_GRAVITY, Position.BOTTOM.FLAG);
+                Settings.System.PIE_POSITIONS, Position.BOTTOM.FLAG);
 
         triggerSlots = triggerSlots & ~mPosition.FLAG | position.FLAG;
 
         Settings.System.putInt(mContext.getContentResolver(),
-                Settings.System.PIE_GRAVITY, triggerSlots);
+                Settings.System.PIE_POSITIONS, triggerSlots);
     }
 
     @Override
     public void onClick(PieItem item) {
-        ButtonType type = (ButtonType) item.tag;
+        long when = SystemClock.uptimeMillis();
+        ButtonInfo bi = (ButtonInfo) item.tag;
 
-        // provide the same haptic feedback as if a virtual key is pressed
-        mPieContainer.performHapticFeedback(HapticFeedbackConstants.VIRTUAL_KEY);
-
-        switch (type) {
-            case BACK:
-                injectKeyDelayed(KeyEvent.KEYCODE_BACK);
-                break;
-            case HOME:
-                injectKeyDelayed(KeyEvent.KEYCODE_HOME);
-                break;
-            case MENU:
-                injectKeyDelayed(KeyEvent.KEYCODE_MENU);
-                break;
-            case RECENT:
+        if (bi.keyCode != 0) {
+            injectKeyDelayed(bi.keyCode, when);
+        } else {
+            // provide the same haptic feedback as if a virtual key is pressed
+            mPieContainer.performHapticFeedback(HapticFeedbackConstants.VIRTUAL_KEY);
+            mPieContainer.playSoundEffect(SoundEffectConstants.CLICK);
+            if (bi == NavigationButtons.RECENT) {
                 if (mStatusBar != null) {
                     mStatusBar.toggleRecentApps();
                 }
-                break;
-            case SEARCH:
-            case SEARCHLIGHT:
-                launchAssistAction(type == ButtonType.SEARCHLIGHT);
-                break;
-            case NOTIFICATIONS:
-                if (mStatusBar != null) {
-                    mStatusBar.animateExpandNotificationsPanel();
-                }
-                break;
-            case SETTINGS:
-                if (mStatusBar != null) {
-                    mStatusBar.animateExpandSettingsPanel();
-                }
-                break;
-            case DRAWER:
-                RunningAppProcessInfo fg = getForegroundApp();
-                ComponentName current = getActivityForApp(fg);
-                String component = current != null ? current.flattenToString() : "";
-                Intent intent = new Intent("android.intent.action.MAIN");
-                intent.addCategory("android.intent.category.HOME");
-                intent.addCategory("com.cyanogenmod.trebuchet.APP_DRAWER");
-                intent.putExtra("component", component);
-                intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-                mContext.startActivity(intent);
-                break;
-        }
-    }
-
-    private RunningAppProcessInfo getForegroundApp() {
-        RunningAppProcessInfo result = null, info = null;
-
-        List <RunningAppProcessInfo> l = mActivityManager.getRunningAppProcesses();
-        Iterator <RunningAppProcessInfo> i = l.iterator();
-        while(i.hasNext()){
-            info = i.next();
-            if(info.importance == RunningAppProcessInfo.IMPORTANCE_FOREGROUND
-                    && !isRunningService(info.processName)){
-                result=info;
-                break;
+            } else if (bi == SEARCHLIGHT) {
+                launchAssistAction(true);
             }
         }
-        return result;
-    }
-
-    private ComponentName getActivityForApp(RunningAppProcessInfo target){
-        ComponentName result = null;
-        ActivityManager.RunningTaskInfo info;
-
-        if(target==null)
-            return null;
-
-        List <ActivityManager.RunningTaskInfo> l = mActivityManager.getRunningTasks(9999);
-        Iterator <ActivityManager.RunningTaskInfo> i = l.iterator();
-
-        while(i.hasNext()){
-            info=i.next();
-            if(info.baseActivity.getPackageName().equals(target.processName)){
-                result=info.topActivity;
-                break;
-            }
-        }
-
-        return result;
-    }
-
-    private boolean isRunningService(String processname) {
-        if (processname == null || processname.isEmpty()) {
-            return false;
-        }
-        RunningServiceInfo service;
-        List <RunningServiceInfo> l = mActivityManager.getRunningServices(9999);
-        Iterator <RunningServiceInfo> i = l.iterator();
-        while(i.hasNext()){
-            service = i.next();
-            if(service.process.equals(processname))
-                return true;
-        }
-
-        return false;
     }
 
     private void doHapticTriggerFeedback() {
