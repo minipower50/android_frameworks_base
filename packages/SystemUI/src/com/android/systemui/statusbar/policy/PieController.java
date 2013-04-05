@@ -33,6 +33,7 @@ import android.database.ContentObserver;
 import android.graphics.Point;
 import android.graphics.drawable.Drawable;
 import android.hardware.input.InputManager;
+import android.media.AudioManager;
 import android.os.BatteryManager;
 import android.os.Handler;
 import android.os.Message;
@@ -564,6 +565,12 @@ public class PieController implements BaseStatusBar.NavigationBarCallback,
                 intent.putExtra("component", component);
                 intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
                 mContext.startActivity(intent);
+            } else if (bi == NavigationButtons.VOLUME) {
+                final AudioManager am = (AudioManager) mContext.getSystemService(Context.AUDIO_SERVICE);
+                final int stream = am.isMusicActive() ? AudioManager.STREAM_MUSIC :
+                        AudioManager.STREAM_NOTIFICATION;
+                final int volume = am.getStreamVolume(stream);
+                am.setStreamVolume(stream, volume, AudioManager.FLAG_SHOW_UI);
             }
         }
     }

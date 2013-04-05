@@ -76,6 +76,7 @@ public class NavigationBarView extends LinearLayout implements BaseStatusBar.Nav
     private OnClickListener mNotificationsClickListener;
     private OnClickListener mQSClickListener;
     private OnClickListener mDrawerClickListener;
+    private OnClickListener mVolumeClickListener;
 
     protected IStatusBarService mBarService;
     final Display mDisplay;
@@ -156,13 +157,14 @@ public class NavigationBarView extends LinearLayout implements BaseStatusBar.Nav
     protected void setListener(OnClickListener RecentsClickListener,
             OnTouchListener RecentsPreloadListener, OnTouchListener HomeSearchActionListener,
             OnClickListener NotificationsClickListener, OnClickListener QSClickListener,
-            OnClickListener DrawerClickListener) {
+            OnClickListener DrawerClickListener, OnClickListener VolumeClickListener) {
         mRecentsClickListener = RecentsClickListener;
         mRecentsPreloadListener = RecentsPreloadListener;
         mHomeSearchActionListener = HomeSearchActionListener;
         mNotificationsClickListener = NotificationsClickListener;
         mQSClickListener = QSClickListener;
         mDrawerClickListener = DrawerClickListener;
+        mVolumeClickListener = VolumeClickListener;
     }
 
     protected void toggleButtonListener(boolean enable) {
@@ -192,6 +194,12 @@ public class NavigationBarView extends LinearLayout implements BaseStatusBar.Nav
             drawerView.setOnClickListener(enable ? mDrawerClickListener : null);
             drawerView.setScaleX(0.5f);
             drawerView.setScaleY(0.5f);
+        }
+        View volumeView = mCurrentView.findViewWithTag(NavigationButtons.VOLUME);
+        if (volumeView != null) {
+            volumeView.setOnClickListener(enable ? mVolumeClickListener : null);
+            volumeView.setScaleX(0.7f);
+            volumeView.setScaleY(0.7f);
         }
     }
 
