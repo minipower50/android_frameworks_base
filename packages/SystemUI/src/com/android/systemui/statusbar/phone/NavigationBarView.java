@@ -73,6 +73,9 @@ public class NavigationBarView extends LinearLayout implements BaseStatusBar.Nav
     private OnClickListener mRecentsClickListener;
     private OnTouchListener mRecentsPreloadListener;
     private OnTouchListener mHomeSearchActionListener;
+    private OnClickListener mNotificationsClickListener;
+    private OnClickListener mQSClickListener;
+    private OnClickListener mDrawerClickListener;
 
     protected IStatusBarService mBarService;
     final Display mDisplay;
@@ -150,10 +153,16 @@ public class NavigationBarView extends LinearLayout implements BaseStatusBar.Nav
         return EDIT_MODE;
     }
     
-    protected void setListener(OnClickListener RecentsClickListener, OnTouchListener RecentsPreloadListener, OnTouchListener HomeSearchActionListener) {
+    protected void setListener(OnClickListener RecentsClickListener,
+            OnTouchListener RecentsPreloadListener, OnTouchListener HomeSearchActionListener,
+            OnClickListener NotificationsClickListener, OnClickListener QSClickListener,
+            OnClickListener DrawerClickListener) {
         mRecentsClickListener = RecentsClickListener;
         mRecentsPreloadListener = RecentsPreloadListener;
         mHomeSearchActionListener = HomeSearchActionListener;
+        mNotificationsClickListener = NotificationsClickListener;
+        mQSClickListener = QSClickListener;
+        mDrawerClickListener = DrawerClickListener;
     }
 
     protected void toggleButtonListener(boolean enable) {
@@ -165,6 +174,24 @@ public class NavigationBarView extends LinearLayout implements BaseStatusBar.Nav
         View homeView = mCurrentView.findViewWithTag(NavigationButtons.HOME);
         if (homeView != null) {
             homeView.setOnTouchListener(enable ? mHomeSearchActionListener : null);
+        }
+        View notificationsView = mCurrentView.findViewWithTag(NavigationButtons.NOTIFICATIONS);
+        if (notificationsView != null) {
+            notificationsView.setOnClickListener(enable ? mNotificationsClickListener : null);
+            notificationsView.setScaleX(0.7f);
+            notificationsView.setScaleY(0.7f);
+        }
+        View qsView = mCurrentView.findViewWithTag(NavigationButtons.QUICKSETTINGS);
+        if (qsView != null) {
+            qsView.setOnClickListener(enable ? mQSClickListener : null);
+            qsView.setScaleX(0.7f);
+            qsView.setScaleY(0.7f);
+        }
+        View drawerView = mCurrentView.findViewWithTag(NavigationButtons.DRAWER);
+        if (drawerView != null) {
+            drawerView.setOnClickListener(enable ? mDrawerClickListener : null);
+            drawerView.setScaleX(0.5f);
+            drawerView.setScaleY(0.5f);
         }
     }
 

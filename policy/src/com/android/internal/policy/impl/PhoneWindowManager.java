@@ -3629,8 +3629,8 @@ public class PhoneWindowManager implements WindowManagerPolicy {
                     Log.d(TAG, "attr: " + mTopFullscreenOpaqueWindowState.getAttrs()
                             + " lp.flags=0x" + Integer.toHexString(lp.flags));
                 }
-                topIsFullscreen = (lp.flags & WindowManager.LayoutParams.FLAG_FULLSCREEN) != 0
-                        || (mLastSystemUiFlags & View.SYSTEM_UI_FLAG_FULLSCREEN) != 0;
+                topIsFullscreen = ((lp.flags & WindowManager.LayoutParams.FLAG_FULLSCREEN) != 0
+                        || (mLastSystemUiFlags & View.SYSTEM_UI_FLAG_FULLSCREEN) != 0) && !mFullscreenMode;
                 // The subtle difference between the window for mTopFullscreenOpaqueWindowState
                 // and mTopIsFullscreen is that that mTopIsFullscreen is set only if the window
                 // has the FLAG_FULLSCREEN set.  Not sure if there is another way that to be the

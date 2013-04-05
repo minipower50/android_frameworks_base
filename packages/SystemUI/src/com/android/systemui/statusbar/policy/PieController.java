@@ -16,11 +16,13 @@
  */
 package com.android.systemui.statusbar.policy;
 
+import android.app.ActivityManager.RunningAppProcessInfo;
 import android.app.ActivityOptions;
 import android.app.SearchManager;
 import android.app.StatusBarManager;
 import android.content.ActivityNotFoundException;
 import android.content.BroadcastReceiver;
+import android.content.ComponentName;
 import android.content.ContentResolver;
 import android.content.Context;
 import android.content.Intent;
@@ -548,6 +550,20 @@ public class PieController implements BaseStatusBar.NavigationBarCallback,
                 }
             } else if (bi == SEARCHLIGHT) {
                 launchAssistAction(true);
+            } else if (bi == NavigationButtons.NOTIFICATIONS) {
+                mStatusBar.animateExpandNotificationsPanel();
+            } else if (bi == NavigationButtons.QUICKSETTINGS) {
+                mStatusBar.animateExpandSettingsPanel();
+            } else if (bi == NavigationButtons.DRAWER) {
+                RunningAppProcessInfo fg = mStatusBar.getForegroundApp();
+                ComponentName current = mStatusBar.getActivityForApp(fg);
+                String component = current != null ? current.flattenToString() : "";
+                Intent intent = new Intent("android.intent.action.MAIN");
+                intent.addCategory("android.intent.category.HOME");
+                intent.addCategory("com.cyanogenmod.trebuchet.APP_DRAWER");
+                intent.putExtra("component", component);
+                intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+                mContext.startActivity(intent);
             }
         }
     }
