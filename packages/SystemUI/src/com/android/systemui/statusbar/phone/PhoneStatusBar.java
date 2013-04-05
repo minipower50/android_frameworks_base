@@ -27,11 +27,13 @@ import android.animation.AnimatorSet;
 import android.animation.ObjectAnimator;
 import android.animation.TimeInterpolator;
 import android.app.ActivityManager;
+import android.app.ActivityManager.RunningAppProcessInfo;
 import android.app.ActivityManagerNative;
 import android.app.Notification;
 import android.app.PendingIntent;
 import android.app.StatusBarManager;
 import android.content.BroadcastReceiver;
+import android.content.ComponentName;
 import android.content.ContentResolver;
 import android.content.Context;
 import android.content.Intent;
@@ -911,6 +913,35 @@ public class PhoneStatusBar extends BaseStatusBar {
         }
     };
 
+    private final View.OnClickListener mNotificationsClickListener = new View.OnClickListener() {
+        @Override
+        public void onClick(View v) {
+            animateExpandNotificationsPanel();
+        }
+    };
+
+    private final View.OnClickListener mQSClickListener = new View.OnClickListener() {
+        @Override
+        public void onClick(View v) {
+            animateExpandSettingsPanel();
+        }
+    };
+
+    private final View.OnClickListener mDrawerClickListener = new View.OnClickListener() {
+        @Override
+        public void onClick(View v) {
+            RunningAppProcessInfo fg = getForegroundApp();
+            ComponentName current = getActivityForApp(fg);
+            String component = current != null ? current.flattenToString() : "";
+            Intent intent = new Intent("android.intent.action.MAIN");
+            intent.addCategory("android.intent.category.HOME");
+            intent.addCategory("com.cyanogenmod.trebuchet.APP_DRAWER");
+            intent.putExtra("component", component);
+            intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+            mContext.startActivity(intent);
+        }
+    };
+
     private int mShowSearchHoldoff = 0;
     private final Runnable mShowSearchPanel = new Runnable() {
         @Override
@@ -953,7 +984,9 @@ public class PhoneStatusBar extends BaseStatusBar {
 
     private void prepareNavigationBarView() {
         mNavigationBarView.reorient();
-        mNavigationBarView.setListener(mRecentsClickListener,mRecentsPreloadOnTouchListener, mHomeSearchActionListener);
+        mNavigationBarView.setListener(mRecentsClickListener,mRecentsPreloadOnTouchListener,
+                mHomeSearchActionListener, mNotificationsClickListener, mQSClickListener,
+                mDrawerClickListener);
         updateSearchPanel();
         int navColor = Settings.System.getInt(mContext.getContentResolver(), Settings.System.NAVIGATION_BAR_COLOR,
                 0xff000000);
@@ -3076,5 +3109,4 @@ public class PhoneStatusBar extends BaseStatusBar {
                     false, this);
         }
     }
-
 }
