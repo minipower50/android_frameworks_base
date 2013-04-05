@@ -110,6 +110,7 @@ public class NavigationButtons {
     private static final String NOTIFICATIONS_STRING = "notifications";
     private static final String QS_STRING = "quicksettings";
     private static final String DRAWER_STRING = "drawer";
+    private static final String VOLUME_STRING = "volume";
 
     private static final String DEFAULT_SETTING_STRING = "empty|back|home|recent|empty|menu0";
 
@@ -158,6 +159,10 @@ public class NavigationButtons {
             R.string.button_app_drawer,
             R.string.button_app_drawer, 0, R.drawable.ic_notify_quicksettings_normal,
             R.drawable.ic_notify_quicksettings_normal, R.drawable.ic_notify_quicksettings_normal, DRAWER_STRING);
+    public static final ButtonInfo VOLUME =  new ButtonInfo(
+            R.string.quick_settings_volume,
+            R.string.quick_settings_volume, 0, R.drawable.stat_ring_on,
+            R.drawable.stat_ring_on, R.drawable.stat_ring_on, VOLUME_STRING);
 
     /**
      * Map which holds references to supported/available buttons. This is a unmodifiable map.
@@ -176,6 +181,7 @@ public class NavigationButtons {
         temp.put(NOTIFICATIONS_STRING, NOTIFICATIONS);
         temp.put(QS_STRING, QUICKSETTINGS);
         temp.put(DRAWER_STRING, DRAWER);
+        temp.put(VOLUME_STRING, VOLUME);
         temp.put(EMPTY_STRING, EMPTY);
         BUTTON_MAP = Collections.unmodifiableMap(temp);
     }
