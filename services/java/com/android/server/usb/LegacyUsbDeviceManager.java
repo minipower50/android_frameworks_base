@@ -166,7 +166,6 @@ public class LegacyUsbDeviceManager extends UsbDeviceManager {
                 Process.THREAD_PRIORITY_BACKGROUND);
         thread.start();
         mHandler = new LegacyUsbHandler(thread.getLooper());
-
         if ("1".equals(SystemProperties.get("ro.adb.secure"))) {
             mDebuggingManager = new UsbDebuggingManager(context);
         }
@@ -699,6 +698,15 @@ public class LegacyUsbDeviceManager extends UsbDeviceManager {
     public void denyUsbDebugging() {
         if (mDebuggingManager != null) {
             mDebuggingManager.denyUsbDebugging();
+        }
+    }
+
+    public void dump(FileDescriptor fd, PrintWriter pw) {
+        if (mHandler != null) {
+            mHandler.dump(fd, pw);
+        }
+        if (mDebuggingManager != null) {
+            mDebuggingManager.dump(fd, pw);
         }
     }
 }
