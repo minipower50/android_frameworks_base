@@ -12,7 +12,6 @@ import android.provider.Settings;
 import android.provider.Settings.SettingNotFoundException;
 import android.service.dreams.DreamService;
 import android.service.dreams.IDreamManager;
-import android.view.LayoutInflater;
 import android.view.View;
 import android.view.View.OnClickListener;
 import android.view.View.OnLongClickListener;
@@ -26,14 +25,12 @@ import com.android.internal.app.ThemeUtils;
 
 import com.android.systemui.R;
 import com.android.systemui.statusbar.phone.QuickSettingsController;
-import com.android.systemui.statusbar.phone.QuickSettingsContainerView;
 
 public class DaydreamTile extends QuickSettingsTile {
     private final IDreamManager mDreamManager;
 
-    public DaydreamTile(Context context, LayoutInflater inflater,
-            QuickSettingsContainerView container, final QuickSettingsController qsc) {
-        super(context, inflater, container, qsc);
+    public DaydreamTile(Context context, final QuickSettingsController qsc) {
+        super(context, qsc);
 
         mLabel = context.getString(R.string.quick_settings_daydream);
         mDrawable = R.drawable.ic_qs_clock_circle;

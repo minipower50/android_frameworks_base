@@ -1,51 +1,28 @@
 package com.android.systemui.quicksettings;
 
-import android.app.Dialog;
-import android.content.ContentResolver;
 import android.content.Context;
-import android.content.DialogInterface;
 import android.media.AudioManager;
-import android.media.AudioService;
-import android.media.IAudioService;
-import android.net.Uri;
 import android.os.Handler;
-import android.os.RemoteException;
-import android.os.ServiceManager;
-import android.provider.Settings;
-import android.provider.Settings.SettingNotFoundException;
 import android.view.LayoutInflater;
 import android.view.View;
-import android.view.View.OnClickListener;
 import android.view.View.OnLongClickListener;
-import android.view.VolumePanel;
-import android.view.Window;
-import android.view.WindowManager;
-import android.view.WindowManagerGlobal;
-import android.widget.ImageView;
-
-import com.android.internal.app.ThemeUtils;
 
 import com.android.systemui.R;
-import com.android.systemui.statusbar.phone.QuickSettingsController;
 import com.android.systemui.statusbar.phone.QuickSettingsContainerView;
-import com.android.systemui.statusbar.policy.VolumeController;
-import com.android.systemui.statusbar.policy.ToggleSlider;
+import com.android.systemui.statusbar.phone.QuickSettingsController;
 
 public class VolumeTile extends QuickSettingsTile {
 
-    public VolumeTile(Context context, LayoutInflater inflater,
-            QuickSettingsContainerView container, final QuickSettingsController qsc) {
-        super(context, inflater, container, qsc);
+    public VolumeTile(Context context, 
+            final QuickSettingsController qsc, Handler handler) {
+        super(context, qsc);
 
-        mLabel = context.getString(R.string.quick_settings_volume);
-        mDrawable = R.drawable.ic_qs_ring_on;
-
-        mOnClick = new OnClickListener() {
+        mOnClick = new View.OnClickListener() {
 
             @Override
-            public void onClick(View v) {
+            public void onClick(View view) {
                 qsc.mBar.collapseAllPanels(true);
-                final AudioManager am = (AudioManager)mContext.getSystemService(Context.AUDIO_SERVICE);
+                AudioManager am = (AudioManager) mContext.getSystemService(Context.AUDIO_SERVICE);
                 final int stream = am.isMusicActive() ? AudioManager.STREAM_MUSIC :
                         AudioManager.STREAM_NOTIFICATION;
                 final int volume = am.getStreamVolume(stream);
@@ -54,11 +31,29 @@ public class VolumeTile extends QuickSettingsTile {
         };
 
         mOnLongClick = new OnLongClickListener() {
+
             @Override
-            public boolean onLongClick(View v) {
+            public boolean onLongClick(View view) {
                 startSettingsActivity(android.provider.Settings.ACTION_SOUND_SETTINGS);
                 return true;
             }
         };
+    }
+
+    @Override
+    void onPostCreate() {
+        updateTile();
+        super.onPostCreate();
+    }
+
+    @Override
+    public void updateResources() {
+        updateTile();
+        updateQuickSettings();
+    }
+
+    private synchronized void updateTile() {
+        mDrawable = R.drawable.ic_qs_volume;
+        mLabel = mContext.getString(R.string.quick_settings_volume);
     }
 }

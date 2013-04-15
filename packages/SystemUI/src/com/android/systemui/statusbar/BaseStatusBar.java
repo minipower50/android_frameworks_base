@@ -218,19 +218,12 @@ public abstract class BaseStatusBar extends SystemUI implements
                                         + event.getAxisValue(MotionEvent.AXIS_Y) + ") with position: "
                                         + tracker.position.name());
                             }
-                            if (tracker.position == Position.BOTTOM
-                                    && mPieController.isSearchLightEnabled()) {
-                                // if we are at the bottom and nothing else is there, use a
-                                // search light!
-                                showSearchPanel();
-                            } else {
-                                // send the activation to the controller
-                                mPieController.activateFromTrigger(v, event, tracker.position);
-                                // forward a spoofed ACTION_DOWN event
-                                MotionEvent echo = event.copy();
-                                echo.setAction(MotionEvent.ACTION_DOWN);
-                                return mPieContainer.onTouch(v, echo);
-                            }
+                            // send the activation to the controller
+                            mPieController.activateFromTrigger(v, event, tracker.position);
+                            // forward a spoofed ACTION_DOWN event
+                            MotionEvent echo = event.copy();
+                            echo.setAction(MotionEvent.ACTION_DOWN);
+                            return mPieContainer.onTouch(v, echo);
                         }
                         break;
                     default:

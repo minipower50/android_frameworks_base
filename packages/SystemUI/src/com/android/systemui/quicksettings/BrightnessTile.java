@@ -37,9 +37,8 @@ public class BrightnessTile extends QuickSettingsTile implements BrightnessState
     private final Handler mHandler;
     private boolean mAutoBrightnessAvailable = true;
 
-    public BrightnessTile(Context context, LayoutInflater inflater,
-            QuickSettingsContainerView container, final QuickSettingsController qsc, Handler handler) {
-        super(context, inflater, container, qsc);
+    public BrightnessTile(Context context, final QuickSettingsController qsc, Handler handler) {
+        super(context, qsc);
 
         mHandler = handler;
 

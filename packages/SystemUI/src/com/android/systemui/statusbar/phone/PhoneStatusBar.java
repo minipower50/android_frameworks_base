@@ -3029,7 +3029,7 @@ public class PhoneStatusBar extends BaseStatusBar {
 
     @Override
     protected boolean shouldDisableNavbarGestures() {
-        return !isDeviceProvisioned()
+        return !isDeviceProvisioned() || mExpandedDesktopState != 0
                 || mExpandedVisible || NavigationBarView.getEditMode()
                 || (mDisabled & StatusBarManager.DISABLE_SEARCH) != 0;
     }
