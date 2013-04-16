@@ -18,6 +18,7 @@ package com.android.systemui.statusbar.phone;
 
 import static com.android.internal.util.cm.QSConstants.TILES_DEFAULT;
 import static com.android.internal.util.cm.QSConstants.TILE_AIRPLANE;
+import static com.android.internal.util.cm.QSConstants.TILE_APPDRAWER;
 import static com.android.internal.util.cm.QSConstants.TILE_AUTOROTATE;
 import static com.android.internal.util.cm.QSConstants.TILE_BATTERY;
 import static com.android.internal.util.cm.QSConstants.TILE_BLUETOOTH;
@@ -48,7 +49,7 @@ import static com.android.internal.util.cm.QSUtils.deviceSupportsBluetooth;
 import static com.android.internal.util.cm.QSUtils.deviceSupportsDockBattery;
 import static com.android.internal.util.cm.QSUtils.deviceSupportsImeSwitcher;
 import static com.android.internal.util.cm.QSUtils.deviceSupportsLte;
-import static com.android.internal.util.cm.QSUtils.deviceSupportsTelephony;
+import static com.android.internal.util.cm.QSUtils.deviceSupportsMobileData;
 import static com.android.internal.util.cm.QSUtils.deviceSupportsUsbTether;
 import static com.android.internal.util.cm.QSUtils.expandedDesktopEnabled;
 import static com.android.internal.util.cm.QSUtils.systemProfilesEnabled;
@@ -69,6 +70,7 @@ import android.view.LayoutInflater;
 
 import com.android.systemui.quicksettings.AirplaneModeTile;
 import com.android.systemui.quicksettings.AlarmTile;
+import com.android.systemui.quicksettings.AppDrawerTile;
 import com.android.systemui.quicksettings.AutoRotateTile;
 import com.android.systemui.quicksettings.BatteryTile;
 import com.android.systemui.quicksettings.BluetoothTile;
@@ -155,14 +157,14 @@ public class QuickSettingsController {
 
         // Filter items not compatible with device
         boolean bluetoothSupported = deviceSupportsBluetooth();
-        boolean telephonySupported = deviceSupportsTelephony(mContext);
+        boolean mobileDataSupported = deviceSupportsMobileData(mContext);
         boolean lteSupported = deviceSupportsLte(mContext);
 
         if (!bluetoothSupported) {
             TILES_DEFAULT.remove(TILE_BLUETOOTH);
         }
 
-        if (!telephonySupported) {
+        if (!mobileDataSupported) {
             TILES_DEFAULT.remove(TILE_WIFIAP);
             TILES_DEFAULT.remove(TILE_MOBILEDATA);
             TILES_DEFAULT.remove(TILE_NETWORKMODE);
@@ -205,15 +207,15 @@ public class QuickSettingsController {
                 qs = new RingerModeTile(mContext, this);
             } else if (tile.equals(TILE_SYNC)) {
                 qs = new SyncTile(mContext, this);
-            } else if (tile.equals(TILE_WIFIAP) && telephonySupported) {
+            } else if (tile.equals(TILE_WIFIAP) && mobileDataSupported) {
                 qs = new WifiAPTile(mContext, this);
             } else if (tile.equals(TILE_SCREENTIMEOUT)) {
                 qs = new ScreenTimeoutTile(mContext, this);
-            } else if (tile.equals(TILE_MOBILEDATA) && telephonySupported) {
+            } else if (tile.equals(TILE_MOBILEDATA) && mobileDataSupported) {
                 qs = new MobileNetworkTile(mContext, this);
             } else if (tile.equals(TILE_LOCKSCREEN)) {
                 qs = new ToggleLockscreenTile(mContext, this);
-            } else if (tile.equals(TILE_NETWORKMODE) && telephonySupported) {
+            } else if (tile.equals(TILE_NETWORKMODE) && mobileDataSupported) {
                 qs = new MobileNetworkTypeTile(mContext, this);
             } else if (tile.equals(TILE_AUTOROTATE)) {
                 qs = new AutoRotateTile(mContext, this, mHandler);
@@ -247,6 +249,8 @@ public class QuickSettingsController {
                 }
             } else if (tile.equals(TILE_DAYDREAM)) {
                 qs = new DaydreamTile(mContext, this);
+            } else if (tile.equals(TILE_APPDRAWER)) {
+                qs = new AppDrawerTile(mContext, this);
             }
 
             if (qs != null) {
