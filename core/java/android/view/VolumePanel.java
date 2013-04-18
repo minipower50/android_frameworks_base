@@ -1097,7 +1097,7 @@ public class VolumePanel extends Handler implements OnSeekBarChangeListener, Vie
         if (fromUser && tag instanceof StreamControl) {
             StreamControl sc = (StreamControl) tag;
             if (getStreamVolume(sc.streamType) != progress) {
-                setStreamVolume(sc.streamType, progress, AudioManager.FLAG_PLAY_SOUND);
+                setStreamVolume(sc.streamType, progress, 0);
             }
         }
         resetTimeout();
