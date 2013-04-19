@@ -1877,8 +1877,6 @@ public class PhoneWindow extends Window implements MenuBuilder.Callback {
         private SettingsObserver mSettingsObserver;
         private GestureSettingsObserver mGestureSettingsObserver;
 
-        private boolean mGesturesActive;
-
         private int mGestureOne;
         private int mGestureTwo;
         private int mGestureThree;
@@ -2010,8 +2008,6 @@ public class PhoneWindow extends Window implements MenuBuilder.Callback {
                     Settings.System.GESTURE_THREE, 0);
             mGestureFour = Settings.System.getInt(resolver,
                     Settings.System.GESTURE_FOUR, 0);
-            mGesturesActive = mGestureOne + mGestureTwo +
-                    mGestureThree + mGestureFour > 0;
             mGestureTypeOne = Settings.System.getInt(resolver,
                     Settings.System.GESTURE_TYPE_ONE, 0);
             mGestureTypeTwo = Settings.System.getInt(resolver,
@@ -2626,7 +2622,8 @@ public class PhoneWindow extends Window implements MenuBuilder.Callback {
 
             boolean mainPanel = getWidth() == mScreenWidth || getWidth() == mScreenHeight;
 
-            if (mainPanel && mFeatureId == -1 && mGesturesActive && !mBlacklisted) {
+            if (mainPanel && mFeatureId == -1 && !mBlacklisted &&
+                    mGestureOne + mGestureTwo + mGestureThree + mGestureFour > 0) {
                 float x = event.getX();
                 float y = event.getY();
                 long time = event.getEventTime();
@@ -3225,25 +3222,9 @@ public class PhoneWindow extends Window implements MenuBuilder.Callback {
         @Override
         protected void onAttachedToWindow() {
             super.onAttachedToWindow();
-
-            ContentResolver resolver = getContext().getContentResolver();
-
-            mGestureOne = Settings.System.getInt(resolver,
-                    Settings.System.GESTURE_ONE, 0);
-            mGestureTwo = Settings.System.getInt(resolver,
-                    Settings.System.GESTURE_TWO, 0);
-            mGestureThree = Settings.System.getInt(resolver,
-                    Settings.System.GESTURE_THREE, 0);
-            mGestureFour = Settings.System.getInt(resolver,
-                    Settings.System.GESTURE_FOUR, 0);
-            if (mGestureOne + mGestureTwo +
-                    mGestureThree + mGestureFour > 0) {
-                mSettingsObserver.observe();
-            }
-            if (Settings.System.getInt(resolver,
-                    Settings.System.ENABLE_STYLUS_GESTURES, 0) == 1) {
-                mGestureSettingsObserver.observe();
-            }
+            
+            mSettingsObserver.observe();
+            mGestureSettingsObserver.observe();
 
             updateWindowResizeState();
             
@@ -3263,7 +3244,7 @@ public class PhoneWindow extends Window implements MenuBuilder.Callback {
                 openPanelsAfterRestore();
             }
 
-            if (mGesturesActive && mBlacklist != null) {
+            if (mBlacklist != null) {
                 List<RunningAppProcessInfo> appProcesses = mActivityManager.getRunningAppProcesses();
                 for (RunningAppProcessInfo appProcess : appProcesses) {
                     if (appProcess.importance == RunningAppProcessInfo.IMPORTANCE_FOREGROUND) {
