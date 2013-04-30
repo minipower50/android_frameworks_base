@@ -48,6 +48,7 @@ import android.os.Parcelable;
 import android.os.RemoteException;
 import android.os.SystemClock;
 import android.os.SystemProperties;
+import android.provider.Settings;
 import android.text.TextUtils;
 import android.util.AttributeSet;
 import android.util.FloatProperty;
@@ -5615,9 +5616,11 @@ public class View implements Drawable.Callback, KeyEvent.Callback,
         if ((mViewFlags & FITS_SYSTEM_WINDOWS) == FITS_SYSTEM_WINDOWS) {
             mUserPaddingStart = UNDEFINED_PADDING;
             mUserPaddingEnd = UNDEFINED_PADDING;
-            if ((mViewFlags & OPTIONAL_FITS_SYSTEM_WINDOWS) == 0
+            boolean fullscreen = Settings.System.getInt(mContext.getContentResolver(),
+                    Settings.System.FULLSCREEN_MODE, 0) == 1;
+            if (!fullscreen && ((mViewFlags & OPTIONAL_FITS_SYSTEM_WINDOWS) == 0
                     || mAttachInfo == null
-                    || (mAttachInfo.mSystemUiVisibility & SYSTEM_UI_LAYOUT_FLAGS) == 0) {
+                    || (mAttachInfo.mSystemUiVisibility & SYSTEM_UI_LAYOUT_FLAGS) == 0)) {
                 internalSetPadding(insets.left, insets.top, insets.right, insets.bottom);
                 return true;
             } else {
