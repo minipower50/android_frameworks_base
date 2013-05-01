@@ -5642,7 +5642,7 @@ public final class ActivityManagerService extends ActivityManagerNative
             if (localLOGV) Slog.v(
                 TAG, "getTasks: max=" + maxNum + ", flags=" + flags
                 + ", receiver=" + receiver);
-/*
+
             if (checkCallingPermission(android.Manifest.permission.GET_TASKS)
                     != PackageManager.PERMISSION_GRANTED) {
                 if (receiver != null) {
@@ -5660,7 +5660,7 @@ public final class ActivityManagerService extends ActivityManagerNative
                 Slog.w(TAG, msg);
                 throw new SecurityException(msg);
             }
-*/
+
             int pos = mMainStack.mHistory.size()-1;
             ActivityRecord next =
                 pos >= 0 ? (ActivityRecord)mMainStack.mHistory.get(pos) : null;
@@ -5770,8 +5770,8 @@ public final class ActivityManagerService extends ActivityManagerNative
                 false, true, "getRecentTasks", null);
 
         synchronized (this) {
-            //enforceCallingPermission(android.Manifest.permission.GET_TASKS,
-            //        "getRecentTasks()");
+            enforceCallingPermission(android.Manifest.permission.GET_TASKS,
+                    "getRecentTasks()");
             final boolean detailed = checkCallingPermission(
                     android.Manifest.permission.GET_DETAILED_TASKS)
                     == PackageManager.PERMISSION_GRANTED;
