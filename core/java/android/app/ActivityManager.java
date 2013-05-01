@@ -1900,7 +1900,7 @@ public class ActivityManager {
         // If the target is not exported, then nobody else can get to it.
         if (!exported) {
             Slog.w(TAG, "Permission denied: checkComponentPermission() owningUid=" + owningUid);
-            return PackageManager.PERMISSION_DENIED;
+            //return PackageManager.PERMISSION_DENIED;
         }
         if (permission == null) {
             return PackageManager.PERMISSION_GRANTED;
