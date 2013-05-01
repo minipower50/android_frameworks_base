@@ -1,8 +1,6 @@
 package com.android.systemui.quicksettings;
 
-import android.app.ActivityManager.RunningAppProcessInfo;
 import android.app.Dialog;
-import android.content.ComponentName;
 import android.content.ContentResolver;
 import android.content.Context;
 import android.content.DialogInterface;
@@ -43,13 +41,9 @@ public class AppDrawerTile extends QuickSettingsTile {
             @Override
             public void onClick(View v) {
                 qsc.mBar.collapseAllPanels(true);
-                RunningAppProcessInfo fg = qsc.mStatusBarService.getForegroundApp();
-                ComponentName current = qsc.mStatusBarService.getActivityForApp(fg);
-                String component = current != null ? current.flattenToString() : "";
                 Intent intent = new Intent("android.intent.action.MAIN");
                 intent.addCategory("android.intent.category.HOME");
                 intent.addCategory("com.cyanogenmod.trebuchet.APP_DRAWER");
-                intent.putExtra("component", component);
                 intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
                 clickContext.startActivity(intent);
             }

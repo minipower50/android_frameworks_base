@@ -35,8 +35,6 @@ import com.android.systemui.statusbar.policy.PieController.Position;
 import com.android.systemui.statusbar.tablet.StatusBarPanel;
 
 import android.app.ActivityManager;
-import android.app.ActivityManager.RunningAppProcessInfo;
-import android.app.ActivityManager.RunningServiceInfo;
 import android.app.ActivityManagerNative;
 import android.app.ActivityOptions;
 import android.app.KeyguardManager;
@@ -44,7 +42,6 @@ import android.app.PendingIntent;
 import android.app.TaskStackBuilder;
 import android.content.ActivityNotFoundException;
 import android.content.BroadcastReceiver;
-import android.content.ComponentName;
 import android.content.ContentResolver;
 import android.content.Context;
 import android.content.Intent;
@@ -90,8 +87,6 @@ import android.widget.RemoteViews;
 import android.widget.TextView;
 
 import java.util.ArrayList;
-import java.util.Iterator;
-import java.util.List;
 
 public abstract class BaseStatusBar extends SystemUI implements
         CommandQueue.Callbacks {
@@ -140,8 +135,6 @@ public abstract class BaseStatusBar extends SystemUI implements
     protected int mCurrentUserId = 0;
 
     protected FrameLayout mStatusBarContainer;
-
-    private ActivityManager mActivityManager;
 
     /**
      * An interface for navigation key bars to allow status bars to signal which keys are
@@ -434,9 +427,6 @@ public abstract class BaseStatusBar extends SystemUI implements
         mPieSettingsObserver.onChange(true);
 
         mPieSettingsObserver.observe();
-
-        mActivityManager =
-                (ActivityManager) mContext.getSystemService(Context.ACTIVITY_SERVICE);
     }
 
     public void userSwitched(int newUserId) {
@@ -1642,57 +1632,4 @@ public abstract class BaseStatusBar extends SystemUI implements
         }
     };
 
-    public RunningAppProcessInfo getForegroundApp() {
-        RunningAppProcessInfo result = null, info = null;
-
-        List <RunningAppProcessInfo> l = mActivityManager.getRunningAppProcesses();
-        Iterator <RunningAppProcessInfo> i = l.iterator();
-        while(i.hasNext()){
-            info = i.next();
-            if(info.importance == RunningAppProcessInfo.IMPORTANCE_FOREGROUND
-                    && !isRunningService(info.processName)){
-                result=info;
-                break;
-            }
-        }
-        return result;
-    }
-
-    public ComponentName getActivityForApp(RunningAppProcessInfo target){
-        ComponentName result = null;
-        ActivityManager.RunningTaskInfo info;
-
-        if(target==null)
-            return null;
-
-        List <ActivityManager.RunningTaskInfo> l = mActivityManager.getRunningTasks(9999);
-        Iterator <ActivityManager.RunningTaskInfo> i = l.iterator();
-
-        while(i.hasNext()){
-            info=i.next();
-            if(info.baseActivity.getPackageName().equals(target.processName)){
-                result=info.topActivity;
-                break;
-            }
-        }
-
-        return result;
-    }
-
-    public boolean isRunningService(String processname) {
-        if (processname == null || processname.isEmpty()) {
-            return false;
-        }
-
-        RunningServiceInfo service;
-        List <RunningServiceInfo> l = mActivityManager.getRunningServices(9999);
-        Iterator <RunningServiceInfo> i = l.iterator();
-        while(i.hasNext()){
-            service = i.next();
-            if(service.process.equals(processname))
-                return true;
-        }
-
-        return false;
-    }
 }
