@@ -2499,6 +2499,10 @@ public class PhoneWindow extends Window implements MenuBuilder.Callback {
                     intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
                     mContext.startActivity(intent);
                     break;
+                case 10:
+                    Intent switchIntent = new Intent("com.android.systemui.APP_SWITCH");
+                    mContext.sendBroadcast(switchIntent);
+                    break;
             }
         }
 
