@@ -87,6 +87,7 @@ import android.widget.RemoteViews;
 import android.widget.TextView;
 
 import java.util.ArrayList;
+import java.util.List;
 
 public abstract class BaseStatusBar extends SystemUI implements
         CommandQueue.Callbacks {
@@ -104,6 +105,7 @@ public abstract class BaseStatusBar extends SystemUI implements
     protected static final int MSG_SHOW_INTRUDER = 1026;
     protected static final int MSG_HIDE_INTRUDER = 1027;
     protected static final int MSG_HIDE_STATUSBAR = 1028;
+    protected static final int MSG_SWITCH_APPS = 1029;
 
     protected static final boolean ENABLE_INTRUDERS = false;
 
@@ -259,6 +261,8 @@ public abstract class BaseStatusBar extends SystemUI implements
     private boolean mDeviceProvisioned = false;
 
     private boolean mShowNotificationCounts;
+
+    private ActivityManager mActivityManager;
 
     public IStatusBarService getStatusBarService() {
         return mBarService;
@@ -417,6 +421,17 @@ public abstract class BaseStatusBar extends SystemUI implements
             }
         }, filter);
 
+        IntentFilter switchFilter = new IntentFilter();
+        switchFilter.addAction("com.android.systemui.APP_SWITCH");
+        mContext.registerReceiver(new BroadcastReceiver() {
+            @Override
+            public void onReceive(Context context, Intent intent) {
+                int msg = MSG_SWITCH_APPS;
+                mHandler.removeMessages(msg);
+                mHandler.sendEmptyMessage(msg);
+            }
+        }, switchFilter);
+
         mPieController = new PieController(mContext);
         mPieController.attachTo(this);
         addNavigationBarCallback(mPieController);
@@ -427,6 +442,8 @@ public abstract class BaseStatusBar extends SystemUI implements
         mPieSettingsObserver.onChange(true);
 
         mPieSettingsObserver.observe();
+
+        mActivityManager = (ActivityManager) mContext.getSystemService(Context.ACTIVITY_SERVICE);
     }
 
     public void userSwitched(int newUserId) {
@@ -884,6 +901,25 @@ public abstract class BaseStatusBar extends SystemUI implements
                      }
                  }
                  break;
+            case MSG_SWITCH_APPS:
+                final List<ActivityManager.RecentTaskInfo> recentTasks = mActivityManager.getRecentTasksForUser(
+                        99, ActivityManager.RECENT_IGNORE_UNAVAILABLE, UserHandle.CURRENT.getIdentifier());
+                if (recentTasks.size() > 1) {
+                    ActivityManager.RecentTaskInfo recentInfo = recentTasks.get(recentTasks.size() - 1);
+                    Intent switchIntent = new Intent(recentInfo.baseIntent);
+                    if (recentInfo.origActivity != null) {
+                        switchIntent.setComponent(recentInfo.origActivity);
+                    }
+                    // Don't load ourselves
+                    if (switchIntent.getComponent().getPackageName().equals(mContext.getPackageName())) {
+                        return;
+                    }
+                    ActivityOptions opts = ActivityOptions.makeCustomAnimation(mContext,
+                            com.android.internal.R.anim.slide_in_right,
+                            com.android.internal.R.anim.slide_out_left);
+                    mContext.startActivityAsUser(switchIntent, opts.toBundle(), new UserHandle(
+                            UserHandle.USER_CURRENT));
+                }
             }
         }
     }

@@ -3123,6 +3123,13 @@ public final class Settings {
         };
 
         /**
+         * Volume key controls ringtone or media sound stream
+         *
+         * @hide
+         */
+        public static final String VOLUME_KEYS_CONTROL_RING_STREAM = "volume_keys_control_ring_stream";
+
+        /**
          * @hide
          */
         public static final String NAVIGATION_CONTROLS = "navigation_controls";
