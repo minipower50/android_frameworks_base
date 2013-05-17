@@ -90,6 +90,7 @@ import android.widget.TextView;
 
 import com.android.internal.statusbar.StatusBarIcon;
 import com.android.internal.statusbar.StatusBarNotification;
+import com.android.internal.util.pie.PiePosition;
 import com.android.systemui.R;
 import com.android.systemui.statusbar.BaseStatusBar;
 import com.android.systemui.statusbar.CommandQueue;
@@ -108,7 +109,6 @@ import com.android.systemui.statusbar.policy.NetworkController;
 import com.android.systemui.statusbar.policy.NotificationRowLayout;
 import com.android.systemui.statusbar.policy.OnSizeChangedListener;
 import com.android.systemui.statusbar.policy.Prefs;
-import com.android.systemui.statusbar.policy.PieController.Position;
 import com.android.systemui.statusbar.powerwidget.PowerWidget;
 
 public class PhoneStatusBar extends BaseStatusBar {
@@ -1706,7 +1706,10 @@ public class PhoneStatusBar extends BaseStatusBar {
             return ;
         }
 
-        if (mExpandedDesktopState == 2) {
+        if (Settings.System.getInt(mContext.getContentResolver(),
+                    Settings.System.EXPANDED_DESKTOP_STYLE, 0) == 2 &&
+                    Settings.System.getInt(mContext.getContentResolver(),
+                    Settings.System.EXPANDED_DESKTOP_STATE, 0) == 1) {
             mRestoreExpandedDesktop = true;
             Settings.System.putInt(mContext.getContentResolver(),
                     Settings.System.EXPANDED_DESKTOP_STATE, 0);
@@ -1779,7 +1782,10 @@ public class PhoneStatusBar extends BaseStatusBar {
             return;
         }
 
-        if (mExpandedDesktopState == 2) {
+        if (Settings.System.getInt(mContext.getContentResolver(),
+                    Settings.System.EXPANDED_DESKTOP_STYLE, 0) == 2 &&
+                    Settings.System.getInt(mContext.getContentResolver(),
+                    Settings.System.EXPANDED_DESKTOP_STATE, 0) == 1) {
             mRestoreExpandedDesktop = true;
             Settings.System.putInt(mContext.getContentResolver(),
                     Settings.System.EXPANDED_DESKTOP_STATE, 0);
@@ -2355,13 +2361,13 @@ public class PhoneStatusBar extends BaseStatusBar {
         // hide pie triggers when keyguard is visible
         try {
             if (mWindowManagerService.isKeyguardLocked()) {
-                updatePieTriggerMask(Position.BOTTOM.FLAG
-                        | Position.TOP.FLAG);
+                updatePieTriggerMask(PiePosition.BOTTOM.FLAG
+                        | PiePosition.TOP.FLAG);
             } else {
-                updatePieTriggerMask(Position.LEFT.FLAG
-                        | Position.BOTTOM.FLAG
-                        | Position.RIGHT.FLAG
-                        | Position.TOP.FLAG);
+                updatePieTriggerMask(PiePosition.LEFT.FLAG
+                        | PiePosition.BOTTOM.FLAG
+                        | PiePosition.RIGHT.FLAG
+                        | PiePosition.TOP.FLAG);
             }
         } catch (RemoteException e) {
             // nothing else to do ...
@@ -2420,7 +2426,10 @@ public class PhoneStatusBar extends BaseStatusBar {
             mTickerView.setVisibility(View.VISIBLE);
             mTickerView.startAnimation(loadAnim(com.android.internal.R.anim.push_up_in, null));
             mStatusBarContents.startAnimation(loadAnim(com.android.internal.R.anim.push_up_out, null));
-            if (mExpandedDesktopState == 2) {
+            if (Settings.System.getInt(mContext.getContentResolver(),
+                    Settings.System.EXPANDED_DESKTOP_STYLE, 0) == 2 &&
+                    Settings.System.getInt(mContext.getContentResolver(),
+                    Settings.System.EXPANDED_DESKTOP_STATE, 0) == 1) {
                 mRestoreExpandedDesktop = true;
                 Settings.System.putInt(mContext.getContentResolver(),
                         Settings.System.EXPANDED_DESKTOP_STATE, 0);
@@ -3027,7 +3036,8 @@ public class PhoneStatusBar extends BaseStatusBar {
 
     @Override
     protected boolean shouldDisableNavbarGestures() {
-        return !isDeviceProvisioned() || mExpandedDesktopState != 0
+        return !isDeviceProvisioned() || Settings.System.getInt(mContext.getContentResolver(),
+                Settings.System.EXPANDED_DESKTOP_STATE, 0) == 1
                 || mExpandedVisible || NavigationBarView.getEditMode()
                 || (mDisabled & StatusBarManager.DISABLE_SEARCH) != 0;
     }

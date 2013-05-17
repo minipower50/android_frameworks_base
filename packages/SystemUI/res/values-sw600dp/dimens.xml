@@ -65,10 +65,4 @@
 
     <!-- The width of the ticker, including the icon -->
     <dimen name="notification_ticker_width">360dp</dimen>
-
-    <!-- ==================== pie controls ==================== -->
-    <!-- Actual width/height of the trigger views placed on the UI -->
-    <dimen name="pie_trigger_height">6dp</dimen>
-    <!-- The distance a touch event must travel on the surface to trigger the pie control -->
-    <dimen name="pie_trigger_distance">6dp</dimen>
 </resources>

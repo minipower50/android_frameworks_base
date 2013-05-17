@@ -3762,6 +3762,21 @@ public class PhoneWindowManager implements WindowManagerPolicy {
             intent.addFlags(Intent.FLAG_RECEIVER_REGISTERED_ONLY_BEFORE_BOOT);
             intent.putExtra(EXTRA_HDMI_PLUGGED_STATE, plugged);
             mContext.sendStickyBroadcastAsUser(intent, UserHandle.ALL);
+            int hdmiResX = Settings.System.getInt(mContext.getContentResolver(),
+                    Settings.System.HDMI_MIRROR_RESOLUTION_X, 0);
+            int hdmiResY = Settings.System.getInt(mContext.getContentResolver(),
+                    Settings.System.HDMI_MIRROR_RESOLUTION_Y, 0);
+            if (hdmiResX > 0 && hdmiResY > 0) {
+                try {
+                    if (plugged) {
+                        mWindowManager.setForcedDisplaySize(Display.DEFAULT_DISPLAY,
+                                hdmiResX, hdmiResY);
+                    } else {
+                        mWindowManager.clearForcedDisplaySize(Display.DEFAULT_DISPLAY);
+                    }
+                } catch (Exception e) {
+                }
+            }
         }
     }
 
