@@ -3357,21 +3357,6 @@ public final class Settings {
         /**
          * @hide
          */
-        public static final String PIE_NOTIFICATIONS = "pie_notifications";
-
-        /**
-         * @hide
-         */
-        public static final String PIE_SETTINGS = "pie_settings";
-
-        /**
-         * @hide
-         */
-        public static final String PIE_DRAWER = "pie_drawer";
-
-        /**
-         * @hide
-         */
         public static final String PIE_COLOR = "pie_color";
 
         /**
@@ -3387,12 +3372,22 @@ public final class Settings {
         /**
          * @hide
          */
-        public static final String PIE_START = "pie_start";
+        public static final String HDMI_MIRROR_RESOLUTION_X = "hdmi_mirror_resolution_x";
 
         /**
          * @hide
          */
-        public static final String PIE_DISTANCE = "pie_distance";
+        public static final String HDMI_MIRROR_RESOLUTION_Y = "hdmi_mirror_resolution_y";
+
+        /**
+         * @hide
+         */
+        public static final String APP_SWITCH_TRANSITION = "app_switch_transition";
+
+        /**
+         * @hide
+         */
+        public static final String DRAWER_TRANSITION = "drawer_transition";
 
         /**
          * Settings to backup. This is here so that it's in the same place as the settings
