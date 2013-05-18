@@ -504,7 +504,7 @@ public class PhoneStatusBar extends BaseStatusBar {
         try {
             boolean showNav = mWindowManagerService.hasNavigationBar();
             if (DEBUG) Slog.v(TAG, "hasNavigationBar=" + showNav);
-            if (showNav && !mRecreating) {
+            if (mNavigationBarView == null && showNav && !mRecreating) {
                 int navAlign = Settings.System.getInt(mContext.getContentResolver(),
                         Settings.System.NAVIGATION_ALIGNMENT, 0);
                 switch (navAlign) {
