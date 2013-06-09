@@ -19,6 +19,7 @@ package com.android.systemui.statusbar;
 import android.content.ContentResolver;
 import android.content.Context;
 import android.database.ContentObserver;
+import android.graphics.drawable.Drawable;
 import android.os.Handler;
 import android.provider.Settings;
 import android.util.AttributeSet;
@@ -26,6 +27,7 @@ import android.util.Slog;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.accessibility.AccessibilityEvent;
+import android.widget.FrameLayout;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
 
@@ -192,41 +194,6 @@ public class SignalClusterView
 
     // Run after each indicator change.
     private void apply() {
-        if (mTabletMode) {
-            final float scale = 4f / 3f;
-            if (mWifi != null) {
-                mWifi.setScaleX(scale);
-                mWifi.setScaleY(scale);
-                mWifi.setScaleType(ImageView.ScaleType.CENTER_INSIDE);
-            }
-            if (mWifiActivity != null) {
-                mWifiActivity.setScaleX(scale);
-                mWifiActivity.setScaleY(scale);
-                mWifiActivity.setScaleType(ImageView.ScaleType.CENTER);
-            }
-            if (mMobile != null) {
-                mMobile.setScaleX(scale);
-                mMobile.setScaleY(scale);
-                mMobile.setScaleType(ImageView.ScaleType.CENTER);
-            }
-            if (mMobileActivity != null) {
-                mMobileActivity.setScaleX(scale);
-                mMobileActivity.setScaleY(scale);
-                mMobileActivity.setScaleType(ImageView.ScaleType.CENTER);
-            }
-            if (mMobileType != null) {
-                mMobileType.setScaleX(scale);
-                mMobileType.setScaleY(scale);
-                mMobileType.setScaleType(ImageView.ScaleType.CENTER);
-            }
-            if (mAirplane != null) {
-                mAirplane.setScaleX(scale);
-                mAirplane.setScaleY(scale);
-                mAirplane.setScaleType(ImageView.ScaleType.CENTER);
-            }
-        }
-
-
         if (mWifiGroup == null) return;
 
         if (mWifiVisible) {
@@ -275,6 +242,40 @@ public class SignalClusterView
                 !mWifiVisible ? View.VISIBLE : View.GONE);
 
         updateSettings();
+
+        if (mTabletMode) {
+            if (mWifi != null && mWifiGroup.getVisibility() == View.VISIBLE) scaleImage(mWifi, true);
+            if (mMobile != null && mMobileGroup.getVisibility() == View.VISIBLE) scaleImage(mMobile, true);
+            if (mAirplane != null && mAirplane.getVisibility() == View.VISIBLE) scaleImage(mAirplane, false);
+        }
+    }
+
+    private void scaleImage(final ImageView view, final boolean frameLayout) {
+        final float scale = 4f / 3f;
+        int finalHeight = 0;
+        int finalWidth = 0;
+        int res = 0;
+        if (view == mWifi) res = mWifiStrengthId;
+        if (view == mMobile) res = mMobileStrengthId;
+        if (view == mAirplane) res = mAirplaneIconId;
+        if (res != 0) {
+            Drawable temp = getResources().getDrawable(res);
+            if (temp != null) {
+                finalHeight = temp.getIntrinsicHeight();
+                finalWidth = temp.getIntrinsicWidth();
+            }
+        }
+        if (frameLayout) {
+            FrameLayout.LayoutParams params = (FrameLayout.LayoutParams) view.getLayoutParams();
+            params.width = (int) (finalWidth * scale);
+            params.height = (int) (finalHeight * scale);
+            view.setLayoutParams(params);
+        } else {
+            LinearLayout.LayoutParams linParams = (LinearLayout.LayoutParams) view.getLayoutParams();
+            linParams.width = (int) (finalWidth * scale);
+            linParams.height = (int) (finalHeight * scale);
+            view.setLayoutParams(linParams);
+        }
     }
 
     private void updateSignalClusterStyle() {

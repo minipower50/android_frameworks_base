@@ -24,17 +24,21 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.database.ContentObserver;
+import android.graphics.drawable.Drawable;
 import android.os.BatteryManager;
 import android.os.Handler;
 import android.provider.Settings;
 import android.view.View;
 import android.widget.ImageView;
+import android.widget.LinearLayout;
 import android.widget.TextView;
 
 import com.android.systemui.R;
 
 public class BatteryController extends BroadcastReceiver {
     private static final String TAG = "StatusBar.BatteryController";
+
+    private static final int mViewId = ImageView.generateViewId();
 
     private Context mContext;
     private ArrayList<ImageView> mIconViews = new ArrayList<ImageView>();
@@ -61,6 +65,7 @@ public class BatteryController extends BroadcastReceiver {
     private int mBatteryStatus = BatteryManager.BATTERY_STATUS_UNKNOWN;
     private int mBatteryStyle;
     private boolean mTabletMode;
+    private int mIconStyle;
 
     Handler mHandler;
 
@@ -120,11 +125,7 @@ public class BatteryController extends BroadcastReceiver {
     }
 
     public void addIconView(ImageView v) {
-        if (mTabletMode) {
-            v.setScaleX(4f / 3f);
-            v.setScaleY(4f / 3f);
-            v.setScaleType(ImageView.ScaleType.CENTER);
-        }
+        v.setId(mViewId);
 
         mIconViews.add(v);
     }
@@ -209,6 +210,9 @@ public class BatteryController extends BroadcastReceiver {
                 v.setImageLevel(level);
                 v.setContentDescription(mContext.getString(R.string.accessibility_battery_level,
                         level));
+                if (mTabletMode && v.getVisibility() == View.VISIBLE && v.getId() == mViewId) {
+                    scaleImage(v);
+                }
             }
             N = mLabelViews.size();
             for (int i=0; i<N; i++) {
@@ -223,10 +227,28 @@ public class BatteryController extends BroadcastReceiver {
         }
     }
 
+    private void scaleImage(ImageView view) {
+        final float scale = 4f / 3f;
+        int finalHeight = 0;
+        int finalWidth = 0;
+        int res = mIconStyle;
+        if (res != 0) {
+            Drawable temp = view.getResources().getDrawable(res);
+            if (temp != null) {
+                finalHeight = temp.getIntrinsicHeight();
+                finalWidth = temp.getIntrinsicWidth();
+            }
+        }
+        LinearLayout.LayoutParams linParams = (LinearLayout.LayoutParams) view.getLayoutParams();
+        linParams.width = (int) (finalWidth * scale + 4 * view.getResources().getDisplayMetrics().density);
+        linParams.height = (int) (finalHeight * scale);
+        view.setLayoutParams(linParams);
+    }
+
     protected void updateBattery() {
         int mIcon = View.GONE;
         int mText = View.GONE;
-        int mIconStyle = getIconStyleNormal();
+        mIconStyle = getIconStyleNormal();
 
         if (isBatteryPresent()) {
             if ( isBatteryStatusUnknown() &&
