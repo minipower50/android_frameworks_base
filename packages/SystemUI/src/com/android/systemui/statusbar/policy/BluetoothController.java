@@ -23,10 +23,12 @@ import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
+import android.graphics.drawable.Drawable;
 import android.provider.Settings;
 import android.view.View;
-import android.widget.ImageView;
 import android.widget.CompoundButton;
+import android.widget.ImageView;
+import android.widget.LinearLayout;
 
 import com.android.systemui.R;
 
@@ -37,6 +39,8 @@ import java.util.Set;
 public class BluetoothController extends BroadcastReceiver
         implements CompoundButton.OnCheckedChangeListener {
     private static final String TAG = "StatusBar.BluetoothController";
+
+    private static final int mViewId = ImageView.generateViewId();
 
     private final BluetoothAdapter mAdapter;
     private Context mContext;
@@ -102,11 +106,7 @@ public class BluetoothController extends BroadcastReceiver
     }
 
     public void addIconView(ImageView v) {
-        if (mTabletMode) {
-            v.setScaleX(4f / 3f);
-            v.setScaleY(4f / 3f);
-            v.setScaleType(ImageView.ScaleType.CENTER);
-        }
+        v.setId(mViewId);
         mIconViews.add(v);
     }
 
@@ -180,10 +180,31 @@ public class BluetoothController extends BroadcastReceiver
             v.setContentDescription((mContentDescriptionId == 0)
                     ? null
                     : mContext.getString(mContentDescriptionId));
+            if (mTabletMode && v.getVisibility() == View.VISIBLE && v.getId() == mViewId) {
+                scaleImage(v);
+            }
         }
         for (BluetoothStateChangeCallback cb : mChangeCallbacks) {
             cb.onBluetoothStateChange(mEnabled);
         }
+    }
+
+    private void scaleImage(ImageView view) {
+        final float scale = 4f / 3f;
+        int finalHeight = 0;
+        int finalWidth = 0;
+        int res = mIconId;
+        if (res != 0) {
+            Drawable temp = view.getResources().getDrawable(res);
+            if (temp != null) {
+                finalHeight = temp.getIntrinsicHeight();
+                finalWidth = temp.getIntrinsicWidth();
+            }
+        }
+        LinearLayout.LayoutParams linParams = (LinearLayout.LayoutParams) view.getLayoutParams();
+        linParams.width = (int) (finalWidth * scale + 4 * view.getResources().getDisplayMetrics().density);
+        linParams.height = (int) (finalHeight * scale);
+        view.setLayoutParams(linParams);
     }
 
     public void onCheckedChanged(CompoundButton view, boolean checked) {

@@ -324,7 +324,7 @@ public class TabletStatusBar extends BaseStatusBar implements
         mStatusBarView.setIgnoreChildren(0, mNotificationTrigger, mNotificationPanel);
 
         WindowManager.LayoutParams lp = mNotificationPanelParams = new WindowManager.LayoutParams(
-                res.getDimensionPixelSize(R.dimen.notification_panel_width),
+                getNotificationPanelWidth(),
                 getNotificationPanelHeight(),
                 WindowManager.LayoutParams.TYPE_NAVIGATION_BAR_PANEL,
                 WindowManager.LayoutParams.FLAG_LAYOUT_IN_SCREEN
@@ -421,6 +421,14 @@ public class TabletStatusBar extends BaseStatusBar implements
         return size.y;
     }
 
+    private int getNotificationPanelWidth() {
+        final Resources res = mContext.getResources();
+        final Display d = mWindowManager.getDefaultDisplay();
+        final Point size = new Point();
+        d.getRealSize(size);
+        return Math.min(res.getDimensionPixelSize(R.dimen.notification_panel_width), size.x);
+    }
+
     @Override
     public void start() {
         super.start(); // will add the main bar view
@@ -471,6 +479,7 @@ public class TabletStatusBar extends BaseStatusBar implements
         }
         loadDimens();
         mNotificationPanelParams.height = getNotificationPanelHeight();
+        mNotificationPanelParams.width = getNotificationPanelWidth();
         mWindowManager.updateViewLayout(mNotificationPanel, mNotificationPanelParams);
         mShowSearchHoldoff = mContext.getResources().getInteger(
                 R.integer.config_show_search_delay);

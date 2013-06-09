@@ -217,6 +217,7 @@
             android:layout_height="wrap_content"
             android:singleLine="true"
             android:textAppearance="@style/TextAppearance.StatusBar.Expanded.Clock"
+            android:textSize="48dp"
             android:clickable="true"
             />
     
@@ -227,6 +228,8 @@
             android:layout_marginLeft="8dp"
             android:layout_marginRight="8dp"
             android:textAppearance="@style/TextAppearance.SystemBar.Expanded.Date"
+            android:textSize="14dp"
+            android:textColor="#666666"
             />
 
         <Space

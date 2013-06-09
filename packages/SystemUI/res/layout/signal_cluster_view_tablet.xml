@@ -32,16 +32,15 @@
         >
         <ImageView
             android:id="@+id/wifi_signal"
-            android:layout_height="36dp"
-            android:layout_width="32dp"
+            android:layout_height="wrap_content"
+            android:layout_width="wrap_content"
             android:layout_alignParentRight="true"
             android:layout_centerVertical="true"
-            android:scaleType="center"
             />
         <ImageView
             android:id="@+id/wifi_inout"
-            android:layout_height="36dp"
-            android:layout_width="32dp"
+            android:layout_height="wrap_content"
+            android:layout_width="wrap_content"
             android:layout_gravity="center|bottom"
             />
     </FrameLayout>
@@ -85,23 +84,21 @@
         <FrameLayout
             android:id="@+id/mobile_combo"
             android:layout_width="wrap_content"
-            android:layout_height="36dp"
-            android:layout_centerVertical="true"
+            android:layout_height="wrap_content"
             >
             <ImageView
                 android:id="@+id/mobile_signal"
-                android:layout_height="match_parent"
+                android:layout_height="wrap_content"
                 android:layout_width="wrap_content"
-                android:scaleType="center"
                 />
             <ImageView
                 android:id="@+id/mobile_type"
-                android:layout_height="match_parent"
+                android:layout_height="wrap_content"
                 android:layout_width="wrap_content"
                 />
             <ImageView
                 android:id="@+id/mobile_inout"
-                android:layout_height="match_parent"
+                android:layout_height="wrap_content"
                 android:layout_width="wrap_content"
                 android:layout_gravity="right|bottom"
                 />

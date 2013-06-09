@@ -76,7 +76,7 @@
             <ImageView
                 android:id="@+id/bluetooth"
                 android:layout_height="wrap_content"
-                android:layout_width="24dp"
+                android:layout_width="wrap_content"
                 android:paddingLeft="4dip"
                 android:visibility="gone"
                 />
@@ -102,7 +102,7 @@
             <ImageView
                 android:id="@+id/battery"
                 android:layout_height="wrap_content"
-                android:layout_width="24dp"
+                android:layout_width="wrap_content"
                 android:paddingLeft="4dip"
                 />
         </LinearLayout>

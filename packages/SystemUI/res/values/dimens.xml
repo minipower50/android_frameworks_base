@@ -237,4 +237,16 @@
 
     <dimen name="pie_sysinfo_radius">165dp</dimen>
     <dimen name="pie_sysinfo_height">85sp</dimen>
+
+    <!-- The width of the notification panel window: 446 + 16 + 16 (padding in the bg drawable) -->
+    <dimen name="notification_panel_width">478dp</dimen>
+
+    <!-- Size of application thumbnail -->
+    <dimen name="status_bar_recents_thumbnail_width_large">164dp</dimen>
+    <dimen name="status_bar_recents_thumbnail_height_large">145dp</dimen>
+
+    <dimen name="panel_float">56dp</dimen>
+
+    <!-- The width of the ticker, including the icon -->
+    <dimen name="notification_ticker_width">360dp</dimen>
 </resources>
