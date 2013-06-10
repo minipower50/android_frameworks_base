@@ -713,7 +713,7 @@ public class PieController implements BaseStatusBar.NavigationBarCallback, PieVi
         int pie = Settings.System.getInt(mContext.getContentResolver(),
                 Settings.System.PIE_CONTROLS, 0);
 
-        return (pie == 1 && mExpandedDesktopState != 0) || pie > 0;
+        return (pie == 1 && mExpandedDesktopState != 0) || pie == 2;
     }
 
     public String getOperatorState() {
