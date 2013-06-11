@@ -106,7 +106,8 @@ public class BluetoothController extends BroadcastReceiver
     }
 
     public void addIconView(ImageView v) {
-        v.setId(mViewId);
+        if (mTabletMode) v.setId(mViewId);
+
         mIconViews.add(v);
     }
 
