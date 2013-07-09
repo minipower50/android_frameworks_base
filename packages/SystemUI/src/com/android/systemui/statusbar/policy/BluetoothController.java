@@ -24,6 +24,7 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.graphics.drawable.Drawable;
+import android.os.UserHandle;
 import android.provider.Settings;
 import android.view.View;
 import android.widget.CompoundButton;
@@ -61,11 +62,12 @@ public class BluetoothController extends BroadcastReceiver
     public BluetoothController(Context context) {
         mContext = context;
 
-        mTabletMode = Settings.System.getInt(mContext.getContentResolver(),
+        mTabletMode = Settings.System.getIntForUser(mContext.getContentResolver(),
                 Settings.System.TABLET_MODE, mContext.getResources().getBoolean(
-                com.android.internal.R.bool.config_showTabletNavigationBar) ? 1 : 0) == 1 &&
-                Settings.System.getInt(context.getContentResolver(),
-                Settings.System.TABLET_SCALED_ICONS, 1) == 1;
+                com.android.internal.R.bool.config_showTabletNavigationBar) ? 1 : 0,
+                UserHandle.USER_CURRENT) == 1 &&
+                Settings.System.getIntForUser(context.getContentResolver(),
+                Settings.System.TABLET_SCALED_ICONS, 1, UserHandle.USER_CURRENT) == 1;
 
         IntentFilter filter = new IntentFilter();
         filter.addAction(BluetoothAdapter.ACTION_STATE_CHANGED);
@@ -91,6 +93,7 @@ public class BluetoothController extends BroadcastReceiver
         IntentFilter filter = new IntentFilter();
         filter.addAction(BluetoothAdapter.ACTION_STATE_CHANGED);
         filter.addAction(BluetoothAdapter.ACTION_CONNECTION_STATE_CHANGED);
+        filter.addAction(BluetoothDevice.ACTION_BOND_STATE_CHANGED);
         context.registerReceiver(this, filter);
 
         mAdapter = BluetoothAdapter.getDefaultAdapter();
@@ -99,6 +102,7 @@ public class BluetoothController extends BroadcastReceiver
             handleConnectionStateChange(mAdapter.getConnectionState());
         }
         refreshViews();
+        updateBondedBluetoothDevices();
     }
 
     public void addPanelIconView(ImageView v) {
@@ -188,10 +192,13 @@ public class BluetoothController extends BroadcastReceiver
         for (BluetoothStateChangeCallback cb : mChangeCallbacks) {
             cb.onBluetoothStateChange(mEnabled);
         }
+        if (mAdapter != null) setBluetoothStateInt(mAdapter.getState());
     }
 
     private void scaleImage(ImageView view) {
-        final float scale = 4f / 3f;
+        final float scale = (4f / 3f) * (float)
+                        Settings.System.getIntForUser(mContext.getContentResolver(),
+                        Settings.System.TABLET_HEIGHT, 100, UserHandle.USER_CURRENT) / 100f;
         int finalHeight = 0;
         int finalWidth = 0;
         int res = mIconId;
@@ -211,9 +218,9 @@ public class BluetoothController extends BroadcastReceiver
     public void onCheckedChanged(CompoundButton view, boolean checked) {
         if (checked != mEnabled) {
             mEnabled = checked;
-	    setBluetoothEnabled(mEnabled);
-	    setBluetoothStateInt(mAdapter.getState());
-	    syncBluetoothState();
+            setBluetoothEnabled(mEnabled);
+            setBluetoothStateInt(mAdapter.getState());
+            syncBluetoothState();
         }
     }
 
@@ -224,10 +231,10 @@ public class BluetoothController extends BroadcastReceiver
 
         if (success) {
             setBluetoothStateInt(enabled
-				 ? BluetoothAdapter.STATE_TURNING_ON
-                : BluetoothAdapter.STATE_TURNING_OFF);
+				    ? BluetoothAdapter.STATE_TURNING_ON
+                    : BluetoothAdapter.STATE_TURNING_OFF);
         } else {
-	    syncBluetoothState();
+	        syncBluetoothState();
         }
     }
 
@@ -242,14 +249,15 @@ public class BluetoothController extends BroadcastReceiver
 
     synchronized void setBluetoothStateInt(int state) {
         mState = state;
-	if (state == BluetoothAdapter.STATE_ON)
-	    {
-		if (mCheckBox != null)
-		    mCheckBox.setChecked(true);
-	    }
-	else
-	    if (mCheckBox != null)
-		mCheckBox.setChecked(false);
+        if (state == BluetoothAdapter.STATE_ON) {
+		    if (mCheckBox != null) {
+		        mCheckBox.setChecked(true);
+	        }
+	    } else {
+	        if (mCheckBox != null) {
+                mCheckBox.setChecked(false);
+            }
+        }
     }
 
 }

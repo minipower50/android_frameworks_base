@@ -48,10 +48,17 @@
         <include layout="@layout/system_bar_notification_panel_title"
             android:layout_width="match_parent"
             android:layout_height="130dp"
-            android:layout_above="@id/content_frame"
             android:layout_alignParentRight="true"
             android:layout_weight="0"
             />
+
+        <com.android.systemui.statusbar.powerwidget.PowerWidget
+            android:id="@+id/exp_power_stat"
+            android:layout_width="match_parent"
+            android:layout_height="@dimen/notification_panel_widget_height"
+            android:layout_marginTop="2dip"
+            android:visibility="gone"
+        />
 
         <ScrollView
 

@@ -42,6 +42,8 @@ import com.android.systemui.statusbar.policy.AutoRotateController;
 import com.android.systemui.statusbar.policy.BrightnessController;
 import com.android.systemui.statusbar.policy.BluetoothController;
 import com.android.systemui.statusbar.policy.DoNotDisturbController;
+import com.android.systemui.statusbar.policy.FlashlightController;
+import com.android.systemui.statusbar.policy.LocationController;
 import com.android.systemui.statusbar.policy.ToggleSlider;
 import com.android.systemui.statusbar.policy.VolumeController;
 import com.android.systemui.statusbar.policy.WifiController;
@@ -60,6 +62,8 @@ public class SettingsView extends LinearLayout implements View.OnClickListener,
     public static final String BUTTON_AIRPLANE = "toggleAirplane";
     public static final String BUTTON_MEDIA = "toggleMedia";
     public static final String BUTTON_SLEEP = "toggleSleep";
+    public static final String BUTTON_LOCATION = "toggleLocation";
+    public static final String BUTTON_FLASHLIGHT = "toggleFlashlight";
     public static final String BUTTON_DELIMITER = "|";
     public static final String BUTTONS_DEFAULT =
             BUTTON_BRIGHTNESS + BUTTON_DELIMITER +
@@ -79,12 +83,16 @@ public class SettingsView extends LinearLayout implements View.OnClickListener,
     public static final int SLEEP = 15;
     public static final int AUTOROTATE = 16;
     public static final int MEDIA_VOLUME = 17;
+    public static final int LOCATION = 18;
+    public static final int FLASHLIGHT = 19;
 
     AirplaneModeController mAirplane;
     AutoRotateController mRotate;
     BrightnessController mBrightness;
     DoNotDisturbController mDoNotDisturb;
     BluetoothController mBluetooth;
+    FlashlightController mFlashlight;
+    LocationController mGps;
     WifiController mWifi;
     VolumeController mVolume;
     TextView mSleepText;
@@ -106,8 +114,8 @@ public class SettingsView extends LinearLayout implements View.OnClickListener,
 
         final Context context = getContext();
 
-        String rows = Settings.System.getString(context.getContentResolver(),
-                Settings.System.COMBINED_BAR_SETTINGS);
+        String rows = Settings.System.getStringForUser(context.getContentResolver(),
+                Settings.System.COMBINED_BAR_SETTINGS, UserHandle.USER_CURRENT);
 
         if (rows == null) {
             rows = BUTTONS_DEFAULT;
@@ -123,6 +131,7 @@ public class SettingsView extends LinearLayout implements View.OnClickListener,
                 ViewGroup.LayoutParams.MATCH_PARENT, (int) (64 * scale));
         LinearLayout.LayoutParams iconlp = new LinearLayout.LayoutParams(
                 (int) (64 * scale), ViewGroup.LayoutParams.MATCH_PARENT);
+        iconlp.setMargins((int) (12 * scale), (int) (12 * scale), (int) (12 * scale), (int) (12 * scale));
         LinearLayout.LayoutParams separatorlp = new LinearLayout.LayoutParams(
                 ViewGroup.LayoutParams.MATCH_PARENT, (int) (1 * scale));
         LinearLayout.LayoutParams buttonseparatorlp = new LinearLayout.LayoutParams(1,
@@ -220,6 +229,22 @@ public class SettingsView extends LinearLayout implements View.OnClickListener,
                 ll.addView(toggle, switchlp);
                 ll.setId(AUTOROTATE);
                 ll.setOnLongClickListener(this);
+            } else if (settingsRow[i].contains(BUTTON_LOCATION)) {
+                icon.setImageResource(R.drawable.ic_qs_gps_neutral);
+                ll.addView(icon, iconlp);
+                ll.addView(makeTextView(R.string.status_bar_settings_location), textlp);
+                Switch toggle = new Switch(context);
+                toggle.setGravity(Gravity.CENTER_VERTICAL);
+                mGps = new LocationController(context, toggle);
+                ll.addView(toggle, switchlp);
+            } else if (settingsRow[i].contains(BUTTON_FLASHLIGHT)) {
+                icon.setImageResource(R.drawable.ic_qs_torch_off);
+                ll.addView(icon, iconlp);
+                ll.addView(makeTextView(R.string.status_bar_settings_flashlight), textlp);
+                Switch toggle = new Switch(context);
+                toggle.setGravity(Gravity.CENTER_VERTICAL);
+                mFlashlight = new FlashlightController(context, toggle);
+                ll.addView(toggle, switchlp);
             } else if (settingsRow[i].contains(BUTTON_AIRPLANE)) {
                 icon.setImageResource(R.drawable.ic_sysbar_airplane_on);
                 ll.addView(icon, iconlp);
@@ -423,8 +448,8 @@ public class SettingsView extends LinearLayout implements View.OnClickListener,
     // Sleep
     // ----------------------------
     private void onClickSleep() {
-        int value = Settings.System.getInt(mContext.getContentResolver(),
-                Settings.System.SCREEN_OFF_TIMEOUT, 60000);
+        int value = Settings.System.getIntForUser(mContext.getContentResolver(),
+                Settings.System.SCREEN_OFF_TIMEOUT, 60000, UserHandle.USER_CURRENT);
         String[] entries = mContext.getResources().getStringArray(R.array.screen_timeout_entries);
         String[] values = mContext.getResources().getStringArray(R.array.screen_timeout_values);
         int best = 0;
@@ -435,14 +460,14 @@ public class SettingsView extends LinearLayout implements View.OnClickListener,
             }
         }
         value = Integer.parseInt(values[values.length - 1 == best ? 0 : best + 1].toString());
-        Settings.System.putInt(mContext.getContentResolver(),
-                Settings.System.SCREEN_OFF_TIMEOUT, value);
+        Settings.System.putIntForUser(mContext.getContentResolver(),
+                Settings.System.SCREEN_OFF_TIMEOUT, value, UserHandle.USER_CURRENT);
         updateSleepSummary();
     }
 
     private void updateSleepSummary() {
-        int value = Settings.System.getInt(mContext.getContentResolver(),
-                Settings.System.SCREEN_OFF_TIMEOUT, 60000);
+        int value = Settings.System.getIntForUser(mContext.getContentResolver(),
+                Settings.System.SCREEN_OFF_TIMEOUT, 60000, UserHandle.USER_CURRENT);
         String[] entries = mContext.getResources().getStringArray(R.array.screen_timeout_entries);
         String[] values = mContext.getResources().getStringArray(R.array.screen_timeout_values);
         int best = 0;

@@ -48,6 +48,7 @@ public class InputMethodButton extends ImageView {
     private boolean mShowButton = false;
     private boolean mScreenLocked = false;
     private boolean mHardKeyboardAvailable;
+    private boolean mDisabled = false;
 
     // Please refer to InputMethodManagerService.TAG_TRY_SUPPRESSING_IME_SWITCHER
     private static final String TAG_TRY_SUPPRESSING_IME_SWITCHER = "TrySuppressingImeSwitcher";
@@ -114,7 +115,7 @@ public class InputMethodButton extends ImageView {
     }
 
     private boolean needsToShowIMEButton() {
-        if (!mShowButton || mScreenLocked) return false;
+        if (!mShowButton || mScreenLocked || mDisabled) return false;
 
         if (mHardKeyboardAvailable) {
             return true;
@@ -148,6 +149,11 @@ public class InputMethodButton extends ImageView {
     private int loadInputMethodSelectorVisibility() {
         return Settings.Secure.getInt(getContext().getContentResolver(),
                 Settings.Secure.INPUT_METHOD_SELECTOR_VISIBILITY, ID_IME_BUTTON_VISIBILITY_AUTO);
+    }
+
+    public void setDisabled(boolean disabled) {
+        mDisabled = disabled;
+        refreshStatusIcon();
     }
 
     public void setIconImage(int resId) {

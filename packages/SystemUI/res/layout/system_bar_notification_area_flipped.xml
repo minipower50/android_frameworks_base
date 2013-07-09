@@ -64,7 +64,7 @@
             android:id="@+id/signal_battery_cluster"
             android:layout_width="wrap_content"
             android:layout_height="match_parent"
-            android:layout_marginRight="16dp"
+            android:layout_marginRight="8dp"
             android:orientation="horizontal"
             android:gravity="center"
             >
@@ -80,13 +80,14 @@
                 android:paddingLeft="4dip"
                 android:visibility="gone"
                 />
-            <com.android.systemui.statusbar.policy.CircleBattery
-                android:id="@+id/dock_circle_battery"
+            <com.android.systemui.statusbar.policy.CircleDockBattery
+                android:id="@+id/circle_dock_battery"
                 android:layout_width="wrap_content"
-                android:layout_height="match_parent"
+                android:layout_height="wrap_content"
+                android:textAppearance="@style/TextAppearance.StatusBar.Battery"
                 android:singleLine="true"
-                android:paddingLeft="4dip"
-                android:gravity="center_vertical|left"
+                android:gravity="bottom"
+                android:paddingLeft="@dimen/status_bar_battery_cluster_padding"
                 />
             <TextView
                 android:id="@+id/battery_text"
@@ -104,6 +105,15 @@
                 android:layout_height="wrap_content"
                 android:layout_width="wrap_content"
                 android:paddingLeft="4dip"
+                />
+            <com.android.systemui.statusbar.policy.CircleBattery
+                android:id="@+id/circle_battery"
+                android:layout_width="wrap_content"
+                android:layout_height="match_parent"
+                android:textAppearance="@style/TextAppearance.StatusBar.Battery"
+                android:singleLine="true"
+                android:gravity="bottom"
+                android:paddingLeft="@dimen/status_bar_battery_cluster_padding"
                 />
         </LinearLayout>
     </LinearLayout>
@@ -146,7 +156,7 @@
                 android:layout_width="wrap_content"
                 android:layout_height="match_parent"
                 android:layout_gravity="center_vertical"
-                android:layout_marginLeft="8dp"
+                android:layout_marginLeft="2dp"
                 android:alpha="0.4"
                 />
         </com.android.systemui.statusbar.tablet.NotificationIconArea>

@@ -17,6 +17,7 @@
 package com.android.systemui.statusbar;
 
 import android.graphics.RectF;
+import android.os.UserHandle;
 import android.provider.Settings;
 import android.view.MotionEvent;
 import android.view.View;
@@ -39,11 +40,13 @@ public class DelegateViewHelper {
 
     public DelegateViewHelper(View sourceView) {
         setSourceView(sourceView);
-        mFlippedTabletStatusBar = (Settings.System.getInt(sourceView.getContext().getContentResolver(),
-                Settings.System.TABLET_FLIPPED, 0) == 1) &&
-                (Settings.System.getInt(sourceView.getContext().getContentResolver(),
+        mFlippedTabletStatusBar = (Settings.System.getIntForUser(
+                sourceView.getContext().getContentResolver(),
+                Settings.System.TABLET_FLIPPED, 0, UserHandle.USER_CURRENT) == 1) &&
+                (Settings.System.getIntForUser(sourceView.getContext().getContentResolver(),
                 Settings.System.TABLET_MODE, sourceView.getContext().getResources().getBoolean(
-                com.android.internal.R.bool.config_showTabletNavigationBar) ? 1 : 0) == 1);
+                com.android.internal.R.bool.config_showTabletNavigationBar) ? 1 : 0,
+                UserHandle.USER_CURRENT) == 1);
     }
 
     public void setDelegateView(View view) {

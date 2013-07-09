@@ -22,6 +22,8 @@ import android.animation.AnimatorSet;
 import android.animation.ObjectAnimator;
 import android.content.Context;
 import android.graphics.Rect;
+import android.os.UserHandle;
+import android.provider.Settings;
 import android.util.AttributeSet;
 import android.util.Slog;
 import android.view.Gravity;
@@ -39,6 +41,7 @@ import android.widget.RelativeLayout;
 import com.android.systemui.ExpandHelper;
 import com.android.systemui.R;
 import com.android.systemui.statusbar.policy.NotificationRowLayout;
+import com.android.systemui.statusbar.powerwidget.PowerWidget;
 
 public class NotificationPanel extends RelativeLayout implements StatusBarPanel,
         View.OnClickListener {
@@ -56,15 +59,18 @@ public class NotificationPanel extends RelativeLayout implements StatusBarPanel,
     NotificationPanelTitle mTitleArea;
     View mSettingsButton;
     View mNotificationButton;
-    View mNotificationScroller;
+    ViewGroup mNotificationScroller;
     ViewGroup mContentFrame;
     Rect mContentArea = new Rect();
-    View mSettingsView;
+    ViewGroup mSettingsView;
     ViewGroup mContentParent;
     TabletStatusBar mBar;
     View mClearButton;
     static Interpolator sAccelerateInterpolator = new AccelerateInterpolator();
     static Interpolator sDecelerateInterpolator = new DecelerateInterpolator();
+    PowerWidget mPowerWidget;
+    boolean mHideSettings;
+    boolean mSmall = false;
 
     // amount to slide mContentParent down by when mContentFrame is missing
     float mContentFrameMissingTranslation;
@@ -97,7 +103,7 @@ public class NotificationPanel extends RelativeLayout implements StatusBarPanel,
         mSettingsButton = findViewById(R.id.settings_button);
         mNotificationButton = findViewById(R.id.notification_button);
 
-        mNotificationScroller = findViewById(R.id.notification_scroller);
+        mNotificationScroller = (ViewGroup)findViewById(R.id.notification_scroller);
         mContentFrame = (ViewGroup)findViewById(R.id.content_frame);
         mContentFrameMissingTranslation = 0; // not needed with current assets
 
@@ -106,6 +112,27 @@ public class NotificationPanel extends RelativeLayout implements StatusBarPanel,
         mClearButton.setOnClickListener(mClearButtonListener);
 
         mShowing = false;
+
+        mPowerWidget = (PowerWidget) findViewById(R.id.exp_power_stat);
+        mPowerWidget.setGlobalButtonOnClickListener(new View.OnClickListener() {
+                    @Override
+                    public void onClick(View v) {
+                        if(Settings.System.getIntForUser(v.getContext().getContentResolver(),
+                                Settings.System.EXPANDED_HIDE_ONCHANGE, 0,
+                                UserHandle.USER_CURRENT) == 1) {
+                            mBar.animateCollapsePanels();
+                        }
+                    }
+                });
+        mPowerWidget.setGlobalButtonOnLongClickListener(new View.OnLongClickListener() {
+            @Override
+            public boolean onLongClick(View v) {
+                mBar.animateCollapsePanels();
+                return true;
+            }
+        });
+        mPowerWidget.setupWidget();
+        mPowerWidget.updateVisibility();
     }
 
     @Override
@@ -130,6 +157,7 @@ public class NotificationPanel extends RelativeLayout implements StatusBarPanel,
     }
 
     public void show(boolean show, boolean animate) {
+        mPowerWidget.updateVisibility();
         if (animate) {
             if (mShowing != show) {
                 mShowing = show;
@@ -252,12 +280,15 @@ public class NotificationPanel extends RelativeLayout implements StatusBarPanel,
     }
 
     public void swapPanels() {
+        if (mHideSettings) return;
         final View toShow, toHide;
         if (mSettingsView == null) {
+            mPowerWidget.setVisibility(View.GONE);
             addSettingsView();
             toShow = mSettingsView;
             toHide = mNotificationScroller;
         } else {
+            mPowerWidget.updateVisibility();
             toShow = mNotificationScroller;
             toHide = mSettingsView;
         }
@@ -292,7 +323,7 @@ public class NotificationPanel extends RelativeLayout implements StatusBarPanel,
                 = (isShowing()
                         && mHasClearableNotifications
                         && mNotificationScroller.getVisibility() == View.VISIBLE);
-            getClearButton().setVisibility(showX ? View.VISIBLE : View.INVISIBLE);
+            getClearButton().setVisibility(showX ? View.VISIBLE : View.GONE);
         }
     }
 
@@ -302,7 +333,8 @@ public class NotificationPanel extends RelativeLayout implements StatusBarPanel,
 
     public void updatePanelModeButtons() {
         final boolean settingsVisible = (mSettingsView != null);
-        mSettingsButton.setVisibility(!settingsVisible && mSettingsButton.isEnabled() ? View.VISIBLE : View.GONE);
+        mSettingsButton.setVisibility(!settingsVisible && mSettingsButton.isEnabled() &&
+                !mHideSettings ? View.VISIBLE : View.GONE);
         mNotificationButton.setVisibility(settingsVisible ? View.VISIBLE : View.GONE);
     }
 
@@ -317,6 +349,10 @@ public class NotificationPanel extends RelativeLayout implements StatusBarPanel,
         return mContentArea.contains(x, y);
     }
 
+    void setSmall() {
+        mSmall = true;
+    }
+
     void removeSettingsView() {
         if (mSettingsView != null) {
             mContentFrame.removeView(mSettingsView);
@@ -327,9 +363,14 @@ public class NotificationPanel extends RelativeLayout implements StatusBarPanel,
     // NB: it will be invisible until you show it
     void addSettingsView() {
         LayoutInflater infl = LayoutInflater.from(getContext());
-        mSettingsView = infl.inflate(R.layout.system_bar_settings_view, mContentFrame, false);
+        mSettingsView = (ViewGroup) infl.inflate(R.layout.system_bar_settings_view, mContentFrame, false);
         mSettingsView.setVisibility(View.GONE);
         mContentFrame.addView(mSettingsView);
+        if (mSmall) {
+            ViewGroup.MarginLayoutParams slp = (ViewGroup.MarginLayoutParams)mSettingsView.getLayoutParams();
+            slp.setMargins(0, 0, 0, 0);
+            mSettingsView.setLayoutParams(slp);
+        }
     }
 
     private class Choreographer implements Animator.AnimatorListener {
@@ -446,9 +487,13 @@ public class NotificationPanel extends RelativeLayout implements StatusBarPanel,
 
     public void setSettingsEnabled(boolean settingsEnabled) {
         if (mSettingsButton != null) {
+            String rows = Settings.System.getStringForUser(getContext().getContentResolver(),
+                    Settings.System.COMBINED_BAR_SETTINGS, UserHandle.USER_CURRENT);
+            mHideSettings = rows != null && rows.isEmpty();
             mSettingsButton.setEnabled(settingsEnabled);
             if (mNotificationButton.getVisibility() != View.VISIBLE) {
-                mSettingsButton.setVisibility(settingsEnabled ? View.VISIBLE : View.GONE);
+                mSettingsButton.setVisibility(settingsEnabled && !mHideSettings
+                        ? View.VISIBLE : View.GONE);
             }
         }
     }

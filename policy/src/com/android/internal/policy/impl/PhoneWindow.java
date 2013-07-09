@@ -2281,6 +2281,10 @@ public class PhoneWindow extends Window implements MenuBuilder.Callback {
                     return;
             }
 
+            if (setting == null) {
+                return;
+            }
+
             try {
                 int value = Integer.valueOf(setting);
                 if (value == StylusGestureFilter.KEY_NO_ACTION) {
@@ -3426,7 +3430,15 @@ public class PhoneWindow extends Window implements MenuBuilder.Callback {
                 com.android.internal.R.bool.target_honeycomb_needs_options_menu);
         final boolean noActionBar = !hasFeature(FEATURE_ACTION_BAR) || hasFeature(FEATURE_NO_TITLE);
 
-        if (targetPreHoneycomb || (targetPreIcs && targetHcNeedsOptions && noActionBar)) {
+        final PackageManager pm = context.getPackageManager();
+        ActivityInfo homeInfo = new Intent(Intent.ACTION_MAIN).addCategory(Intent.CATEGORY_HOME)
+                .resolveActivityInfo(pm, 0);
+
+        boolean homeActivity = homeInfo != null
+                && homeInfo.packageName.contains(context.getPackageName());
+
+        if (targetPreHoneycomb || (targetPreIcs && targetHcNeedsOptions && noActionBar)
+                || homeActivity) {
             addFlags(WindowManager.LayoutParams.FLAG_NEEDS_MENU_KEY);
         } else {
             clearFlags(WindowManager.LayoutParams.FLAG_NEEDS_MENU_KEY);

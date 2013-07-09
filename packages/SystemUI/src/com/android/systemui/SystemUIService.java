@@ -30,6 +30,7 @@ import android.os.Binder;
 import android.os.IBinder;
 import android.os.RemoteException;
 import android.os.ServiceManager;
+import android.os.UserHandle;
 import android.provider.Settings;
 import android.util.Slog;
 import android.view.IWindowManager;
@@ -77,10 +78,11 @@ public class SystemUIService extends Service {
         AccessibilityManager.createAsSharedAcrossUsers(this);
 
         // Pick status bar or system bar.
-        boolean tabletModeOverride = Settings.System.getInt(
+        boolean tabletModeOverride = Settings.System.getIntForUser(
                 context.getContentResolver(),
                 Settings.System.TABLET_MODE, context.getResources().getBoolean(
-                com.android.internal.R.bool.config_showTabletNavigationBar) ? 1 : 0) == 1;
+                com.android.internal.R.bool.config_showTabletNavigationBar) ? 1 : 0,
+                UserHandle.USER_CURRENT) == 1;
         SERVICES[0] = tabletModeOverride
                 ? R.string.config_systemBarComponent
                 : R.string.config_statusBarComponent;

@@ -27,7 +27,8 @@ import android.view.IWindowManager;
 
 public class VolumeController implements ToggleSlider.Listener {
     private static final String TAG = "StatusBar.VolumeController";
-    private static final int STREAM = AudioManager.STREAM_MUSIC;
+    private static final int STREAM_MUSIC = AudioManager.STREAM_MUSIC;
+    private static final int STREAM_NOTIF = AudioManager.STREAM_NOTIFICATION;
 
     private Context mContext;
     private AudioManager mAudioManager;
@@ -35,9 +36,9 @@ public class VolumeController implements ToggleSlider.Listener {
     public VolumeController(Context context, ToggleSlider control) {
         mContext = context;
         mAudioManager = (AudioManager)context.getSystemService(Context.AUDIO_SERVICE);
-        int volume = mAudioManager.getStreamVolume(STREAM);
+        int volume = mAudioManager.getStreamVolume(mAudioManager.isMusicActive() ? STREAM_MUSIC : STREAM_NOTIF);
         boolean mute = volume < 1;
-        control.setMax(mAudioManager.getStreamMaxVolume(STREAM));
+        control.setMax(mAudioManager.getStreamMaxVolume(mAudioManager.isMusicActive() ? STREAM_MUSIC : STREAM_NOTIF));
         control.setValue(volume);
         control.setChecked(mute);
         control.setOnChangedListener(this);
@@ -50,9 +51,11 @@ public class VolumeController implements ToggleSlider.Listener {
     public void onChanged(ToggleSlider view, boolean tracking, boolean mute, int level) {
         if (!tracking) {
             if (mute) {
-                mAudioManager.setStreamVolume(STREAM, 0, AudioManager.FLAG_PLAY_SOUND);
+                mAudioManager.setStreamVolume(mAudioManager.isMusicActive() ? STREAM_MUSIC :
+                        STREAM_NOTIF, 0, AudioManager.FLAG_PLAY_SOUND);
             } else {
-                mAudioManager.setStreamVolume(STREAM, level, AudioManager.FLAG_PLAY_SOUND);
+                mAudioManager.setStreamVolume(mAudioManager.isMusicActive() ? STREAM_MUSIC :
+                        STREAM_NOTIF, level, AudioManager.FLAG_PLAY_SOUND);
             }
         }
     }

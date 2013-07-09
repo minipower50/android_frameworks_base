@@ -67,6 +67,8 @@ public class StorageNotification extends StorageEventListener {
     private Notification   mMediaStorageNotification;
     private boolean        mUmsAvailable;
     private StorageManager mStorageManager;
+    private NotificationManager mNotificationManager;
+    private int mUsbNotificationId = 0;
 
     private Handler        mAsyncEventHandler;
 
@@ -312,15 +314,28 @@ public class StorageNotification extends StorageEventListener {
     private synchronized void setUsbStorageNotification(int titleId, int messageId, int icon,
             boolean sound, boolean visible, PendingIntent pi) {
 
+        if (Settings.System.getIntForUser(mContext.getContentResolver(),
+                Settings.System.HIDE_USB_NOTIFICATION, 0, UserHandle.USER_CURRENT_OR_SELF) == 1) {
+            if (mUsbNotificationId != 0) {
+                mNotificationManager.cancelAsUser(null, mUsbNotificationId,
+                        UserHandle.ALL);
+                mUsbNotificationId = 0;
+            }
+            return;
+        }
+
+        if (Settings.System.getIntForUser(mContext.getContentResolver(),
+                Settings.System.HIDE_USB_NOTIFICATION, 0, UserHandle.USER_CURRENT_OR_SELF) == 1) {
+            return;
+        }
+
         if (!visible && mUsbStorageNotification == null) {
             return;
         }
 
-        NotificationManager notificationManager = (NotificationManager) mContext
-                .getSystemService(Context.NOTIFICATION_SERVICE);
-
-        if (notificationManager == null) {
-            return;
+        if (mNotificationManager == null) {
+            mNotificationManager = (NotificationManager) mContext
+                    .getSystemService(Context.NOTIFICATION_SERVICE);
         }
         
         if (visible) {
@@ -343,12 +358,14 @@ public class StorageNotification extends StorageEventListener {
             mUsbStorageNotification.flags = Notification.FLAG_ONGOING_EVENT;
 
             mUsbStorageNotification.tickerText = title;
-            if (Settings.System.getInt(mContext.getContentResolver(),
-                    Settings.System.UMS_NOTIFICATION_CONNECT, 0) == 1) {
-                pi = PendingIntent.getBroadcast(mContext, 0, new Intent(UMS_INTENT), 0);
+            if (Settings.System.getIntForUser(mContext.getContentResolver(),
+                    Settings.System.UMS_NOTIFICATION_CONNECT, 0, UserHandle.USER_CURRENT) == 1) {
+                pi = PendingIntent.getBroadcastAsUser(mContext, 0, new Intent(UMS_INTENT), 0,
+                        UserHandle.CURRENT);
             } else if (pi == null) {
                 Intent intent = new Intent();
-                pi = PendingIntent.getBroadcast(mContext, 0, intent, 0);
+                pi = PendingIntent.getBroadcastAsUser(mContext, 0, intent, 0,
+                        UserHandle.CURRENT);
             }
 
             mUsbStorageNotification.setLatestEventInfo(mContext, title, message, pi);
@@ -371,12 +388,12 @@ public class StorageNotification extends StorageEventListener {
             }
         }
     
-        final int notificationId = mUsbStorageNotification.icon;
+        mUsbNotificationId = mUsbStorageNotification.icon;
         if (visible) {
-            notificationManager.notifyAsUser(null, notificationId, mUsbStorageNotification,
+            mNotificationManager.notifyAsUser(null, mUsbNotificationId, mUsbStorageNotification,
                     UserHandle.ALL);
         } else {
-            notificationManager.cancelAsUser(null, notificationId, UserHandle.ALL);
+            mNotificationManager.cancelAsUser(null, mUsbNotificationId, UserHandle.ALL);
         }
     }
 
