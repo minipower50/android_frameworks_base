@@ -44,7 +44,7 @@ import android.view.ViewTreeObserver;
 import android.view.ViewTreeObserver.OnPreDrawListener;
 import android.widget.FrameLayout;
 
-import static com.android.internal.util.cm.NavigationRingConstants.*;
+import com.android.internal.util.cm.NavigationRingConstants;
 import com.android.internal.util.cm.NavigationRingHelpers;
 import com.android.internal.widget.multiwaveview.GlowPadView;
 import com.android.internal.widget.multiwaveview.GlowPadView.OnTriggerListener;
@@ -144,7 +144,13 @@ public class SearchPanelView extends FrameLayout implements
     private void setDrawables() {
         final ArrayList<TargetDrawable> targets = new ArrayList<TargetDrawable>();
 
-        if (isScreenLarge() || isScreenPortrait()) {
+        boolean tabletMode = Settings.System.getIntForUser(
+                getContext().getContentResolver(),
+                Settings.System.TABLET_MODE, getContext().getResources().getBoolean(
+                com.android.internal.R.bool.config_showTabletNavigationBar) ? 1 : 0,
+                UserHandle.USER_CURRENT) == 1;
+
+        if (isScreenLarge() || isScreenPortrait() || tabletMode) {
             mStartPosOffset =  1;
             mEndPosOffset = 4;
         } else {
@@ -207,7 +213,7 @@ public class SearchPanelView extends FrameLayout implements
     public boolean hasValidTargets() {
         for (String target : mTargetActivities) {
             if (!TextUtils.isEmpty(target)) {
-                if (target != null && !target.equals(ACTION_NONE)) {
+                if (target != null && !target.equals(NavigationRingConstants.ACTION_NONE)) {
                     return true;
                 }
             }
@@ -342,7 +348,7 @@ public class SearchPanelView extends FrameLayout implements
             for (int i = 0; i < NavigationRingHelpers.MAX_ACTIONS; i++) {
                 resolver.registerContentObserver(
                         Settings.System.getUriFor(Settings.System.NAVIGATION_RING_TARGETS[i]),
-                        false, this);
+                        false, this, UserHandle.USER_ALL);
             }
         }
 

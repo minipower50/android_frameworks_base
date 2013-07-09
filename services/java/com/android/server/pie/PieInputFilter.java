@@ -15,6 +15,7 @@
  */
 package com.android.server.pie;
 
+import android.app.KeyguardManager;
 import android.content.Context;
 import android.content.res.Resources;
 import android.os.Handler;
@@ -164,6 +165,7 @@ public class PieInputFilter implements IInputFilter {
     private long mSyntheticDownTime = -1;
     private PointerCoords[] mTempPointerCoords = new PointerCoords[1];
     private PointerProperties[] mTempPointerProperties = new PointerProperties[1];
+    private KeyguardManager mKm;
 
     public PieInputFilter(Context context, Handler handler) {
         mHandler = handler;
@@ -182,6 +184,8 @@ public class PieInputFilter implements IInputFilter {
         });
         mTempPointerCoords[0] = new PointerCoords();
         mTempPointerProperties[0] = new PointerProperties();
+
+        mKm = (KeyguardManager) context.getSystemService(Context.KEYGUARD_SERVICE);
     }
 
     // called from handler thread (lock taken)
@@ -227,7 +231,8 @@ public class PieInputFilter implements IInputFilter {
         }
         try {
             if (event.getSource() != InputDevice.SOURCE_TOUCHSCREEN
-                    || !(event instanceof MotionEvent)) {
+                    || !(event instanceof MotionEvent)
+                    || mKm.inKeyguardRestrictedInputMode()) {
                 sendInputEvent(event, policyFlags);
                 return;
             }
@@ -235,6 +240,7 @@ public class PieInputFilter implements IInputFilter {
                 Slog.d(TAG, "Received event: " + event + ", policyFlags=0x"
                         + Integer.toHexString(policyFlags));
             }
+
             MotionEvent motionEvent = (MotionEvent) event;
             final int deviceId = event.getDeviceId();
             if (deviceId != mDeviceId) {

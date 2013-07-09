@@ -57,6 +57,7 @@ public class StatusBarIconView extends AnimatedImageView {
     private Notification mNotification;
     private boolean mShowNotificationCount;
     private GlobalSettingsObserver mObserver;
+    private boolean mTabletMode;
 
     public StatusBarIconView(Context context, String slot, Notification notification) {
         super(context);
@@ -71,14 +72,15 @@ public class StatusBarIconView extends AnimatedImageView {
         mNumberPain.setTypeface(Typeface.DEFAULT_BOLD);
         mNumberPain.setTextSize(scaledPx);
         mNotification = notification;
-        mShowNotificationCount = Settings.System.getInt(mContext.getContentResolver(),
-                Settings.System.STATUS_BAR_NOTIF_COUNT, 0) == 1;
+        mShowNotificationCount = Settings.System.getIntForUser(mContext.getContentResolver(),
+                Settings.System.STATUS_BAR_NOTIF_COUNT, 0, UserHandle.USER_CURRENT) == 1;
         setContentDescription(notification);
-        final boolean tabletMode = Settings.System.getInt(mContext.getContentResolver(),
+        mTabletMode = Settings.System.getIntForUser(mContext.getContentResolver(),
                 Settings.System.TABLET_MODE, mContext.getResources().getBoolean(
-                com.android.internal.R.bool.config_showTabletNavigationBar) ? 1 : 0) == 1 &&
-                Settings.System.getInt(context.getContentResolver(),
-                Settings.System.TABLET_SCALED_ICONS, 1) == 1;
+                com.android.internal.R.bool.config_showTabletNavigationBar) ? 1 : 0,
+                UserHandle.USER_CURRENT) == 1 &&
+                Settings.System.getIntForUser(context.getContentResolver(),
+                Settings.System.TABLET_SCALED_ICONS, 1, UserHandle.USER_CURRENT) == 1;
 
         mObserver = GlobalSettingsObserver.getInstance(context);
 
@@ -87,7 +89,9 @@ public class StatusBarIconView extends AnimatedImageView {
         if (notification != null) {
             final int outerBounds = res.getDimensionPixelSize(R.dimen.status_bar_icon_size);
             final int imageBounds = res.getDimensionPixelSize(R.dimen.status_bar_icon_drawing_size);
-            final float scale = tabletMode ? 1f : (float)imageBounds / (float)outerBounds;
+            final float scale = mTabletMode ? (float) Settings.System.getIntForUser(mContext.getContentResolver(),
+                    Settings.System.TABLET_HEIGHT, 100, UserHandle.USER_CURRENT) / 100f :
+                    (float)imageBounds / (float)outerBounds;
             setScaleX(scale);
             setScaleY(scale);
             final float alpha = res.getFraction(R.dimen.status_bar_icon_drawing_alpha, 1, 1);
@@ -100,16 +104,19 @@ public class StatusBarIconView extends AnimatedImageView {
     public StatusBarIconView(Context context, AttributeSet attrs) {
         super(context, attrs);
 
-        final boolean tabletMode = Settings.System.getInt(mContext.getContentResolver(),
+        final boolean mTabletMode = Settings.System.getIntForUser(mContext.getContentResolver(),
                 Settings.System.TABLET_MODE, mContext.getResources().getBoolean(
-                com.android.internal.R.bool.config_showTabletNavigationBar) ? 1 : 0) == 1 &&
-                Settings.System.getInt(context.getContentResolver(),
-                Settings.System.TABLET_SCALED_ICONS, 1) == 1;
+                com.android.internal.R.bool.config_showTabletNavigationBar) ? 1 : 0,
+                UserHandle.USER_CURRENT) == 1 &&
+                Settings.System.getIntForUser(context.getContentResolver(),
+                Settings.System.TABLET_SCALED_ICONS, 1, UserHandle.USER_CURRENT) == 1;
 
         final Resources res = context.getResources();
         final int outerBounds = res.getDimensionPixelSize(R.dimen.status_bar_icon_size);
         final int imageBounds = res.getDimensionPixelSize(R.dimen.status_bar_icon_drawing_size);
-        final float scale = tabletMode ? 1f : (float)imageBounds / (float)outerBounds;
+        final float scale = mTabletMode ? (float) Settings.System.getIntForUser(mContext.getContentResolver(),
+                Settings.System.TABLET_HEIGHT, 100, UserHandle.USER_CURRENT) / 100f :
+                (float)imageBounds / (float)outerBounds;
         setScaleX(scale);
         setScaleY(scale);
         final float alpha = res.getFraction(R.dimen.status_bar_icon_drawing_alpha, 1, 1);
@@ -365,7 +372,7 @@ public class StatusBarIconView extends AnimatedImageView {
         void observe() {
             mContext.getContentResolver().registerContentObserver(
                     Settings.System.getUriFor(Settings.System.STATUS_BAR_NOTIF_COUNT),
-                    false, this);
+                    false, this, UserHandle.USER_ALL);
         }
 
         void unobserve() {
@@ -374,8 +381,8 @@ public class StatusBarIconView extends AnimatedImageView {
 
         @Override
         public void onChange(boolean selfChange) {
-            boolean showIconCount = Settings.System.getInt(mContext.getContentResolver(),
-                    Settings.System.STATUS_BAR_NOTIF_COUNT, 0) == 1;
+            boolean showIconCount = Settings.System.getIntForUser(mContext.getContentResolver(),
+                    Settings.System.STATUS_BAR_NOTIF_COUNT, 0, UserHandle.USER_CURRENT) == 1;
             for (StatusBarIconView sbiv : mIconViews) {
                 sbiv.mShowNotificationCount = showIconCount;
                 sbiv.set(sbiv.mIcon, true);

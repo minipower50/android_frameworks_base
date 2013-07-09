@@ -302,6 +302,35 @@ public class ActivityOptions {
         return opts;
     }
 
+    /**
+     * Create an ActivityOptions specifying an animation where an activity window
+     * is scaled from a given position to a thumbnail at a specified location.
+     *
+     * @param source The View that this thumbnail is animating to.  This
+     * defines the coordinate space for <var>startX</var> and <var>startY</var>.
+     * @param thumbnail The bitmap that will be shown as the final thumbnail
+     * of the animation.
+     * @param startX The x end location of the bitmap, relative to <var>source</var>.
+     * @param startY The y end location of the bitmap, relative to <var>source</var>.
+     * @param listener Optional OnAnimationStartedListener to find out when the
+     * requested animation has started running.  If for some reason the animation
+     * is not executed, the callback will happen immediately.
+     * @return Returns a new ActivityOptions object that you can use to
+     * supply these options as the options Bundle when starting an activity.
+     * @hide
+     */
+    public static ActivityOptions makeTabletThumbnailScaleDownAnimation(View source,
+            Bitmap thumbnail, int startX, int startY, OnAnimationStartedListener listener) {
+        ActivityOptions opts = new ActivityOptions();
+        opts.mPackageName = source.getContext().getPackageName();
+        opts.mAnimationType = ANIM_THUMBNAIL_SCALE_DOWN;
+        opts.mThumbnail = thumbnail;
+        opts.mStartX = startX;
+        opts.mStartY = startY;
+        opts.setListener(source.getHandler(), listener);
+        return opts;
+    }
+
     private ActivityOptions() {
     }
 

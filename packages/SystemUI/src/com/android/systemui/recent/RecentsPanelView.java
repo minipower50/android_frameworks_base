@@ -425,14 +425,15 @@ public class RecentsPanelView extends FrameLayout implements OnItemClickListener
 
     public void updateValuesFromResources() {
         final Resources res = mContext.getResources();
-        boolean largeThumbs = Settings.System.getInt(mContext.getContentResolver(),
-                Settings.System.LARGE_RECENT_THUMBS, 0) == 1;
+        boolean largeThumbs = Settings.System.getIntForUser(mContext.getContentResolver(),
+                Settings.System.LARGE_RECENT_THUMBS, 0, UserHandle.USER_CURRENT) == 1;
         mThumbnailWidth = Math.round(res.getDimension(largeThumbs ?
                 R.dimen.status_bar_recents_thumbnail_width_large :
                 R.dimen.status_bar_recents_thumbnail_width));
-        mThumbnailHeight = Math.round(res.getDimension(largeThumbs ?
-                R.dimen.status_bar_recents_thumbnail_height_large :
-                R.dimen.status_bar_recents_thumbnail_height));
+        int height = res.getDisplayMetrics().heightPixels;
+        int width = res.getDisplayMetrics().widthPixels;
+        mThumbnailHeight = (height > width ? width : height) * mThumbnailWidth /
+                (height > width ? height : width);
         mFitThumbnailToXY = res.getBoolean(R.bool.config_recents_thumbnail_image_fits_to_xy);
     }
 
@@ -465,22 +466,7 @@ public class RecentsPanelView extends FrameLayout implements OnItemClickListener
             });
         }
 
-        int color = Settings.System.getInt(mContext.getContentResolver(),
-                Settings.System.RECENTS_PANEL_COLOR, 0xe0000000);
-
-        if (mRecentsScrim != null) {
-            mHighEndGfx = ActivityManager.isHighEndGfx();
-            if (color == 0xe0000000) {
-                if (!mHighEndGfx) {
-                    mRecentsScrim.setBackground(null);
-                } else if (mRecentsScrim.getBackground() instanceof BitmapDrawable) {
-                    // In order to save space, we make the background texture repeat in the Y direction
-                    ((BitmapDrawable) mRecentsScrim.getBackground()).setTileModeY(TileMode.REPEAT);
-                }
-            } else {
-                mRecentsScrim.setBackgroundColor(color);
-            }
-        }
+        setColor();
     }
 
     public void setMinSwipeAlpha(float minAlpha) {
@@ -522,12 +508,13 @@ public class RecentsPanelView extends FrameLayout implements OnItemClickListener
             if (h.thumbnailViewImageBitmap == null ||
                 h.thumbnailViewImageBitmap.getWidth() != thumbnail.getWidth() ||
                 h.thumbnailViewImageBitmap.getHeight() != thumbnail.getHeight()) {
-                if (mFitThumbnailToXY) {
+                if (true) {
                     h.thumbnailViewImage.setScaleType(ScaleType.FIT_XY);
                 } else {
                     Matrix scaleMatrix = new Matrix();
-                    float scale = mThumbnailWidth / (float) thumbnail.getWidth();
-                    scaleMatrix.setScale(scale, scale);
+                    float wscale = mThumbnailWidth / (float) thumbnail.getWidth();
+                    float hscale = mThumbnailHeight / (float) thumbnail.getHeight();
+                    scaleMatrix.setScale(wscale, hscale);
                     h.thumbnailViewImage.setScaleType(ScaleType.MATRIX);
                     h.thumbnailViewImage.setImageMatrix(scaleMatrix);
                 }
@@ -593,6 +580,25 @@ public class RecentsPanelView extends FrameLayout implements OnItemClickListener
             }
             mItemToAnimateInWhenWindowAnimationIsFinished = null;
             mAnimateIconOfFirstTask = false;
+        }
+    }
+
+    public void setColor() {
+        int color = Settings.System.getIntForUser(mContext.getContentResolver(),
+                Settings.System.RECENTS_PANEL_COLOR, 0xe0000000, UserHandle.USER_CURRENT);
+
+        if (mRecentsScrim != null) {
+            mHighEndGfx = ActivityManager.isHighEndGfx();
+            if (color == 0xe0000000) {
+                if (!mHighEndGfx) {
+                    mRecentsScrim.setBackground(null);
+                } else if (mRecentsScrim.getBackground() instanceof BitmapDrawable) {
+                    // In order to save space, we make the background texture repeat in the Y direction
+                    ((BitmapDrawable) mRecentsScrim.getBackground()).setTileModeY(TileMode.REPEAT);
+                }
+            } else {
+                mRecentsScrim.setBackgroundColor(color);
+            }
         }
     }
 
@@ -793,6 +799,17 @@ public class RecentsPanelView extends FrameLayout implements OnItemClickListener
                         show(false);
                     } else {
                         throw new IllegalStateException("Oops, no tag on view " + selectedView);
+                    }
+                } else if (item.getItemId() == R.id.recent_launch_floating) {
+                    ViewHolder viewHolder = (ViewHolder) selectedView.getTag();
+                    if (viewHolder != null) {
+                        final TaskDescription ad = viewHolder.taskDescription;
+                        Intent intent = ad.intent;
+                        intent.addFlags(Intent.FLAG_FLOATING_WINDOW
+                                | Intent.FLAG_ACTIVITY_CLEAR_TASK);
+                        dismissAndGoBack();
+                        getContext().startActivityAsUser(intent,
+                                new UserHandle(UserHandle.USER_CURRENT));
                     }
                 } else {
                     return false;

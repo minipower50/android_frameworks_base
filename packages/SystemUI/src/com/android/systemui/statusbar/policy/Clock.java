@@ -26,6 +26,7 @@ import android.content.Intent;
 import android.content.IntentFilter;
 import android.database.ContentObserver;
 import android.os.Handler;
+import android.os.UserHandle;
 import android.provider.AlarmClock;
 import android.provider.Settings;
 import android.text.Spannable;
@@ -56,6 +57,7 @@ public class Clock extends TextView implements OnClickListener, OnLongClickListe
     private SimpleDateFormat mClockFormat;
     private Locale mLocale;
     private SettingsObserver mObserver;
+    private boolean mHidden;
 
     private static final int AM_PM_STYLE_NORMAL  = 0;
     private static final int AM_PM_STYLE_SMALL   = 1;
@@ -74,9 +76,9 @@ public class Clock extends TextView implements OnClickListener, OnLongClickListe
         void observe() {
             ContentResolver resolver = mContext.getContentResolver();
             resolver.registerContentObserver(Settings.System.getUriFor(
-                    Settings.System.STATUS_BAR_AM_PM), false, this);
+                    Settings.System.STATUS_BAR_AM_PM), false, this, UserHandle.USER_ALL);
             resolver.registerContentObserver(Settings.System.getUriFor(
-                    Settings.System.STATUS_BAR_CLOCK), false, this);
+                    Settings.System.STATUS_BAR_CLOCK), false, this, UserHandle.USER_ALL);
         }
 
         void unobserve() {
@@ -106,6 +108,11 @@ public class Clock extends TextView implements OnClickListener, OnLongClickListe
             setOnLongClickListener(this);
         }
         updateSettings();
+    }
+
+    public void setHidden(boolean hidden) {
+        mHidden = hidden;
+        updateVisibility();
     }
 
     @Override
@@ -250,11 +257,9 @@ public class Clock extends TextView implements OnClickListener, OnLongClickListe
 
     }
 
-    private void updateSettings(){
-        ContentResolver resolver = mContext.getContentResolver();
-
-        int amPmStyle = (Settings.System.getInt(resolver,
-                Settings.System.STATUS_BAR_AM_PM, 2));
+    public void updateSettings() {
+        int amPmStyle = Settings.System.getIntForUser(mContext.getContentResolver(),
+                Settings.System.STATUS_BAR_AM_PM, 2, UserHandle.USER_CURRENT);
 
         if (mAmPmStyle != amPmStyle) {
             mAmPmStyle = amPmStyle;
@@ -265,13 +270,13 @@ public class Clock extends TextView implements OnClickListener, OnLongClickListe
             }
         }
 
-        mShowClock = (Settings.System.getInt(resolver,
-                Settings.System.STATUS_BAR_CLOCK, 1) == 1);
+        updateVisibility();
+    }
 
-        if(mShowClock)
-            setVisibility(View.VISIBLE);
-        else
-            setVisibility(View.GONE);
+    private void updateVisibility() {
+        boolean showClock = Settings.System.getIntForUser(mContext.getContentResolver(),
+                Settings.System.STATUS_BAR_CLOCK, 1, UserHandle.USER_CURRENT) == 1;
+        setVisibility(showClock && !mHidden ? View.VISIBLE : View.GONE);
     }
 
     private void collapseStartActivity(Intent what) {
@@ -289,7 +294,7 @@ public class Clock extends TextView implements OnClickListener, OnLongClickListe
 
         // start activity
         what.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-        mContext.startActivity(what);
+        mContext.startActivityAsUser(what, new UserHandle(UserHandle.USER_CURRENT));
     }
 
     @Override

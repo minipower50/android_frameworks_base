@@ -25,6 +25,7 @@ import android.graphics.RectF;
 import android.graphics.Paint.Style;
 import android.graphics.Path;
 import android.graphics.PorterDuff.Mode;
+import android.os.UserHandle;
 import android.provider.Settings;
 import android.view.View;
 import android.widget.ImageView;
@@ -97,12 +98,15 @@ public class PieItem extends PieView.PieDrawable {
 
         final Resources res = context.getResources();
 
-        int color = Settings.System.getInt(context.getContentResolver(),
-                Settings.System.PIE_COLOR, res.getColor(R.color.pie_background_color));
-        int selectedColor = Settings.System.getInt(context.getContentResolver(),
-                Settings.System.PIE_SELECTED_COLOR, res.getColor(R.color.pie_selected_color));
-        int outlineColor = Settings.System.getInt(context.getContentResolver(),
-                Settings.System.PIE_OUTLINE_COLOR, res.getColor(R.color.pie_outline_color));
+        int color = Settings.System.getIntForUser(context.getContentResolver(),
+                Settings.System.PIE_COLOR, res.getColor(R.color.pie_background_color),
+                UserHandle.USER_CURRENT);
+        int selectedColor = Settings.System.getIntForUser(context.getContentResolver(),
+                Settings.System.PIE_SELECTED_COLOR, res.getColor(R.color.pie_selected_color),
+                UserHandle.USER_CURRENT);
+        int outlineColor = Settings.System.getIntForUser(context.getContentResolver(),
+                Settings.System.PIE_OUTLINE_COLOR, res.getColor(R.color.pie_outline_color),
+                UserHandle.USER_CURRENT);
 
         mBackgroundPaint.setColor(color);
         mBackgroundPaint.setAntiAlias(true);

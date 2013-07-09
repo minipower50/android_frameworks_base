@@ -1,5 +1,6 @@
 /*
  * Copyright (C) 2006 The Android Open Source Project
+ * This code has been modified.  Portions copyright (C) 2012, ParanoidAndroid Project.
  * This code has been modified.  Portions copyright (C) 2010, T-Mobile USA, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -2858,6 +2859,7 @@ public final class ActivityThread {
                     deliverResults(r, r.pendingResults);
                     r.pendingResults = null;
                 }
+
                 r.activity.performResume();
 
                 EventLog.writeEvent(LOG_ON_RESUME_CALLED,
@@ -2867,12 +2869,7 @@ public final class ActivityThread {
                 r.stopped = false;
                 r.state = null;
             } catch (Exception e) {
-                if (!mInstrumentation.onException(r.activity, e)) {
-                    throw new RuntimeException(
-                        "Unable to resume activity "
-                        + r.intent.getComponent().toShortString()
-                        + ": " + e.toString(), e);
-                }
+                // Unable to resume activity
             }
         }
         return r;
@@ -3021,19 +3018,16 @@ public final class ActivityThread {
                 int h;
                 if (w < 0) {
                     Resources res = r.activity.getResources();
-
                     boolean largeThumbs = Settings.System.getInt(mSystemContext.getContentResolver(),
                             Settings.System.LARGE_RECENT_THUMBS, 0) == 1;
-
-                    mThumbnailHeight = h =
-                            res.getDimensionPixelSize(largeThumbs ?
-                            com.android.internal.R.dimen.thumbnail_height_large :
-                            com.android.internal.R.dimen.thumbnail_height);
-
                     mThumbnailWidth = w =
                             res.getDimensionPixelSize(largeThumbs ?
                             com.android.internal.R.dimen.thumbnail_width_large :
                             com.android.internal.R.dimen.thumbnail_width);
+                    int height = res.getDisplayMetrics().heightPixels;
+                    int width = res.getDisplayMetrics().widthPixels;
+                    mThumbnailHeight = h = (height > width ? width : height) * mThumbnailWidth /
+                            (height > width ? height : width);
                 } else {
                     h = mThumbnailHeight;
                 }
@@ -4880,17 +4874,17 @@ public final class ActivityThread {
                     iter.remove();
                 }
             }
-        }
 
-        try {
-            if (DEBUG_PROVIDER) {
-                Slog.v(TAG, "removeProvider: Invoking ActivityManagerNative."
-                        + "removeContentProvider(" + prc.holder.info.name + ")");
+            try {
+                if (DEBUG_PROVIDER) {
+                    Slog.v(TAG, "removeProvider: Invoking ActivityManagerNative."
+                            + "removeContentProvider(" + prc.holder.info.name + ")");
+                }
+                ActivityManagerNative.getDefault().removeContentProvider(
+                        prc.holder.connection, false);
+            } catch (RemoteException e) {
+                //do nothing content provider object is dead any way
             }
-            ActivityManagerNative.getDefault().removeContentProvider(
-                    prc.holder.connection, false);
-        } catch (RemoteException e) {
-            //do nothing content provider object is dead any way
         }
     }
 

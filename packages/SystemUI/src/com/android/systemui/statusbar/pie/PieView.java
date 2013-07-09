@@ -26,6 +26,7 @@ import android.graphics.Point;
 import android.os.Handler;
 import android.os.Looper;
 import android.os.SystemClock;
+import android.os.UserHandle;
 import android.provider.Settings;
 import android.util.Slog;
 import android.view.MotionEvent;
@@ -285,8 +286,8 @@ public class PieView extends View implements View.OnTouchListener {
     }
 
     private void getDimensions() {
-        mPieScale = Settings.System.getFloat(mContext.getContentResolver(),
-                Settings.System.PIE_SIZE, 1f);
+        mPieScale = Settings.System.getFloatForUser(mContext.getContentResolver(),
+                Settings.System.PIE_SIZE, 1f, UserHandle.USER_CURRENT);
 
         final Resources res = mContext.getResources();
 

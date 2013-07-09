@@ -25,6 +25,7 @@ import android.content.IntentFilter;
 import android.content.pm.PackageManager;
 import android.graphics.drawable.Drawable;
 import android.os.IBinder;
+import android.os.UserHandle;
 import android.provider.Settings;
 import android.text.TextUtils;
 import android.util.AttributeSet;
@@ -204,7 +205,7 @@ public class InputMethodsPanel extends LinearLayout implements StatusBarPanel,
     }
 
     private void startActivity(Intent intent) {
-        mContext.startActivity(intent);
+        mContext.startActivityAsUser(intent, new UserHandle(UserHandle.USER_CURRENT));
     }
 
     private void showConfigureInputMethods() {

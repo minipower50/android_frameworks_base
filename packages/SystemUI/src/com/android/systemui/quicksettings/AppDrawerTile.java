@@ -9,6 +9,7 @@ import android.net.Uri;
 import android.os.Handler;
 import android.os.RemoteException;
 import android.os.ServiceManager;
+import android.os.UserHandle;
 import android.provider.Settings;
 import android.provider.Settings.SettingNotFoundException;
 import android.service.dreams.DreamService;
@@ -45,7 +46,7 @@ public class AppDrawerTile extends QuickSettingsTile {
                 intent.addCategory("android.intent.category.HOME");
                 intent.addCategory("com.cyanogenmod.trebuchet.APP_DRAWER");
                 intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-                clickContext.startActivity(intent);
+                clickContext.startActivityAsUser(intent, new UserHandle(UserHandle.USER_CURRENT));
             }
         };
 
@@ -53,7 +54,12 @@ public class AppDrawerTile extends QuickSettingsTile {
 
             @Override
             public boolean onLongClick(View v) {
-                //startSettingsActivity("com.android.settings.DAYDREAM_SETTINGS");
+                qsc.mBar.collapseAllPanels(true);
+                Intent launcherPreferencesIntent = new Intent();
+                launcherPreferencesIntent.setClassName("com.cyanogenmod.trebuchet",
+                        "com.cyanogenmod.trebuchet.preference.Preferences");
+                clickContext.startActivityAsUser(launcherPreferencesIntent,
+                        new UserHandle(UserHandle.USER_CURRENT));
                 return true;
             }
         };

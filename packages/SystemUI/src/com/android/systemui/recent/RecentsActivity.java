@@ -20,11 +20,15 @@ import android.app.Activity;
 import android.app.ActivityManager;
 import android.app.WallpaperManager;
 import android.content.BroadcastReceiver;
+import android.content.ContentResolver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
+import android.database.ContentObserver;
 import android.os.Bundle;
+import android.os.Handler;
 import android.os.UserHandle;
+import android.provider.Settings;
 import android.view.MotionEvent;
 import android.view.View;
 import android.view.WindowManager;
@@ -48,6 +52,24 @@ public class RecentsActivity extends Activity {
     private IntentFilter mIntentFilter;
     private boolean mShowing;
     private boolean mForeground;
+
+    private class SettingsObserver extends ContentObserver {
+
+        SettingsObserver(Handler handler) {
+            super(handler);
+        }
+
+        void observe(Context context) {
+            ContentResolver resolver = context.getContentResolver();
+            resolver.registerContentObserver(Settings.System.getUriFor(
+                    Settings.System.RECENTS_PANEL_COLOR), false, this, UserHandle.USER_ALL);
+        }
+
+        @Override
+        public void onChange(boolean selfChange) {
+            mRecentsPanel.setColor();
+        }
+    };
 
     private BroadcastReceiver mIntentReceiver = new BroadcastReceiver() {
         @Override
@@ -88,9 +110,9 @@ public class RecentsActivity extends Activity {
 
     @Override
     public void onPause() {
-        overridePendingTransition(
-                R.anim.recents_return_to_launcher_enter,
-                R.anim.recents_return_to_launcher_exit);
+        //overridePendingTransition(
+        //        R.anim.recents_return_to_launcher_enter,
+        //        R.anim.recents_return_to_launcher_exit);
         mForeground = false;
         super.onPause();
     }
@@ -191,8 +213,14 @@ public class RecentsActivity extends Activity {
         mIntentFilter.addAction(CLOSE_RECENTS_INTENT);
         mIntentFilter.addAction(WINDOW_ANIMATION_START_INTENT);
         registerReceiver(mIntentReceiver, mIntentFilter);
+
+        SettingsObserver observer = new SettingsObserver(mHandler);
+        observer.observe(this);
+
         super.onCreate(savedInstanceState);
     }
+
+    private Handler mHandler = new Handler();
 
     @Override
     protected void onSaveInstanceState(Bundle outState) {

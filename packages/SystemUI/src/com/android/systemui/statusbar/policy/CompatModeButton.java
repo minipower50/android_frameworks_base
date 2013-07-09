@@ -20,6 +20,8 @@ import android.app.ActivityManager;
 import android.content.Context;
 import android.content.res.TypedArray;
 import android.os.RemoteException;
+import android.os.UserHandle;
+import android.provider.Settings;
 import android.util.AttributeSet;
 import android.util.Slog;
 import android.view.View;
@@ -32,6 +34,7 @@ public class CompatModeButton extends ImageView {
     private static final String TAG = "StatusBar.CompatModeButton";
 
     private ActivityManager mAM;
+    private boolean mDisabled = false;
 
     public CompatModeButton(Context context, AttributeSet attrs) {
         this(context, attrs, 0);
@@ -53,9 +56,20 @@ public class CompatModeButton extends ImageView {
             // If in an unknown state, don't change.
             return;
         }
+
+        if (Settings.System.getIntForUser(getContext().getContentResolver(),
+                Settings.System.COMPAT_BUTTON, 1, UserHandle.USER_CURRENT) == 0) {
+            return;
+        }
+
         final boolean vis = (mode != ActivityManager.COMPAT_MODE_NEVER
                           && mode != ActivityManager.COMPAT_MODE_ALWAYS);
         if (DEBUG) Slog.d(TAG, "compat mode is " + mode + "; icon will " + (vis ? "show" : "hide"));
-        setVisibility(vis ? View.VISIBLE : View.GONE);
+        setVisibility(vis && !mDisabled ? View.VISIBLE : View.GONE);
+    }
+
+    public void setDisabled(boolean disabled) {
+        mDisabled = disabled;
+        refresh();
     }
 }
