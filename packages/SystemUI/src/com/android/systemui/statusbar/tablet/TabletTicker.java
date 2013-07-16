@@ -140,7 +140,7 @@ public class TabletTicker
 
     public void remove(IBinder key, boolean advance) {
         if (isDisabled()) {
-            mEvent.updateTicker(null);
+            if (mEvent != null) mEvent.updateTicker(null);
             return;
         }
         if (mCurrentKey == key) {
