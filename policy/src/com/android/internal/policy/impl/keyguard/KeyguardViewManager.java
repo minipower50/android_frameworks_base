@@ -125,12 +125,11 @@ public class KeyguardViewManager {
 
     private boolean shouldEnableScreenRotation() {
         Resources res = mContext.getResources();
+        boolean rot = res.getBoolean(com.android.internal.R.bool.config_enableLockScreenRotation);
         boolean enableLockScreenRotation = Settings.System.getInt(mContext.getContentResolver(),
-                Settings.System.LOCKSCREEN_ROTATION, 0) != 0;
-        boolean enableAccelerometerRotation = Settings.System.getInt(mContext.getContentResolver(),
-                Settings.System.ACCELEROMETER_ROTATION, 1) != 0;
+                Settings.System.LOCKSCREEN_ROTATION, rot ? 1 : 0) != 0;
         return SystemProperties.getBoolean("lockscreen.rot_override",false)
-                || (enableLockScreenRotation && enableAccelerometerRotation);
+                || enableLockScreenRotation;
     }
 
     class ViewManagerHost extends FrameLayout {
