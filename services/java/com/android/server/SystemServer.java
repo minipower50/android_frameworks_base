@@ -657,7 +657,8 @@ class ServerThread extends Thread {
             }
 
             if (context.getResources().getBoolean(
-                        com.android.internal.R.bool.config_enableWallpaperService)) {
+                        com.android.internal.R.bool.config_enableWallpaperService) &&
+                        !"0".equals(SystemProperties.get("persist.sys.wallpaperservice", "1"))) {
                 try {
                     Slog.i(TAG, "Wallpaper Service");
                     if (!headless) {
