@@ -984,6 +984,16 @@ public class PhoneStatusBar extends BaseStatusBar {
         }
     };
 
+    private final View.OnClickListener mExpandedClickListener = new View.OnClickListener() {
+        @Override
+        public void onClick(View v) {
+            boolean expanded = Settings.System.getIntForUser(mContext.getContentResolver(),
+                    Settings.System.EXPANDED_DESKTOP_STATE, 0, UserHandle.USER_CURRENT) == 1;
+            Settings.System.putIntForUser(mContext.getContentResolver(),
+                    Settings.System.EXPANDED_DESKTOP_STATE, expanded ? 0 : 1, UserHandle.USER_CURRENT);
+        }
+    };
+
     private int mShowSearchHoldoff = 0;
     private final Runnable mShowSearchPanel = new Runnable() {
         @Override
@@ -1027,7 +1037,7 @@ public class PhoneStatusBar extends BaseStatusBar {
     private void prepareNavigationBarView() {
         mNavigationBarView.setListeners(mRecentsClickListener,mRecentsPreloadOnTouchListener,
                 mHomeSearchActionListener, mNotificationsClickListener, mQSClickListener,
-                mDrawerClickListener, mVolumeClickListener);
+                mDrawerClickListener, mVolumeClickListener, mExpandedClickListener);
         mNavigationBarView.reorient();
         updateSearchPanel();
         int navColor = Settings.System.getIntForUser(mContext.getContentResolver(), Settings.System.NAVIGATION_BAR_COLOR,
