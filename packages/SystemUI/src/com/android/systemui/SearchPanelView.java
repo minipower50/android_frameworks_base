@@ -149,8 +149,19 @@ public class SearchPanelView extends FrameLayout implements
                 Settings.System.TABLET_MODE, getContext().getResources().getBoolean(
                 com.android.internal.R.bool.config_showTabletNavigationBar) ? 1 : 0,
                 UserHandle.USER_CURRENT) == 1;
+        boolean tabletFlipped = Settings.System.getIntForUser(
+                getContext().getContentResolver(),
+                Settings.System.TABLET_FLIPPED, 0, UserHandle.USER_CURRENT) == 1;
 
-        if (isScreenLarge() || isScreenPortrait() || tabletMode) {
+        if (tabletMode) {
+            if (tabletFlipped) {
+                mStartPosOffset =  2;
+                mEndPosOffset = 3;
+            } else {
+                mStartPosOffset =  0;
+                mEndPosOffset = 5;
+            }
+        } else if (isScreenLarge() || isScreenPortrait()) {
             mStartPosOffset =  1;
             mEndPosOffset = 4;
         } else {

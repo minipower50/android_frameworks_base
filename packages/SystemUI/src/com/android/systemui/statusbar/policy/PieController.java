@@ -34,6 +34,7 @@ import android.graphics.Point;
 import android.graphics.drawable.Drawable;
 import android.hardware.input.InputManager;
 import android.media.AudioManager;
+import android.os.AsyncTask;
 import android.os.BatteryManager;
 import android.os.Handler;
 import android.os.Looper;
@@ -641,6 +642,8 @@ public class PieController implements BaseStatusBar.NavigationBarCallback, PieVi
                         AudioManager.STREAM_NOTIFICATION;
                 final int volume = am.getStreamVolume(stream);
                 am.setStreamVolume(stream, volume, AudioManager.FLAG_SHOW_UI);
+            } else if (bi == NavigationButtons.EXPANDED) {
+                AsyncTask.execute(mStatusBar.mStatusBarResetAndShow);
             }
         }
     }

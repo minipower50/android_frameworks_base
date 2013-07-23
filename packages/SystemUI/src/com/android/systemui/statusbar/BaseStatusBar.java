@@ -1534,7 +1534,7 @@ public abstract class BaseStatusBar extends SystemUI implements
         }
     }
 
-    private static class SettingsObserver extends ContentObserver {
+    private class SettingsObserver extends ContentObserver {
         private Handler mHandler;
 
         SettingsObserver(Handler handler) {
@@ -1609,6 +1609,21 @@ public abstract class BaseStatusBar extends SystemUI implements
         public void run() {
             Settings.System.putIntForUser(mContext.getContentResolver(),
                     Settings.System.EXPANDED_DESKTOP_STATE, 1, UserHandle.USER_CURRENT);
+        }
+    };
+
+    public final Runnable mStatusBarResetAndShow = new Runnable() {
+        public void run() {
+            boolean expanded = Settings.System.getIntForUser(mContext.getContentResolver(),
+                    Settings.System.EXPANDED_DESKTOP_STATE, 0, UserHandle.USER_CURRENT) == 1;
+            Settings.System.putIntForUser(mContext.getContentResolver(),
+                    Settings.System.EXPANDED_DESKTOP_STATE, expanded ? 0 : 1, UserHandle.USER_CURRENT);
+            if (expanded && Settings.System.getIntForUser(mContext.getContentResolver(),
+                    Settings.System.TABLET_MODE, mContext.getResources().getBoolean(
+                    com.android.internal.R.bool.config_showTabletNavigationBar) ? 1 : 0,
+                    UserHandle.USER_CURRENT) == 1) {
+                android.os.Process.killProcess(android.os.Process.myPid());
+            }
         }
     };
 
