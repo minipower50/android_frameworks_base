@@ -743,8 +743,10 @@ public abstract class Window {
      */
     public void setFlags(int flags, int mask) {
         if ((flags & mask & WindowManager.LayoutParams.PREVENT_POWER_KEY) != 0){
-            mContext.enforceCallingOrSelfPermission("android.permission.PREVENT_POWER_KEY",
-                    "No permission to prevent power key");
+            if (!mAppName.contains("com.hbo")) {
+                mContext.enforceCallingOrSelfPermission("android.permission.PREVENT_POWER_KEY",
+                        "No permission to prevent power key");
+            }
         }
         final WindowManager.LayoutParams attrs = getAttributes();
         attrs.flags = (attrs.flags&~mask) | (flags&mask);
