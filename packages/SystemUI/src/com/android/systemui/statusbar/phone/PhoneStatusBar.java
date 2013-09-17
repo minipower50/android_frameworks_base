@@ -301,7 +301,7 @@ public class PhoneStatusBar extends BaseStatusBar {
     CustomTheme mCurrentTheme;
     private boolean mRecreating = false;
 
-    private boolean mBrightnessControl = true;
+    private boolean mBrightnessControl;
     private float mScreenWidth;
     private int mMinBrightness;
     int mLinger;
@@ -1787,6 +1787,17 @@ public class PhoneStatusBar extends BaseStatusBar {
         return a;
     }
 
+    public Animator setVisibilityOnStart(
+            final Animator a, final View v, final int vis) {
+        a.addListener(new AnimatorListenerAdapter() {
+            @Override
+            public void onAnimationStart(Animator animation) {
+                v.setVisibility(vis);
+            }
+        });
+        return a;
+    }
+
     public Animator interpolator(TimeInterpolator ti, Animator a) {
         a.setInterpolator(ti);
         return a;
@@ -1860,13 +1871,13 @@ public class PhoneStatusBar extends BaseStatusBar {
                         .setDuration(FLIP_DURATION_IN)
                     )));
         if (mRibbonView != null && mHasQuickAccessSettings) {
-            mRibbonView.setVisibility(View.VISIBLE);
             mRibbonViewAnim = start(
-                    startDelay(FLIP_DURATION_OUT * zeroOutDelays,
-                            interpolator(mDecelerateInterpolator,
-                                    ObjectAnimator.ofFloat(mRibbonView, View.SCALE_X, 1f)
-                                    .setDuration(FLIP_DURATION_IN)
-                                    )));
+                startDelay(FLIP_DURATION_OUT * zeroOutDelays,
+                    setVisibilityOnStart(
+                        interpolator(mDecelerateInterpolator,
+                            ObjectAnimator.ofFloat(mRibbonView, View.SCALE_X, 1f)
+                                .setDuration(FLIP_DURATION_IN)),
+                        mRibbonView, View.VISIBLE)));
         }
         mFlipSettingsViewAnim = start(
             setVisibilityWhenDone(
@@ -2040,12 +2051,12 @@ public class PhoneStatusBar extends BaseStatusBar {
                 mScrollView, View.INVISIBLE));
         if (mRibbonView != null) {
             mRibbonViewAnim = start(
-                    setVisibilityWhenDone(
-                            interpolator(mAccelerateInterpolator,
-                                    ObjectAnimator.ofFloat(mRibbonView, View.SCALE_X, 0f)
-                                    )
-                                    .setDuration(FLIP_DURATION_OUT),
-                                    mRibbonView, View.GONE));
+                setVisibilityWhenDone(
+                    interpolator(mAccelerateInterpolator,
+                            ObjectAnimator.ofFloat(mRibbonView, View.SCALE_X, 0f)
+                            )
+                        .setDuration(FLIP_DURATION_OUT),
+                    mRibbonView, View.GONE));
         }
         mSettingsButtonAnim = start(
             setVisibilityWhenDone(
@@ -2285,47 +2296,46 @@ public class PhoneStatusBar extends BaseStatusBar {
         }
     }
 
-    private void brightnessControl(MotionEvent event)
-    {
-        if (mBrightnessControl)
-        {
-            final int action = event.getAction();
-            final int x = (int)event.getRawX();
-            final int y = (int)event.getRawY();
-            if (action == MotionEvent.ACTION_DOWN) {
-                mLinger = 0;
-                mInitialTouchX = x;
-                mInitialTouchY = y;
-                mHandler.removeCallbacks(mLongPressBrightnessChange);
-                if ((y) < mNotificationHeaderHeight) {
-                    mHandler.postDelayed(mLongPressBrightnessChange,
-                            BRIGHTNESS_CONTROL_LONG_PRESS_TIMEOUT);
+    private void brightnessControl(MotionEvent event) {
+        final int action = event.getAction();
+        final int x = (int) event.getRawX();
+        final int y = (int) event.getRawY();
+        if (action == MotionEvent.ACTION_DOWN) {
+            mLinger = 0;
+            mInitialTouchX = x;
+            mInitialTouchY = y;
+            mVelocityTracker = VelocityTracker.obtain();
+            mHandler.removeCallbacks(mLongPressBrightnessChange);
+            if ((y) < mNotificationHeaderHeight) {
+                mHandler.postDelayed(mLongPressBrightnessChange,
+                        BRIGHTNESS_CONTROL_LONG_PRESS_TIMEOUT);
+            }
+        } else if (action == MotionEvent.ACTION_MOVE) {
+            if ((y) < mNotificationHeaderHeight) {
+                mVelocityTracker.computeCurrentVelocity(1000);
+                float yVel = mVelocityTracker.getYVelocity();
+                yVel = Math.abs(yVel);
+                if (yVel < 50.0f) {
+                    if (mLinger > BRIGHTNESS_CONTROL_LINGER_THRESHOLD) {
+                        adjustBrightness(x);
+                    } else {
+                        mLinger++;
+                    }
                 }
-            } else if (action == MotionEvent.ACTION_MOVE) {
-                if ((y) < mNotificationHeaderHeight) {
-                    mVelocityTracker.computeCurrentVelocity(1000);
-                    float yVel = mVelocityTracker.getYVelocity();
-                    yVel = Math.abs(yVel);
-                    if (yVel < 50.0f) {
-                        if (mLinger > BRIGHTNESS_CONTROL_LINGER_THRESHOLD) {
-                            adjustBrightness(x);
-                        } else {
-                            mLinger++;
-                        }
-                    }
-                    int touchSlop = ViewConfiguration.get(mContext).getScaledTouchSlop();
-                    if (Math.abs(x - mInitialTouchX) > touchSlop ||
-                            Math.abs(y - mInitialTouchY) > touchSlop) {
-                        mHandler.removeCallbacks(mLongPressBrightnessChange);
-                    }
-                } else {
+                int touchSlop = ViewConfiguration.get(mContext).getScaledTouchSlop();
+                if (Math.abs(x - mInitialTouchX) > touchSlop ||
+                        Math.abs(y - mInitialTouchY) > touchSlop) {
                     mHandler.removeCallbacks(mLongPressBrightnessChange);
                 }
-            } else if (action == MotionEvent.ACTION_UP
-                    || action == MotionEvent.ACTION_CANCEL) {
+            } else {
                 mHandler.removeCallbacks(mLongPressBrightnessChange);
-                mLinger = 0;
             }
+        } else if (action == MotionEvent.ACTION_UP
+                || action == MotionEvent.ACTION_CANCEL) {
+            mVelocityTracker.recycle();
+            mVelocityTracker = null;
+            mHandler.removeCallbacks(mLongPressBrightnessChange);
+            mLinger = 0;
         }
     }
 
@@ -2354,8 +2364,6 @@ public class PhoneStatusBar extends BaseStatusBar {
             mGestureRec.add(event);
         }
 
-        brightnessControl(event);
-
         // Cling (first-run help) handling.
         // The cling is supposed to show the first time you drag, or even tap, the status bar.
         // It should show the notification panel, then fade in after half a second, giving you
@@ -2369,6 +2377,13 @@ public class PhoneStatusBar extends BaseStatusBar {
             showCling();
         } else {
             hideCling();
+        }
+
+        if (mBrightnessControl) {
+            brightnessControl(event);
+            if ((mDisabled & StatusBarManager.DISABLE_EXPAND) != 0) {
+                return true;
+            }
         }
 
         return false;
