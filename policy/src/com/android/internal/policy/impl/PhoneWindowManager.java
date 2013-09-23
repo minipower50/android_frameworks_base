@@ -464,7 +464,6 @@ public class PhoneWindowManager implements WindowManagerPolicy {
     boolean mHomeConsumed;
     boolean mMenuPressed;
     boolean mAppSwitchLongPressed;
-    boolean mHomeConsumed;
     boolean mHomeDoubleTapPending;
     Intent mHomeIntent;
     Intent mCarDockIntent;
