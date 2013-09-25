@@ -1598,8 +1598,8 @@ public class WindowManagerService extends IWindowManager.Stub
 
         // TODO(multidisplay): Wallpapers on main screen only.
         final DisplayInfo displayInfo = getDefaultDisplayContentLocked().getDisplayInfo();
-        final int dw = displayInfo.appWidth;
-        final int dh = displayInfo.appHeight;
+        final int dw = displayInfo.logicalWidth;
+        final int dh = displayInfo.logicalHeight;
 
         // First find top-most window that has asked to be on top of the
         // wallpaper; all wallpapers go behind it.
@@ -1992,8 +1992,8 @@ public class WindowManagerService extends IWindowManager.Stub
     void updateWallpaperOffsetLocked(WindowState changingTarget, boolean sync) {
         final DisplayContent displayContent = changingTarget.mDisplayContent;
         final DisplayInfo displayInfo = displayContent.getDisplayInfo();
-        final int dw = displayInfo.appWidth;
-        final int dh = displayInfo.appHeight;
+        final int dw = displayInfo.logicalWidth;
+        final int dh = displayInfo.logicalHeight;
 
         WindowState target = mWallpaperTarget;
         if (target != null) {
@@ -2052,8 +2052,8 @@ public class WindowManagerService extends IWindowManager.Stub
         final boolean visible = isWallpaperVisible(mWallpaperTarget);
         final DisplayContent displayContent = mWallpaperTarget.mDisplayContent;
         final DisplayInfo displayInfo = displayContent.getDisplayInfo();
-        final int dw = displayInfo.appWidth;
-        final int dh = displayInfo.appHeight;
+        final int dw = displayInfo.logicalWidth;
+        final int dh = displayInfo.logicalHeight;
 
         int curTokenIndex = mWallpaperTokens.size();
         while (curTokenIndex > 0) {
@@ -2971,7 +2971,7 @@ public class WindowManagerService extends IWindowManager.Stub
             if (toBeDisplayed && win.mIsWallpaper) {
                 DisplayInfo displayInfo = getDefaultDisplayInfoLocked();
                 updateWallpaperOffsetLocked(win,
-                        displayInfo.appWidth, displayInfo.appHeight, false);
+                        displayInfo.logicalWidth, displayInfo.logicalHeight, false);
             }
             if (win.mAppToken != null) {
                 win.mAppToken.updateReportedVisibilityLocked();

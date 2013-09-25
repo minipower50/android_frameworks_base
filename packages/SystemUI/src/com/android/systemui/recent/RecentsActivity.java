@@ -54,24 +54,6 @@ public class RecentsActivity extends Activity {
     private boolean mForeground;
     protected boolean mBackPressed;
 
-    private class SettingsObserver extends ContentObserver {
-
-        SettingsObserver(Handler handler) {
-            super(handler);
-        }
-
-        void observe(Context context) {
-            ContentResolver resolver = context.getContentResolver();
-            resolver.registerContentObserver(Settings.System.getUriFor(
-                    Settings.System.RECENTS_PANEL_COLOR), false, this, UserHandle.USER_ALL);
-        }
-
-        @Override
-        public void onChange(boolean selfChange) {
-            mRecentsPanel.setColor();
-        }
-    };
-
     private BroadcastReceiver mIntentReceiver = new BroadcastReceiver() {
         @Override
         public void onReceive(Context context, Intent intent) {
@@ -213,6 +195,7 @@ public class RecentsActivity extends Activity {
         recentTasksLoader.setRecentsPanel(mRecentsPanel, mRecentsPanel);
         mRecentsPanel.setMinSwipeAlpha(
                 getResources().getInteger(R.integer.config_recent_item_min_alpha) / 100f);
+        mRecentsPanel.setColor();
 
         if (savedInstanceState == null ||
                 savedInstanceState.getBoolean(WAS_SHOWING)) {
@@ -222,9 +205,6 @@ public class RecentsActivity extends Activity {
         mIntentFilter.addAction(CLOSE_RECENTS_INTENT);
         mIntentFilter.addAction(WINDOW_ANIMATION_START_INTENT);
         registerReceiver(mIntentReceiver, mIntentFilter);
-
-        SettingsObserver observer = new SettingsObserver(mHandler);
-        observer.observe(this);
 
         super.onCreate(savedInstanceState);
     }

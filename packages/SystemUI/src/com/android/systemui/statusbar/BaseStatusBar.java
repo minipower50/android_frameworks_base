@@ -1726,6 +1726,8 @@ public abstract class BaseStatusBar extends SystemUI implements
                     Settings.System.STATUS_BAR_COLLAPSE_ON_DISMISS), false, this, UserHandle.USER_ALL);
             resolver.registerContentObserver(Settings.System.getUriFor(
                     Settings.System.HALO_GONE), false, this, UserHandle.USER_ALL);
+            resolver.registerContentObserver(Settings.System.getUriFor(
+                    Settings.System.RECENTS_PANEL_COLOR), false, this, UserHandle.USER_ALL);
         }
 
         @Override
