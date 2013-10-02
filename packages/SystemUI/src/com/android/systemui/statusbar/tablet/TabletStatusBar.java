@@ -1120,6 +1120,12 @@ public class TabletStatusBar extends BaseStatusBar implements
             clock.setTextSize(28 * mHeightScale);
         }
 
+        int clockSize = Settings.System.getIntForUser(resolver, Settings.System.CLOCK_SIZE, 0,
+                UserHandle.USER_CURRENT);
+        if (clockSize != 0) {
+            clock.setTextSize(clockSize);
+        }
+
         int clockColor = Settings.System.getIntForUser(resolver,
                 Settings.System.STATUS_BAR_CLOCK_COLOR,
                 0xff33b5e5, UserHandle.USER_CURRENT);
