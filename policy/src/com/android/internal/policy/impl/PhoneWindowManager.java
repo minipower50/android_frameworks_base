@@ -1033,10 +1033,9 @@ public class PhoneWindowManager implements WindowManagerPolicy {
                 sbm.expandSettingsPanel();
                 break;
             case KEY_ACTION_HIDE:
-                boolean hidden = Settings.System.getInt(mContext.getContentResolver(),
-                        Settings.System.EXPANDED_DESKTOP_STATE, 0) == 1;
-                Settings.System.putInt(mContext.getContentResolver(),
-                        Settings.System.EXPANDED_DESKTOP_STATE, hidden ? 0 : 1);
+                Settings.System.putIntForUser(mContext.getContentResolver(),
+                        Settings.System.EXPANDED_DESKTOP_STATE,
+                        (mExpandedDesktopStyle > 0) ? 0 : 1, UserHandle.USER_CURRENT);
                 break;
             default:
                 break;
@@ -1545,7 +1544,8 @@ public class PhoneWindowManager implements WindowManagerPolicy {
 
         if (updateRotation) {
             updateRotation(true);
-        } else if (updateDisplayMetrics) {
+        } else if (updateDisplayMetrics && (mFocusedWindow.getSystemUiVisibility() &
+                        View.SYSTEM_UI_FLAG_LOW_PROFILE) == 0) {
             updateDisplayMetrics();
         }
 
@@ -5262,10 +5262,10 @@ public class PhoneWindowManager implements WindowManagerPolicy {
 
     private final Runnable mBootFullscreen = new Runnable() {
         public void run() {
-            Settings.System.putInt(mContext.getContentResolver(),
-                    Settings.System.FULLSCREEN_MODE, 1);
-            Settings.System.putInt(mContext.getContentResolver(),
-                    Settings.System.EXPANDED_DESKTOP_STATE, 0);
+            Settings.System.putIntForUser(mContext.getContentResolver(),
+                    Settings.System.FULLSCREEN_MODE, 1, UserHandle.USER_CURRENT);
+            Settings.System.putIntForUser(mContext.getContentResolver(),
+                    Settings.System.EXPANDED_DESKTOP_STATE, 0, UserHandle.USER_CURRENT);
         }
     };
 
@@ -5680,6 +5680,11 @@ public class PhoneWindowManager implements WindowManagerPolicy {
                 && mFocusedApp == mFocusedWindow.getAppToken()) {
             return 0;
         }
+        final boolean hidden = mExpandedDesktopStyle > 0 &&
+                        Settings.System.getIntForUser(mContext.getContentResolver(),
+                        Settings.System.HIDE_SB_LIGHTS_OUT, 0, UserHandle.USER_CURRENT) == 1 &&
+                        ((mFocusedWindow.getSystemUiVisibility() &
+                        View.SYSTEM_UI_FLAG_LOW_PROFILE) != 0);
         mLastSystemUiFlags = visibility;
         mLastFocusNeedsMenu = needsMenu;
         mFocusedApp = mFocusedWindow.getAppToken();
@@ -5687,7 +5692,7 @@ public class PhoneWindowManager implements WindowManagerPolicy {
                 public void run() {
                     try {
                         IStatusBarService statusbar = getStatusBarService();
-                        if (statusbar != null) {
+                        if (statusbar != null && !hidden) {
                             statusbar.setSystemUiVisibility(visibility, 0xffffffff);
                             statusbar.topAppWindowChanged(needsMenu);
                         }
