@@ -4982,6 +4982,13 @@ public class PhoneWindowManager implements WindowManagerPolicy {
             return Surface.ROTATION_0;
         }
 
+        if (mContext.getResources().getBoolean(com.android.internal.R.bool.config_reverseDefaultRotation)) {
+            if (orientation == ActivityInfo.SCREEN_ORIENTATION_REVERSE_LANDSCAPE
+                    ||orientation == ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE) {
+                orientation = ActivityInfo. SCREEN_ORIENTATION_SENSOR_LANDSCAPE;
+            }
+        }
+
         synchronized (mLock) {
             int sensorRotation = mOrientationListener.getProposedRotation(); // may be -1
             if (sensorRotation < 0) {
