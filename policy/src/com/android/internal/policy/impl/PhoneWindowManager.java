@@ -255,6 +255,8 @@ public class PhoneWindowManager implements WindowManagerPolicy {
     /** If true, hitting shift & menu will broadcast Intent.ACTION_BUG_REPORT */
     boolean mEnableShiftMenuBugReports = false;
 
+    boolean mForceLandscapeSensorOrientation = false;
+
     boolean mHeadless;
     boolean mSafeMode;
     WindowState mStatusBar = null;
@@ -1039,6 +1041,8 @@ public class PhoneWindowManager implements WindowManagerPolicy {
         mWindowManager = windowManager;
         mWindowManagerFuncs = windowManagerFuncs;
         mHeadless = "1".equals(SystemProperties.get("ro.config.headless", "0"));
+        mForceLandscapeSensorOrientation = "1".equals(SystemProperties.get(
+                "ro.sf.force.sensor.lscp.orient", "0"));
         mHandler = new PolicyHandler();
         mOrientationListener = new MyOrientationListener(mContext, mHandler);
         try {
@@ -5031,6 +5035,12 @@ public class PhoneWindowManager implements WindowManagerPolicy {
 
         if (mForceDefaultOrientation) {
             return Surface.ROTATION_0;
+        }
+
+        if (mForceLandscapeSensorOrientation
+                && (orientation == ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE
+                        || orientation == ActivityInfo.SCREEN_ORIENTATION_REVERSE_LANDSCAPE)) {
+            orientation = ActivityInfo.SCREEN_ORIENTATION_SENSOR_LANDSCAPE;
         }
 
         synchronized (mLock) {
