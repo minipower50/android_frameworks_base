@@ -74,6 +74,7 @@ import android.os.SystemClock;
 import android.os.SystemProperties;
 import android.os.Trace;
 import android.os.UserHandle;
+import android.provider.Settings;
 import android.text.TextUtils;
 import android.util.EventLog;
 import android.util.Slog;
@@ -719,10 +720,16 @@ final class ActivityStack {
         int w = mThumbnailWidth;
         int h = mThumbnailHeight;
         if (w < 0) {
+            boolean largeThumbs = Settings.System.getIntForUser(mContext.getContentResolver(),
+                    Settings.System.LARGE_RECENT_THUMBS, 0, UserHandle.USER_CURRENT) == 1;
             mThumbnailWidth = w =
-                res.getDimensionPixelSize(com.android.internal.R.dimen.thumbnail_width);
-            mThumbnailHeight = h =
-                res.getDimensionPixelSize(com.android.internal.R.dimen.thumbnail_height);
+                    res.getDimensionPixelSize(
+                    com.android.internal.R.dimen.thumbnail_width);
+            if (largeThumbs) mThumbnailWidth = w = mThumbnailWidth * 2;
+            int height = res.getDisplayMetrics().heightPixels;
+            int width = res.getDisplayMetrics().widthPixels;
+            mThumbnailHeight = h = (height > width ? width : height) * mThumbnailWidth /
+                    (height > width ? height : width);
         }
 
         if (w > 0) {

@@ -191,7 +191,7 @@ public abstract class BaseStatusBar extends SystemUI implements
         }
     };
 
-    private ContentObserver mShowNavObserver = new ContentObserver(mHandler) {
+    private ContentObserver mRestartObserver = new ContentObserver(mHandler) {
         @Override
         public void onChange(boolean selfChange) {
             android.os.Process.killProcess(android.os.Process.myPid());
@@ -295,7 +295,19 @@ public abstract class BaseStatusBar extends SystemUI implements
 
         mContext.getContentResolver().registerContentObserver(
                 Settings.System.getUriFor(Settings.System.SHOW_NAVIGATION), true,
-                mShowNavObserver, UserHandle.USER_ALL);
+                mRestartObserver, UserHandle.USER_ALL);
+
+        mContext.getContentResolver().registerContentObserver(
+                Settings.System.getUriFor(Settings.System.LARGE_RECENT_THUMBS), true,
+                mRestartObserver, UserHandle.USER_ALL);
+
+        mContext.getContentResolver().registerContentObserver(
+                Settings.System.getUriFor(Settings.System.NOTIFICATION_PANEL_COLOR), true,
+                mRestartObserver, UserHandle.USER_ALL);
+
+        mContext.getContentResolver().registerContentObserver(
+                Settings.System.getUriFor(Settings.System.SETTINGS_TILE_COLOR), true,
+                mRestartObserver, UserHandle.USER_ALL);
 
         mSettingsObserver.observe();
 

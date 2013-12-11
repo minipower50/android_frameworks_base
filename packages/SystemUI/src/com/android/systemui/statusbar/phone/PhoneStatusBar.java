@@ -44,6 +44,7 @@ import android.content.res.CustomTheme;
 import android.content.res.Resources;
 import android.database.ContentObserver;
 import android.graphics.Canvas;
+import android.graphics.Color;
 import android.graphics.ColorFilter;
 import android.graphics.PixelFormat;
 import android.graphics.Point;
@@ -560,6 +561,22 @@ public class PhoneStatusBar extends BaseStatusBar implements DemoMode {
             mNotificationPanel.setBackground(new FastColorDrawable(context.getResources().getColor(
                     R.color.notification_panel_solid_background)));
         }
+
+        int color = Settings.System.getIntForUser(context.getContentResolver(),
+                Settings.System.NOTIFICATION_PANEL_COLOR, 0xE0000000, UserHandle.USER_CURRENT);
+
+        if (color != 0xE0000000) {
+            Drawable background = mNotificationPanel.getBackground();
+            int top = mNotificationPanel.getPaddingTop();
+            int bottom = mNotificationPanel.getPaddingBottom();
+            int left = mNotificationPanel.getPaddingLeft();
+            int right = mNotificationPanel.getPaddingRight();
+            background.setColorFilter(color, PorterDuff.Mode.SRC_ATOP);
+            background.setAlpha(Color.alpha(color));
+            mNotificationPanel.setBackgroundDrawable(background);
+            mNotificationPanel.setPadding(left, top, right, bottom);
+        }
+
         if (ENABLE_HEADS_UP) {
             mHeadsUpNotificationView =
                     (HeadsUpNotificationView) View.inflate(context, R.layout.heads_up, null);
@@ -756,6 +773,17 @@ public class PhoneStatusBar extends BaseStatusBar implements DemoMode {
                     if (!ActivityManager.isHighEndGfx()) {
                         mSettingsPanel.setBackground(new FastColorDrawable(context.getResources().getColor(
                                 R.color.notification_panel_solid_background)));
+                    }
+                    if (color != 0xE0000000) {
+                        Drawable settingsBackground = mSettingsPanel.getBackground();
+                        int topMargin = mSettingsPanel.getPaddingTop();
+                        int bottomMargin = mSettingsPanel.getPaddingBottom();
+                        int leftMargin = mSettingsPanel.getPaddingLeft();
+                        int rightMargin = mSettingsPanel.getPaddingRight();
+                        settingsBackground.setColorFilter(color, PorterDuff.Mode.SRC_ATOP);
+                        settingsBackground.setAlpha(Color.alpha(color));
+                        mSettingsPanel.setBackgroundDrawable(settingsBackground);
+                        mSettingsPanel.setPadding(leftMargin, topMargin, rightMargin, bottomMargin);
                     }
                 }
             }

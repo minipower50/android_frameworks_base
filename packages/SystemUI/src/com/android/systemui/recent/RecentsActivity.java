@@ -114,7 +114,7 @@ public class RecentsActivity extends Activity {
     }
 
     public static boolean forceOpaqueBackground(Context context) {
-        return WallpaperManager.getInstance(context).getWallpaperInfo() != null;
+        return false; //WallpaperManager.getInstance(context).getWallpaperInfo() != null;
     }
 
     @Override
@@ -190,6 +190,7 @@ public class RecentsActivity extends Activity {
         recentTasksLoader.setRecentsPanel(mRecentsPanel, mRecentsPanel);
         mRecentsPanel.setMinSwipeAlpha(
                 getResources().getInteger(R.integer.config_recent_item_min_alpha) / 100f);
+        mRecentsPanel.setColor();
 
         if (savedInstanceState == null ||
                 savedInstanceState.getBoolean(WAS_SHOWING)) {
