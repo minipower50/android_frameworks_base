@@ -95,7 +95,7 @@ class QuickSettings {
     private Context mContext;
     private PanelBar mBar;
     private QuickSettingsModel mModel;
-    private ViewGroup mContainerView;
+    private QuickSettingsContainerView mContainerView;
 
     private DevicePolicyManager mDevicePolicyManager;
     private PhoneStatusBar mStatusBarService;
@@ -639,6 +639,29 @@ class QuickSettings {
         });
         parent.addView(mBatteryTile);
 
+        // Immersive mode
+        final QuickSettingsBasicTile immersiveTile
+                = new QuickSettingsBasicTile(mContext);
+        immersiveTile.setImageResource(R.drawable.ic_qs_immersive_off);
+        immersiveTile.setTextResource(R.string.quick_settings_immersive_mode_off_label);
+        immersiveTile.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                collapsePanels();
+                boolean immersiveModeOn = Settings.System.getInt(mContext
+                        .getContentResolver(), Settings.System.IMMERSIVE_MODE, 0) == 1;
+                immersiveTile.setImageResource(immersiveModeOn
+                        ? R.drawable.ic_qs_immersive_off :
+                                R.drawable.ic_qs_immersive_on);
+                immersiveTile.setTextResource(immersiveModeOn
+                        ? R.string.quick_settings_immersive_mode_off_label :
+                                R.string.quick_settings_immersive_mode_label);
+                Settings.System.putInt(mContext.getContentResolver(),
+                        Settings.System.IMMERSIVE_MODE, immersiveModeOn ? 0 : 1);
+            }
+        });
+        parent.addView(immersiveTile);
+
         // Airplane Mode
         final QuickSettingsBasicTile airplaneTile
                 = new QuickSettingsBasicTile(mContext);
@@ -935,7 +958,9 @@ class QuickSettings {
         for (QuickSettingsTileView v : mDynamicSpannedTiles) {
             v.setColumnSpan(span);
         }
-        ((QuickSettingsContainerView)mContainerView).updateResources();
+        mContainerView.updateResources();
+        mContainerView.removeAllViews();
+        setupQuickSettings();
         mContainerView.requestLayout();
     }
 

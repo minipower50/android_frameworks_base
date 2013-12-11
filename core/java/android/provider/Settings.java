@@ -2678,6 +2678,18 @@ public final class Settings {
         public static final String ACTIVE_DISPLAY_SUNLIGHT_MODE = "active_display_sunlight_mode";
 
         /**
+         * Whether to turn off the device when gets pocketed again and was waked up by active display
+         * @hide
+         */
+        public static final String ACTIVE_DISPLAY_TURNOFF_MODE = "active_display_turnoff_mode";
+
+        /**
+         * Threshold of the proximity sensor to turn on the device.
+         * @hide
+         */
+        public static final String ACTIVE_DISPLAY_THRESHOLD = "active_display_threshold";
+
+        /**
          * Timeout of the display when there is no user interaction
          * @hide
          */
@@ -2820,16 +2832,37 @@ public final class Settings {
         public static final String VOLUME_WAKE_SCREEN = "volume_wake_screen";
 
         /**
-         * show clear all recents button
+         * Show clear all recents button
          *  @hide
          */
         public static final String SHOW_CLEAR_RECENTS_BUTTON = "clear_recents_button";
 
         /**
-         * location of the clear all rectents button
+         * Location of the clear all recents button
          * @hide
          */
         public static final String CLEAR_RECENTS_BUTTON_LOCATION = "clear_recents_button_location";
+
+        /**
+         * Show circle memory indicator in recents panel view
+         *  @hide
+         */
+        public static final String SHOW_RECENTS_MEMORY_INDICATOR = "show_recents_memory_indicator";
+
+        /**
+         * Location of the memory indicator
+         * @hide
+         */
+        public static final String RECENTS_MEMORY_INDICATOR_LOCATION =
+                "recents_memory_indicator_location";
+
+        /**
+         * Immersive mode global actions switch
+         * 0 = no
+         * 1 = yes
+         * @hide
+         */
+        public static final String IMMERSIVE_MODE = "immersive_mode";
 
         /**
          * Show when WiFi or data mobile is sending/receiving data
@@ -2954,6 +2987,60 @@ public final class Settings {
          * @hide
          */
         public static final String KEY_APP_SWITCH_LONG_PRESS_ACTION = "key_app_switch_long_press_action";
+
+        /** Weather to allow headsethook to launch voice commands
+         * @hide
+         */
+        public static final String HEADSETHOOK_LAUNCH_VOICE = "headsethook_launch_voice";
+
+        /**
+         * Enable Stylus Gestures
+         *
+         * @hide
+         */
+        public static final String ENABLE_STYLUS_GESTURES = "enable_stylus_gestures";
+
+        /**
+         * Left Swipe Action
+         *
+         * @hide
+         */
+        public static final String GESTURES_LEFT_SWIPE = "gestures_left_swipe";
+
+        /**
+         * Right Swipe Action
+         *
+         * @hide
+         */
+        public static final String GESTURES_RIGHT_SWIPE = "gestures_right_swipe";
+
+        /**
+         * Up Swipe Action
+         *
+         * @hide
+         */
+        public static final String GESTURES_UP_SWIPE = "gestures_up_swipe";
+
+        /**
+         * down Swipe Action
+         *
+         * @hide
+         */
+        public static final String GESTURES_DOWN_SWIPE = "gestures_down_swipe";
+
+        /**
+         * Long press Action
+         *
+         * @hide
+         */
+        public static final String GESTURES_LONG_PRESS = "gestures_long_press";
+
+        /**
+         * double tap Action
+         *
+         * @hide
+         */
+        public static final String GESTURES_DOUBLE_TAP = "gestures_double_tap";
 
         /**
          * Whether to use the custom quick unlock screen control
