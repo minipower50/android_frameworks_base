@@ -2923,6 +2923,12 @@ public final class Settings {
         public static final String EXPANDED_FLASH_MODE = "expanded_flash_mode";
 
         /**
+        * Developer options - Navigation Bar show switch
+        * @hide
+        */
+        public static final String DEV_FORCE_SHOW_NAVBAR = "dev_force_show_navbar";
+
+        /**
         * AutoHide CombinedBar on tablets.
         * @hide
         */
@@ -3468,12 +3474,6 @@ public final class Settings {
          * @hide
          */
         public static final String DOUBLE_TAP_SLEEP_GESTURE = "double_tap_sleep_gesture";
-
-        /**
-         * Setting to force show navigation bar.
-         * @hide
-         */
-        public static final String SHOW_NAVIGATION = "show_navigation";
 
         /**
          * @hide

@@ -294,10 +294,6 @@ public abstract class BaseStatusBar extends SystemUI implements
                 mProvisioningObserver);
 
         mContext.getContentResolver().registerContentObserver(
-                Settings.System.getUriFor(Settings.System.SHOW_NAVIGATION), true,
-                mRestartObserver, UserHandle.USER_ALL);
-
-        mContext.getContentResolver().registerContentObserver(
                 Settings.System.getUriFor(Settings.System.LARGE_RECENT_THUMBS), true,
                 mRestartObserver, UserHandle.USER_ALL);
 
