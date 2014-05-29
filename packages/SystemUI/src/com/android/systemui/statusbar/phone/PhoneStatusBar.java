@@ -3249,7 +3249,6 @@ public class PhoneStatusBar extends BaseStatusBar implements DemoMode,
     private void recreateStatusBar() {
         mRecreating = true;
         mStatusBarContainer.removeAllViews();
-        removeAllViews(mStatusBarWindow);
 
         // extract icons from the soon-to-be recreated viewgroup.
         int nIcons = mStatusIcons.getChildCount();
@@ -3260,6 +3259,8 @@ public class PhoneStatusBar extends BaseStatusBar implements DemoMode,
             icons.add(iconView.getStatusBarIcon());
             iconSlots.add(iconView.getStatusBarSlot());
         }
+
+        removeAllViews(mStatusBarWindow);
 
         // extract notifications.
         int nNotifs = mNotificationData.size();
@@ -3632,6 +3633,10 @@ public class PhoneStatusBar extends BaseStatusBar implements DemoMode,
 
             cr.registerContentObserver(
                     Settings.System.getUriFor(Settings.System.QS_DYNAMIC_DOCK_BATTERY),
+                    false, this, UserHandle.USER_ALL);
+
+            cr.registerContentObserver(
+                    Settings.System.getUriFor(Settings.System.QS_DYNAMIC_EQUALIZER),
                     false, this, UserHandle.USER_ALL);
 
             cr.registerContentObserver(
