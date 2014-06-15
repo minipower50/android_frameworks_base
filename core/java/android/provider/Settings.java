@@ -5759,6 +5759,12 @@ public final class Settings {
         public static final String APP_PERFORMANCE_PROFILES_ENABLED = "app_perf_profiles_enabled";
 
         /**
+         * Protected Components
+         * @hide
+         */
+        public static final String PROTECTED_COMPONENTS = "protected_components";
+
+        /**
          * This are the settings to be backed up.
          *
          * NOTE: Settings are backed up and restored in the order they appear
@@ -7667,6 +7673,19 @@ public final class Settings {
           * @hide
           */
         public static final String MULTI_SIM_DATA_CALL_SUBSCRIPTION = "multi_sim_data_call";
+
+        /**
+          * Subscription set by user for data call on a multi sim device. The difference from
+          * MULTI_SIM_DATA_CALL_SUBSCRIPTION is that this is the subscription that user set
+          * originally. Where as MULTI_SIM_DATA_CALL_SUBSCRIPTION holds the current data call
+          * subscription value, which could be different from user preferred value due to
+          * temporary DDS switch for say a silent DDS switch for MMS transaction.
+          * The value may change dynamically in case of a SIM removal or de activation.
+          * The supported values are 0 = SUB1, 1 = SUB2, 2 = SUB3, etc.
+          * @hide
+          */
+        public static final String MULTI_SIM_DEFAULT_DATA_CALL_SUBSCRIPTION
+                = "multi_sim_defaut_data_call";
 
         /**
           * Subscription to be used for SMS on a multi sim device. The supported values

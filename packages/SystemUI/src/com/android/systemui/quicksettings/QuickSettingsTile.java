@@ -83,11 +83,11 @@ public class QuickSettingsTile implements OnClickListener {
     }
 
     public void switchToRibbonMode() {
-        TextView tv = (TextView) mTile.findViewById(R.id.text);
+        TextView tv = getLabelView();
         if (tv != null) {
             tv.setVisibility(View.GONE);
         }
-        View image = mTile.findViewById(R.id.image);
+        View image = getImageView();
         if (image != null) {
             MarginLayoutParams params = (MarginLayoutParams) image.getLayoutParams();
             int margin = mContext.getResources().getDimensionPixelSize(
@@ -98,7 +98,7 @@ public class QuickSettingsTile implements OnClickListener {
     }
 
     public void switchToSmallIcons() {
-        TextView tv = (TextView) mTile.findViewById(R.id.text);
+        TextView tv = getLabelView();
         if (tv != null) {
             tv.setText(mLabel);
             tv.setTextSize(mTileTextSize);
@@ -107,7 +107,7 @@ public class QuickSettingsTile implements OnClickListener {
                 tv.setPadding(0, mTileTextPadding, 0, 0);
             }
         }
-        View image = mTile.findViewById(R.id.image);
+        View image = getImageView();
         if (image != null) {
             MarginLayoutParams params = (MarginLayoutParams) image.getLayoutParams();
             int margin = mContext.getResources().getDimensionPixelSize(
@@ -115,6 +115,14 @@ public class QuickSettingsTile implements OnClickListener {
             params.topMargin = params.bottomMargin = margin;
             image.setLayoutParams(params);
         }
+    }
+
+    protected View getImageView() {
+        return mTile.findViewById(R.id.image);
+    }
+
+    protected TextView getLabelView() {
+        return (TextView) mTile.findViewById(R.id.text);
     }
 
     void onPostCreate() {}
@@ -132,7 +140,7 @@ public class QuickSettingsTile implements OnClickListener {
     }
 
     void updateQuickSettings() {
-        TextView tv = (TextView) mTile.findViewById(R.id.text);
+        TextView tv = getLabelView();
         if (tv != null) {
             tv.setText(mLabel);
             tv.setTextSize(mTileTextSize);
@@ -141,7 +149,7 @@ public class QuickSettingsTile implements OnClickListener {
                 tv.setPadding(0, mTileTextPadding, 0, 0);
             }
         }
-        View image = mTile.findViewById(R.id.image);
+        View image = getImageView();
         if (image != null && image instanceof ImageView) {
             ((ImageView) image).setImageResource(mDrawable);
         }
