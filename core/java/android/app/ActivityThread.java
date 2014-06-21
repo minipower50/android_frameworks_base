@@ -163,7 +163,7 @@ public final class ActivityThread {
     private static final int LOG_ON_PAUSE_CALLED = 30021;
     private static final int LOG_ON_RESUME_CALLED = 30022;
 
-    private ContextImpl mSystemContext;
+    static ContextImpl mSystemContext = null;
 
     static IPackageManager sPackageManager;
 
@@ -1544,6 +1544,15 @@ public final class ActivityThread {
             LoadedApk pkgInfo, Context context, String pkgName) {
         return mResourcesManager.getTopLevelResources(resDir, overlayDirs, displayId, pkgName,
                 overrideConfiguration, pkgInfo.getCompatibilityInfo(), null, context);
+    }
+
+    /**
+     * Creates the top level resources for the given package.
+     */
+    Resources getTopLevelThemedResources(String resDir, int displayId, LoadedApk pkgInfo,
+                                         String pkgName, String themePkgName) {
+        return mResourcesManager.getTopLevelThemedResources(resDir, displayId, pkgName,
+                themePkgName, pkgInfo.getCompatibilityInfo(), null);
     }
 
     final Handler getHandler() {
