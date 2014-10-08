@@ -2066,19 +2066,10 @@ public class AudioService extends IAudioService.Stub {
     /** @see AudioManager#setBluetoothA2dpOn(boolean) */
     public void setBluetoothA2dpOn(boolean on) {
         synchronized (mBluetoothA2dpEnabledLock) {
-           int config = AudioSystem.FORCE_NONE;
-           mBluetoothA2dpEnabled = on;
-           config = AudioSystem.getForceUse(AudioSystem.FOR_MEDIA);
-           if((config == AudioSystem.FORCE_BT_A2DP) && (!mBluetoothA2dpEnabled)) {
-               config = AudioSystem.FORCE_NO_BT_A2DP;
-           } else if(mBluetoothA2dpEnabled) {
-               config = AudioSystem.FORCE_NONE;
-           }
-           Log.d(TAG, "BTEnabled "+mBluetoothA2dpEnabled+" config "+config);
-
+            mBluetoothA2dpEnabled = on;
             sendMsg(mAudioHandler, MSG_SET_FORCE_BT_A2DP_USE, SENDMSG_QUEUE,
                     AudioSystem.FOR_MEDIA,
-                    config,
+                    mBluetoothA2dpEnabled ? AudioSystem.FORCE_NONE : AudioSystem.FORCE_NO_BT_A2DP,
                     null, 0);
         }
     }
@@ -3916,7 +3907,9 @@ public class AudioService extends IAudioService.Stub {
     }
 
     private void onSendBecomingNoisyIntent() {
-        sendBroadcastToAll(new Intent(AudioManager.ACTION_AUDIO_BECOMING_NOISY));
+        Intent intent = new Intent(AudioManager.ACTION_AUDIO_BECOMING_NOISY);
+        intent.addFlags(Intent.FLAG_RECEIVER_FOREGROUND);
+        sendBroadcastToAll(intent);
     }
 
     // must be called synchronized on mConnectedDevices

@@ -156,7 +156,8 @@ public class NavbarEditor implements View.OnTouchListener {
         mButtonViews = new ArrayList<KeyButtonView>();
 
         KeyButtonView dpadLeft = (KeyButtonView) mParent.findViewById(R.id.dpad_left);
-        dpadLeft.setInfo(NAVBAR_DPAD_LEFT, orientation, true);
+        dpadLeft.setInfo(parent.isLayoutRtl() ? NAVBAR_DPAD_RIGHT
+                                              : NAVBAR_DPAD_LEFT, orientation, true);
         mButtonViews.add(dpadLeft);
 
         for (int id : BUTTON_IDS) {
@@ -164,7 +165,8 @@ public class NavbarEditor implements View.OnTouchListener {
         }
 
         KeyButtonView dpadRight = (KeyButtonView) mParent.findViewById(R.id.dpad_right);
-        dpadRight.setInfo(NAVBAR_DPAD_RIGHT, orientation, true);
+        dpadRight.setInfo(parent.isLayoutRtl() ? NAVBAR_DPAD_LEFT
+                                               : NAVBAR_DPAD_RIGHT, orientation, true);
         mButtonViews.add(dpadRight);
     }
 
@@ -341,7 +343,7 @@ public class NavbarEditor implements View.OnTouchListener {
     protected void saveKeys() {
         StringBuilder sb = new StringBuilder();
         for (int i = 0; i < BUTTON_IDS.length; i++) {
-            int idIndex = mVertical ? BUTTON_IDS.length - i : i;
+            int idIndex = mVertical ? BUTTON_IDS.length - (i + 1) : i;
             ButtonInfo info = (ButtonInfo) mButtonViews.get(idIndex).getTag();
             if (i != 0) sb.append("|");
             sb.append(info.key);

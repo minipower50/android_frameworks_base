@@ -24,6 +24,7 @@ import android.util.Log;
 
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -37,8 +38,11 @@ public class ThemeManager {
     private IThemeService mService;
     private Handler mHandler;
 
-    private Set<ThemeChangeListener> mListeners =
+    private Set<ThemeChangeListener> mChangeListeners =
             new HashSet<ThemeChangeListener>();
+
+    private Set<ThemeProcessingListener> mProcessingListeners =
+            new HashSet<ThemeProcessingListener>();
 
     public ThemeManager(Context context, IThemeService service) {
         mContext = context;
@@ -52,11 +56,13 @@ public class ThemeManager {
             mHandler.post(new Runnable() {
                 @Override
                 public void run() {
-                    for (ThemeChangeListener listener : mListeners) {
+                    Iterator<ThemeChangeListener> iterator = mChangeListeners.iterator();
+                    while(iterator.hasNext()) {
                         try {
-                            listener.onProgress(progress);
+                            iterator.next().onProgress(progress);
                         } catch (Throwable e) {
                             Log.w(TAG, "Unable to update theme change progress", e);
+                            iterator.remove();
                         }
                     }
                 }
@@ -68,11 +74,13 @@ public class ThemeManager {
             mHandler.post(new Runnable() {
                 @Override
                 public void run() {
-                    for (ThemeChangeListener listener : mListeners) {
+                    Iterator<ThemeChangeListener> iterator = mChangeListeners.iterator();
+                    while(iterator.hasNext()) {
                         try {
-                            listener.onFinish(isSuccess);
+                            iterator.next().onFinish(isSuccess);
                         } catch (Throwable e) {
                             Log.w(TAG, "Unable to update theme change listener", e);
+                            iterator.remove();
                         }
                     }
                 }
@@ -80,23 +88,45 @@ public class ThemeManager {
         }
     };
 
+    private final IThemeProcessingListener mThemeProcessingListener =
+            new IThemeProcessingListener.Stub() {
+        @Override
+        public void onFinishedProcessing(final String pkgName) throws RemoteException {
+            mHandler.post(new Runnable() {
+                @Override
+                public void run() {
+                    Iterator<ThemeProcessingListener> iterator = mProcessingListeners.iterator();
+                    while(iterator.hasNext()) {
+                        try {
+                            iterator.next().onFinishedProcessing(pkgName);
+                        } catch (Throwable e) {
+                            Log.w(TAG, "Unable to update theme change progress", e);
+                            iterator.remove();
+                        }
+                    }
+                }
+            });
+        }
+    };
+
+
     public void addClient(ThemeChangeListener listener) {
-        if (mListeners.contains(listener)) {
+        if (mChangeListeners.contains(listener)) {
             throw new IllegalArgumentException("Client was already added ");
         }
-        if (mListeners.size() == 0) {
+        if (mChangeListeners.size() == 0) {
             try {
                 mService.requestThemeChangeUpdates(mThemeChangeListener);
             } catch (RemoteException e) {
                 Log.w(TAG, "Unable to register listener", e);
             }
         }
-        mListeners.add(listener);
+        mChangeListeners.add(listener);
     }
 
     public void removeClient(ThemeChangeListener listener) {
-        mListeners.remove(listener);
-        if (mListeners.size() == 0) {
+        mChangeListeners.remove(listener);
+        if (mChangeListeners.size() == 0) {
             try {
                 mService.removeUpdates(mThemeChangeListener);
             } catch (RemoteException e) {
@@ -115,6 +145,39 @@ public class ThemeManager {
 
     public void onClientDestroyed(ThemeChangeListener listener) {
         removeClient(listener);
+    }
+
+    /**
+     * Register a ThemeProcessingListener to be notified when a theme is done being processed.
+     * @param listener ThemeChangeListener to register
+     */
+    public void registerProcessingListener(ThemeProcessingListener listener) {
+        if (mProcessingListeners.contains(listener)) {
+            throw new IllegalArgumentException("Listener was already added ");
+        }
+        if (mProcessingListeners.size() == 0) {
+            try {
+                mService.registerThemeProcessingListener(mThemeProcessingListener);
+            } catch (RemoteException e) {
+                Log.w(TAG, "Unable to register listener", e);
+            }
+        }
+        mProcessingListeners.add(listener);
+    }
+
+    /**
+     * Unregister a ThemeChangeListener.
+     * @param listener ThemeChangeListener to unregister
+     */
+    public void unregisterProcessingListener(ThemeChangeListener listener) {
+        mProcessingListeners.remove(listener);
+        if (mProcessingListeners.size() == 0) {
+            try {
+                mService.unregisterThemeProcessingListener(mThemeProcessingListener);
+            } catch (RemoteException e) {
+                Log.w(TAG, "Unable to remove listener", e);
+            }
+        }
     }
 
     /**
@@ -137,7 +200,7 @@ public class ThemeManager {
         try {
             mService.requestThemeChange(componentMap);
         } catch (RemoteException e) {
-            Log.w(TAG, "Unable to access ThemeService", e);
+            logThemeServiceException(e);
         }
     }
 
@@ -145,7 +208,7 @@ public class ThemeManager {
         try {
             mService.applyDefaultTheme();
         } catch (RemoteException e) {
-            Log.w(TAG, "Unable to access ThemeService", e);
+            logThemeServiceException(e);
         }
     }
 
@@ -153,9 +216,18 @@ public class ThemeManager {
         try {
             return mService.isThemeApplying();
         } catch (RemoteException e) {
-            Log.w(TAG, "Unable to access ThemeService", e);
+            logThemeServiceException(e);
         }
 
+        return false;
+    }
+
+    public boolean isThemeBeingProcessed(String themePkgName) {
+        try {
+            return mService.isThemeBeingProcessed(themePkgName);
+        } catch (RemoteException e) {
+            logThemeServiceException(e);
+        }
         return false;
     }
 
@@ -163,13 +235,31 @@ public class ThemeManager {
         try {
             return mService.getProgress();
         } catch (RemoteException e) {
-            Log.w(TAG, "Unable to access ThemeService", e);
+            logThemeServiceException(e);
         }
         return -1;
+    }
+
+    public boolean processThemeResources(String themePkgName) {
+        try {
+            return mService.processThemeResources(themePkgName);
+        } catch (RemoteException e) {
+            logThemeServiceException(e);
+        }
+        return false;
+    }
+
+    private void logThemeServiceException(Exception e) {
+        Log.w(TAG, "Unable to access ThemeService", e);
     }
 
     public interface ThemeChangeListener {
         void onProgress(int progress);
         void onFinish(boolean isSuccess);
     }
+
+    public interface ThemeProcessingListener {
+        void onFinishedProcessing(String pkgName);
+    }
 }
+

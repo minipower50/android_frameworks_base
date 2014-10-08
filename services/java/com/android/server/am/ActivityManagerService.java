@@ -344,6 +344,16 @@ public final class ActivityManagerService extends ActivityManagerNative
     // devices.
     private boolean mShowDialogs = true;
 
+    // Penalise Large applications going to background only for Low-RAM devices
+    private boolean mPenaliseLargeApps = ActivityManager.isLowRamDeviceStatic();
+
+    // ADJ to be set for new background app (if found to be large)
+    private int mPenalisedAdj = SystemProperties.getInt("ro.am.penalise_large_apps.adj",
+                                                   ProcessList.CACHED_APP_MAX_ADJ);
+
+    // Threshold Pss to be compared against new background app's Pss
+    private long mPenalisedThreshold;
+
     /**
      * Description of a request to start a new activity, which has been held
      * due to app switches being disabled.
@@ -1677,7 +1687,9 @@ public final class ActivityManagerService extends ActivityManagerNative
                 break;
             }
             case REQUEST_ALL_PSS_MSG: {
-                requestPssAllProcsLocked(SystemClock.uptimeMillis(), true, false);
+                synchronized (ActivityManagerService.this) {
+                    requestPssAllProcsLocked(SystemClock.uptimeMillis(), true, false);
+                }
                 break;
             }
             case POST_PRIVACY_NOTIFICATION_MSG: {
@@ -2063,6 +2075,15 @@ public final class ActivityManagerService extends ActivityManagerNative
 
         mHeadless = "1".equals(SystemProperties.get("ro.config.headless", "0"));
 
+        if (mPenaliseLargeApps == true) {
+            long cachedAppMaxMemLevel
+                    = mProcessList.getMemLevel(ProcessList.CACHED_APP_MAX_ADJ)/1024;
+            mPenalisedThreshold = SystemProperties.getLong(
+                    "ro.am.penalise_large_apps.pss", cachedAppMaxMemLevel);
+            Slog.i(TAG,"Large apps penalisation enabled. Threshold Pss = " + mPenalisedThreshold +
+                        ", ADJ = " + mPenalisedAdj);
+        }
+
         // User 0 is the first and only user that runs at boot.
         mStartedUsers.put(0, new UserStartedState(new UserHandle(0), true));
         mUserLru.add(Integer.valueOf(0));
@@ -2417,11 +2438,15 @@ public final class ActivityManagerService extends ActivityManagerNative
             ProcessRecord client) {
         final boolean hasActivity = app.activities.size() > 0 || app.hasClientActivities;
         final boolean hasService = false; // not impl yet. app.services.size() > 0;
-        if (!activityChange && hasActivity) {
+        if (!activityChange && hasActivity && !(app.persistent && !mLruProcesses.contains(app))) {
             // The process has activties, so we are only going to allow activity-based
             // adjustments move it.  It should be kept in the front of the list with other
             // processes that have activities, and we don't want those to change their
             // order except due to activity operations.
+            // Also, do not return if the app is persistent and not found in mLruProcesses.
+            // For persistent apps, service records are not cleaned up and if we return
+            // here it will not be added to mLruProcesses and on its restart it might lead to
+            // securityException if app is not present in mLruProcesses.
             return;
         }
 
@@ -2906,6 +2931,7 @@ public final class ActivityManagerService extends ActivityManagerNative
             app.setPid(startResult.pid);
             app.usingWrapper = startResult.usingWrapper;
             app.removed = false;
+            app.killedByAm = false;
             synchronized (mPidsSelfLocked) {
                 this.mPidsSelfLocked.put(startResult.pid, app);
                 Message msg = mHandler.obtainMessage(PROC_START_TIMEOUT_MSG);
@@ -3419,6 +3445,24 @@ public final class ActivityManagerService extends ActivityManagerNative
         int ret = mStackSupervisor.startActivities(null, uid, callingPackage, intents, resolvedTypes,
                 resultTo, options, userId);
         return ret;
+    }
+
+    //explicitly remove thd old information in mRecentTasks when removing existing user.
+    private void removeRecentTaskLocked(int userId) {
+        if(userId <= 0) {
+            Slog.i(TAG, "Can't remove recent task on user " + userId);
+            return;
+        }
+
+        for (int i = mRecentTasks.size() - 1; i >= 0; --i) {
+            TaskRecord tr = mRecentTasks.get(i);
+            if (tr.userId == userId) {
+                if(DEBUG_TASKS) Slog.i(TAG, "remove RecentTask " + tr
+                                          + " when finishing user" + userId);
+                tr.disposeThumbnail();
+                mRecentTasks.remove(i);
+            }
+        }
     }
 
     final void addRecentTaskLocked(TaskRecord task) {
@@ -6986,11 +7030,7 @@ public final class ActivityManagerService extends ActivityManagerNative
                     }
                     
                     res.add(rti);
-                    if ((tr.intent.getFlags() & Intent.FLAG_ACTIVITY_EXCLUDE_FROM_RECENTS) == 0
-                            || (flags & ActivityManager.RECENT_DO_NOT_COUNT_EXCLUDED) == 0
-                            || i == 0) {
-                        maxNum--;
-                    }
+                    maxNum--;
                 }
             }
             return res;
@@ -7848,10 +7888,12 @@ public final class ActivityManagerService extends ActivityManagerNative
                             if (DEBUG_PROVIDER) {
                                 Slog.d(TAG, "Installing in existing process " + proc);
                             }
-                            proc.pubProviders.put(cpi.name, cpr);
-                            try {
-                                proc.thread.scheduleInstallProvider(cpi);
-                            } catch (RemoteException e) {
+                            if (!proc.pubProviders.containsKey(cpi.name)) {
+                                proc.pubProviders.put(cpi.name, cpr);
+                                try {
+                                    proc.thread.scheduleInstallProvider(cpi);
+                                } catch (RemoteException e) {
+                                }
                             }
                         } else {
                             proc = startProcessLocked(cpi.processName,
@@ -8364,10 +8406,9 @@ public final class ActivityManagerService extends ActivityManagerNative
             } finally {
                 // Ensure that whatever happens, we clean up the identity state
                 sCallerIdentity.remove();
+                // Ensure we're done with the provider.
+                removeContentProviderExternalUnchecked(name, null, userId);
             }
-
-            // We've got the fd now, so we're done with the provider.
-            removeContentProviderExternalUnchecked(name, null, userId);
         } else {
             Slog.d(TAG, "Failed to get provider for authority '" + name + "'");
         }
@@ -8678,6 +8719,7 @@ public final class ActivityManagerService extends ActivityManagerNative
 
     public void requestBugReport() {
         enforceCallingPermission(android.Manifest.permission.DUMP, "requestBugReport");
+        mContext.sendBroadcast(new Intent("android.intent.action.BUGREPORT_STARTED"));
         SystemProperties.set("ctl.start", "bugreport");
     }
 
@@ -10200,9 +10242,15 @@ public final class ActivityManagerService extends ActivityManagerNative
                     int pid = r != null ? r.pid : Binder.getCallingPid();
                     if (!mController.appCrashed(name, pid,
                             shortMsg, longMsg, timeMillis, crashInfo.stackTrace)) {
-                        Slog.w(TAG, "Force-killing crashed app " + name
-                                + " at watcher's request");
-                        Process.killProcess(pid);
+                        if ("1".equals(SystemProperties.get(SYSTEM_DEBUGGABLE, "0"))
+                                && "Native crash".equals(crashInfo.exceptionClassName)) {
+                            Slog.w(TAG, "Skip killing native crashed app " + name
+                                    + "(" + pid + ") during testing");
+                        } else {
+                            Slog.w(TAG, "Force-killing crashed app " + name
+                                    + " at watcher's request");
+                            Process.killProcess(pid);
+                        }
                         return;
                     }
                 } catch (RemoteException e) {
@@ -12564,6 +12612,7 @@ public final class ActivityManagerService extends ActivityManagerNative
         app.resetPackageList(mProcessStats);
         app.unlinkDeathRecipient();
         app.makeInactive(mProcessStats);
+        app.waitingToKill = null;
         app.forcingToForeground = null;
         app.foregroundServices = false;
         app.foregroundActivities = false;
@@ -15163,6 +15212,9 @@ public final class ActivityManagerService extends ActivityManagerNative
         mPendingPssProcesses.clear();
         for (int i=mLruProcesses.size()-1; i>=0; i--) {
             ProcessRecord app = mLruProcesses.get(i);
+            if (app.thread == null || app.curProcState < 0) {
+                continue;
+            }
             if (memLowered || now > (app.lastStateTime+ProcessList.PSS_ALL_INTERVAL)) {
                 app.pssProcState = app.setProcState;
                 app.nextPssTime = ProcessList.computeNextPssTime(app.curProcState, true,
@@ -15417,6 +15469,23 @@ public final class ActivityManagerService extends ActivityManagerNative
             }
 
             app.setRawAdj = app.curRawAdj;
+        }
+
+        if ( (mPenaliseLargeApps == true) &&
+                (app.curAdj >= ProcessList.CACHED_APP_MIN_ADJ) &&
+                (app.curAdj < ProcessList.CACHED_APP_MAX_ADJ) ) {
+
+            // Validate the PSS to be compared against for penalisation
+            if (app.lastCachedPss == 0) {
+                app.lastCachedPss = Debug.getPss(app.pid, null);
+            }
+
+            if (app.lastCachedPss > mPenalisedThreshold) {
+                if (DEBUG_SWITCH || DEBUG_OOM_ADJ) Slog.i(
+                    TAG,"New BG app : " + app.processName + " is heavy! (pss = " +
+                    app.lastCachedPss + " kB). Forcing to ADJ " + mPenalisedAdj);
+                app.curAdj = mPenalisedAdj;
+            }
         }
 
         if (app.curAdj != app.setAdj) {
@@ -16619,6 +16688,8 @@ public final class ActivityManagerService extends ActivityManagerNative
                 // Kill all the processes for the user.
                 forceStopUserLocked(userId, "finish user");
             }
+            //explicitly remove the old information in mRecentTasks when removing existing user.
+            removeRecentTaskLocked(userId);
         }
 
         for (int i=0; i<callbacks.size(); i++) {

@@ -37,7 +37,10 @@ import android.net.LinkProperties;
 import android.net.NetworkInfo;
 import android.net.NetworkUtils;
 import android.net.RouteInfo;
+import android.os.AsyncTask;
 import android.os.Binder;
+import android.os.Handler;
+import android.os.HandlerThread;
 import android.os.IBinder;
 import android.os.INetworkManagementService;
 import android.os.Looper;
@@ -54,6 +57,7 @@ import com.android.internal.telephony.PhoneConstants;
 import com.android.internal.util.IState;
 import com.android.internal.util.State;
 import com.android.internal.util.StateMachine;
+import com.android.internal.util.wifi.ClientsList;
 import com.android.server.IoThread;
 import com.google.android.collect.Lists;
 
@@ -82,6 +86,29 @@ public class Tethering extends INetworkManagementEventObserver.Stub {
     private final static boolean DBG = true;
     private final static boolean VDBG = false;
 
+    /* Intent to indicate change in upstream interface change */
+    public static final String UPSTREAM_IFACE_CHANGED_ACTION =
+                         "com.android.server.connectivity.UPSTREAM_IFACE_CHANGED";
+
+    // Upstream Interface Name i.e rmnet_data0, wlan0 etc
+    public static final String EXTRA_UPSTREAM_IFACE = "tetheringUpstreamIface";
+
+    // Upstream Interface IP Type i.e IPV6 or IPV4
+    public static final String EXTRA_UPSTREAM_IP_TYPE = "tetheringUpstreamIpType";
+
+    // Update Type i.e Add upstream interface or delete upstream interface
+    public static final String EXTRA_UPSTREAM_UPDATE_TYPE = "tetheringUpstreamUpdateType";
+
+    // Default Value for Extra Infomration
+    public static final int EXTRA_UPSTREAM_INFO_DEFAULT = -1;
+
+    private enum IPAddrType { V4, V6 }
+
+    private enum UpstreamInfoUpdateType {
+        UPSTREAM_IFACE_REMOVED,
+        UPSTREAM_IFACE_ADDED
+    }
+
     // TODO - remove both of these - should be part of interface inspection/selection stuff
     private String[] mTetherableUsbRegexs;
     private String[] mTetherableWifiRegexs;
@@ -92,6 +119,7 @@ public class Tethering extends INetworkManagementEventObserver.Stub {
     private Object mPublicSync;
 
     private static final Integer MOBILE_TYPE = new Integer(ConnectivityManager.TYPE_MOBILE);
+    private static final Integer WIFI_TYPE = new Integer(ConnectivityManager.TYPE_WIFI);
     private static final Integer HIPRI_TYPE = new Integer(ConnectivityManager.TYPE_MOBILE_HIPRI);
     private static final Integer DUN_TYPE = new Integer(ConnectivityManager.TYPE_MOBILE_DUN);
 
@@ -103,6 +131,8 @@ public class Tethering extends INetworkManagementEventObserver.Stub {
     private final INetworkStatsService mStatsService;
     private final IConnectivityManager mConnService;
     private Looper mLooper;
+
+    private DoScan mDoScan;
 
     private HashMap<String, TetherInterfaceSM> mIfaces; // all tethered/tetherable ifaces
 
@@ -132,9 +162,14 @@ public class Tethering extends INetworkManagementEventObserver.Stub {
 
     private Notification mTetheredNotification;
 
+    private NotificationManager mNotificationManager;
+
     private boolean mRndisEnabled;       // track the RNDIS function enabled state
     private boolean mUsbTetherRequested; // true if USB tethering should be started
                                          // when RNDIS is enabled
+    private int mLastWifiClientCount = -1;
+    private HandlerThread mScanThread;
+    private Handler mScanHandler;
 
     public Tethering(Context context, INetworkManagementService nmService,
             INetworkStatsService statsService, IConnectivityManager connService, Looper looper) {
@@ -201,23 +236,31 @@ public class Tethering extends INetworkManagementEventObserver.Stub {
         Collection<Integer> upstreamIfaceTypes = new ArrayList();
         IBinder b = ServiceManager.getService(Context.CONNECTIVITY_SERVICE);
         IConnectivityManager cm = IConnectivityManager.Stub.asInterface(b);
+
+        int activeNetType = ConnectivityManager.TYPE_NONE;
         try {
-            NetworkInfo networkInfo = cm.getActiveNetworkInfo();
-            if (networkInfo != null) {
-                int activeNetType = networkInfo.getType();
-                for (int i : ifaceTypes) {
-                    if(i == activeNetType) {
-                        upstreamIfaceTypes.add(new Integer(i));
-                    }
-                }
-            }
+            activeNetType = cm.getActiveNetworkInfo().getType();
         } catch (Exception e) {
-            Log.d(TAG, "Exception adding default nw to upstreamIfaceTypes: " + e);
+            Log.d(TAG, "exception when get active network info:" + e);
         }
+
         for (int i : ifaceTypes) {
-            if(!upstreamIfaceTypes.contains(new Integer(i))) {
+            if (i == activeNetType) {
                 upstreamIfaceTypes.add(new Integer(i));
             }
+        }
+
+        for (int i : ifaceTypes) {
+            if (!upstreamIfaceTypes.contains(new Integer(i))) {
+                upstreamIfaceTypes.add(new Integer(i));
+            }
+        }
+        if ((activeNetType == ConnectivityManager.TYPE_MOBILE)
+                && upstreamIfaceTypes.contains(WIFI_TYPE)) {
+            upstreamIfaceTypes.remove(WIFI_TYPE);
+        } else if ((activeNetType == ConnectivityManager.TYPE_WIFI)
+                && upstreamIfaceTypes.contains(MOBILE_TYPE)) {
+            upstreamIfaceTypes.remove(MOBILE_TYPE);
         }
 
         synchronized (mPublicSync) {
@@ -471,12 +514,38 @@ public class Tethering extends INetworkManagementEventObserver.Stub {
         } else {
             clearTetheredNotification();
         }
+
+        mScanThread = new HandlerThread("WifiClientScanner");
+        if (wifiTethered && !bluetoothTethered) {
+            if (!mScanThread.isAlive()) {
+                mScanThread.start();
+                mScanHandler = new WifiClientScanner(mScanThread.getLooper());
+                mScanHandler.sendEmptyMessage(0);
+            }
+        } else {
+            if (mScanThread.isAlive()) {
+                mScanThread.quit();
+            }
+        }
+    }
+
+    private void sendUpstreamIfaceChangeBroadcast( String upstreamIface,
+                                                   IPAddrType ip_type, UpstreamInfoUpdateType update_type) {
+        if (DBG) Log.d(TAG, "sendUpstreamIfaceChangeBroadcast upstreamIface:" + upstreamIface +
+                            " IP Type: "+ ip_type + " update_type" + update_type);
+        Intent intent = new Intent(UPSTREAM_IFACE_CHANGED_ACTION);
+        intent.putExtra(EXTRA_UPSTREAM_IFACE, upstreamIface);
+        intent.putExtra(EXTRA_UPSTREAM_IP_TYPE, ip_type.ordinal());
+        intent.putExtra(EXTRA_UPSTREAM_UPDATE_TYPE, update_type.ordinal());
+
+        mContext.sendStickyBroadcastAsUser(intent, UserHandle.ALL);
+        if (VDBG) Log.d(TAG, "sendUpstreamIfaceChangeBroadcast: Intent broadcasted");
     }
 
     private void showTetheredNotification(int icon) {
-        NotificationManager notificationManager =
+        mNotificationManager =
                 (NotificationManager)mContext.getSystemService(Context.NOTIFICATION_SERVICE);
-        if (notificationManager == null) {
+        if (mNotificationManager == null) {
             return;
         }
 
@@ -484,7 +553,7 @@ public class Tethering extends INetworkManagementEventObserver.Stub {
             if (mTetheredNotification.icon == icon) {
                 return;
             }
-            notificationManager.cancelAsUser(null, mTetheredNotification.icon,
+            mNotificationManager.cancelAsUser(null, mTetheredNotification.icon,
                     UserHandle.ALL);
         }
 
@@ -504,14 +573,76 @@ public class Tethering extends INetworkManagementEventObserver.Stub {
             mTetheredNotification = new Notification();
             mTetheredNotification.when = 0;
         }
+
         mTetheredNotification.icon = icon;
         mTetheredNotification.defaults &= ~Notification.DEFAULT_SOUND;
         mTetheredNotification.flags = Notification.FLAG_ONGOING_EVENT;
         mTetheredNotification.tickerText = title;
         mTetheredNotification.setLatestEventInfo(getUiContext(), title, message, pi);
 
-        notificationManager.notifyAsUser(null, mTetheredNotification.icon,
+        mNotificationManager.notifyAsUser(null, mTetheredNotification.icon,
                 mTetheredNotification, UserHandle.ALL);
+    }
+
+    private class WifiClientScanner extends Handler {
+
+        public WifiClientScanner(Looper looper) {
+            super(looper);
+        }
+
+        @Override
+        public void handleMessage(Message msg) {
+            mDoScan = new DoScan();
+            mDoScan.execute();
+            sendEmptyMessageDelayed(0, 2000);
+        }
+    }
+
+    private class DoScan extends AsyncTask<String, Void, String> {
+
+        private int mCurrentClientCount;
+
+        @Override
+        protected String doInBackground(String... params) {
+            ArrayList<ClientsList.ClientScanResult> currentClientList
+                    = ClientsList.get(true, mContext);
+            mCurrentClientCount = currentClientList.size();
+            return null;
+        }
+
+        @Override
+        protected void onPostExecute(String result) {
+            new Handler(mLooper).post(new Runnable() {
+                @Override
+                public void run() {
+                    if ((mLastWifiClientCount != mCurrentClientCount
+                            || mLastWifiClientCount == -1)
+                            && mTetheredNotification != null) {
+                        mLastWifiClientCount = mCurrentClientCount;
+                        Intent intent = new Intent();
+                        intent.setClassName("com.android.settings",
+                                "com.android.settings.TetheringSettings");
+                        intent.setFlags(Intent.FLAG_ACTIVITY_NO_HISTORY);
+
+                        PendingIntent pi = PendingIntent.getActivityAsUser(mContext, 0, intent, 0,
+                                null, UserHandle.CURRENT);
+
+                        Resources r = Resources.getSystem();
+
+                        CharSequence title =
+                                r.getText(
+                                        com.android.internal.R.string.tethered_notification_title);
+                        CharSequence message = r.getQuantityString(
+                                com.android.internal.R.plurals.tethered_clients_connected,
+                                mCurrentClientCount, mCurrentClientCount);
+                        mTetheredNotification.setLatestEventInfo(getUiContext(),
+                                title, message, pi);
+                        mNotificationManager.notifyAsUser(null, mTetheredNotification.icon,
+                                mTetheredNotification, UserHandle.ALL);
+                    }
+                }
+            });
+        }
     }
 
     private Context getUiContext() {
@@ -522,10 +653,10 @@ public class Tethering extends INetworkManagementEventObserver.Stub {
     }
 
     private void clearTetheredNotification() {
-        NotificationManager notificationManager =
+        mNotificationManager =
             (NotificationManager)mContext.getSystemService(Context.NOTIFICATION_SERVICE);
-        if (notificationManager != null && mTetheredNotification != null) {
-            notificationManager.cancelAsUser(null, mTetheredNotification.icon,
+        if (mNotificationManager != null && mTetheredNotification != null) {
+            mNotificationManager.cancelAsUser(null, mTetheredNotification.icon,
                     UserHandle.ALL);
             mTetheredNotification = null;
         }
@@ -1021,6 +1152,9 @@ public class Tethering extends INetworkManagementEventObserver.Stub {
                     }
                     try {
                         mNMService.disableNat(mIfaceName, mMyUpstreamIfaceName);
+                        // Send intent to CNE Service
+                        sendUpstreamIfaceChangeBroadcast( mMyUpstreamIfaceName, IPAddrType.V4,
+                                                          UpstreamInfoUpdateType.UPSTREAM_IFACE_REMOVED);
                     } catch (Exception e) {
                         if (VDBG) Log.e(TAG, "Exception in disableNat: " + e.toString());
                     }
@@ -1072,6 +1206,9 @@ public class Tethering extends INetworkManagementEventObserver.Stub {
                         if (newUpstreamIfaceName != null) {
                             try {
                                 mNMService.enableNat(mIfaceName, newUpstreamIfaceName);
+                                // Send intent to CNE Service
+                                sendUpstreamIfaceChangeBroadcast( newUpstreamIfaceName, IPAddrType.V4,
+                                                                  UpstreamInfoUpdateType.UPSTREAM_IFACE_ADDED);
                             } catch (Exception e) {
                                 Log.e(TAG, "Exception enabling Nat: " + e.toString());
                                 try {
@@ -1325,6 +1462,8 @@ public class Tethering extends INetworkManagementEventObserver.Stub {
                 Log.d(TAG, "adding v6 interface " + iface);
                 try {
                     service.addUpstreamV6Interface(iface);
+                    sendUpstreamIfaceChangeBroadcast( iface, IPAddrType.V6,
+                                                      UpstreamInfoUpdateType.UPSTREAM_IFACE_ADDED);
                 } catch (RemoteException e) {
                     Log.e(TAG, "Unable to append v6 upstream interface");
                 }
@@ -1337,6 +1476,8 @@ public class Tethering extends INetworkManagementEventObserver.Stub {
                 Log.d(TAG, "removing v6 interface " + iface);
                 try {
                     service.removeUpstreamV6Interface(iface);
+                    sendUpstreamIfaceChangeBroadcast( iface, IPAddrType.V6,
+                                                      UpstreamInfoUpdateType.UPSTREAM_IFACE_REMOVED);
                 } catch (RemoteException e) {
                     Log.e(TAG, "Unable to remove v6 upstream interface");
                 }
