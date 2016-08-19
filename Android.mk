@@ -128,6 +128,7 @@ LOCAL_SRC_FILES += \
 	core/java/android/content/pm/IPackageMoveObserver.aidl \
 	core/java/android/content/pm/IPackageStatsObserver.aidl \
 	core/java/android/content/res/IThemeChangeListener.aidl \
+	core/java/android/content/res/IThemeProcessingListener.aidl \
 	core/java/android/content/res/IThemeService.aidl \
 	core/java/android/database/IContentObserver.aidl \
 	core/java/android/hardware/ICameraService.aidl \
@@ -235,6 +236,7 @@ LOCAL_SRC_FILES += \
 	core/java/com/android/internal/policy/IKeyguardService.aidl \
 	core/java/com/android/internal/os/IDropBoxManagerService.aidl \
 	core/java/com/android/internal/os/IResultReceiver.aidl \
+	core/java/com/android/internal/os/IKillSwitchService.aidl \
 	core/java/com/android/internal/statusbar/IStatusBar.aidl \
 	core/java/com/android/internal/statusbar/IStatusBarService.aidl \
 	core/java/com/android/internal/textservice/ISpellCheckerService.aidl \

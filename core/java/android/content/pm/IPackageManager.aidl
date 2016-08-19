@@ -425,8 +425,15 @@ interface IPackageManager {
     /** Themes */
     void updateIconMapping(String pkgName);
     ComposedIconInfo getComposedIconInfo();
+    int processThemeResources(String themePkgName);
 
     /** Protected Apps */
     void setComponentProtectedSetting(in ComponentName componentName, in boolean newState,
             int userId);
+
+    /** Package interception */
+    void setPreLaunchCheckActivity(in ComponentName componentName);
+    void addPreLaunchCheckPackage(String packageName);
+    void removePreLaunchCheckPackage(String packageName);
+    void clearPreLaunchCheckPackages();
 }

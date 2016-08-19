@@ -130,9 +130,11 @@ public class KeyguardViewMediator {
     private static final int SET_HIDDEN = 12;
     private static final int KEYGUARD_TIMEOUT = 13;
     private static final int SHOW_ASSISTANT = 14;
-    private static final int DISPATCH_EVENT = 15;
-    private static final int LAUNCH_CAMERA = 16;
-    private static final int DISMISS = 17;
+    private static final int DISPATCH_CAMERA_EVENT = 15;
+    private static final int DISPATCH_APPLICATION_WIDGET_EVENT = 16;
+    private static final int LAUNCH_CAMERA = 17;
+    private static final int LAUNCH_APPLICATION_WIDGET = 18;
+    private static final int DISMISS = 19;
 
     /**
      * The default amount of time we stay awake (used for all key input)
@@ -256,6 +258,8 @@ public class KeyguardViewMediator {
     private int mLockSoundStreamId;
 
     private ProfileManager mProfileManager;
+
+    private int mLidState = WindowManagerPolicy.WindowManagerFuncs.LID_ABSENT;
 
     /**
      * The volume applied to the lock/unlock sounds.
@@ -440,7 +444,7 @@ public class KeyguardViewMediator {
                     break;
                 case READY:
                     synchronized (this) {
-                        if (isShowing() && !isSecure()) {
+                        if (isShowing()) {
                             resetStateLocked(null);
                         }
                     }
@@ -510,6 +514,8 @@ public class KeyguardViewMediator {
         mShowKeyguardWakeLock = mPM.newWakeLock(PowerManager.PARTIAL_WAKE_LOCK, "show keyguard");
         mShowKeyguardWakeLock.setReferenceCounted(false);
 
+        mContext.registerReceiver(mBroadcastReceiver,
+                new IntentFilter(WindowManagerPolicy.ACTION_LID_STATE_CHANGED));
         mContext.registerReceiver(mBroadcastReceiver, new IntentFilter(DELAYED_KEYGUARD_ACTION));
         mContext.registerReceiver(mBroadcastReceiver, new IntentFilter(DISMISS_KEYGUARD_SECURELY_ACTION),
                 android.Manifest.permission.CONTROL_KEYGUARD, null);
@@ -1055,6 +1061,15 @@ public class KeyguardViewMediator {
                         doKeyguardLocked(null);
                     }
                 }
+            } else if (WindowManagerPolicy.ACTION_LID_STATE_CHANGED.equals(intent.getAction())) {
+                final int state = intent.getIntExtra(WindowManagerPolicy.EXTRA_LID_STATE,
+                        WindowManagerPolicy.WindowManagerFuncs.LID_ABSENT);
+                synchronized (KeyguardViewMediator.this) {
+                    if(state != mLidState) {
+                        mLidState = state;
+                        mUpdateMonitor.dispatchLidStateChange(state);
+                    }
+                }
             } else if (DISMISS_KEYGUARD_SECURELY_ACTION.equals(intent.getAction())) {
                 synchronized (KeyguardViewMediator.this) {
                     dismiss();
@@ -1122,11 +1137,17 @@ public class KeyguardViewMediator {
                 case SHOW_ASSISTANT:
                     handleShowAssistant();
                     break;
-                case DISPATCH_EVENT:
-                    handleDispatchEvent((MotionEvent) msg.obj);
+                case DISPATCH_CAMERA_EVENT:
+                    handleDispatchCameraEvent((MotionEvent) msg.obj);
+                    break;
+                case DISPATCH_APPLICATION_WIDGET_EVENT:
+                    handleDispatchApplicationWidgetEvent((MotionEvent) msg.obj);
                     break;
                 case LAUNCH_CAMERA:
                     handleLaunchCamera();
+                    break;
+                case LAUNCH_APPLICATION_WIDGET:
+                    handleLaunchApplicationWidget();
                     break;
                 case DISMISS:
                     handleDismiss();
@@ -1171,8 +1192,16 @@ public class KeyguardViewMediator {
         mKeyguardViewManager.launchCamera();
     }
 
-    protected void handleDispatchEvent(MotionEvent event) {
-        mKeyguardViewManager.dispatch(event);
+    protected void handleLaunchApplicationWidget() {
+        mKeyguardViewManager.launchApplicationWidget();
+    }
+
+    protected void handleDispatchCameraEvent(MotionEvent event) {
+        mKeyguardViewManager.dispatchCameraEvent(event);
+    }
+
+    protected void handleDispatchApplicationWidgetEvent(MotionEvent event) {
+        mKeyguardViewManager.dispatchApplicationWidgetEvent(event);
     }
 
     private void sendUserPresentBroadcast() {
@@ -1229,6 +1258,13 @@ public class KeyguardViewMediator {
 
             // If music is playing, don't play the sound
             if (mAudioManager.isMusicActive()) return;
+
+            // If user is in a call, don't play the sound
+            TelephonyManager tm = (TelephonyManager) mContext.
+                    getSystemService(Context.TELEPHONY_SERVICE);
+            if (tm != null  && (tm.isOffhook() || tm.isRinging())) {
+                return;
+            }
 
             mLockSoundStreamId = mLockSounds.play(whichSound,
                     mLockSoundVolume, mLockSoundVolume, 1/*priortiy*/, 0/*loop*/, 1.0f/*rate*/);
@@ -1411,13 +1447,24 @@ public class KeyguardViewMediator {
         return sMultiUserAvatarCache;
     }
 
-    public void dispatch(MotionEvent event) {
-        Message msg = mHandler.obtainMessage(DISPATCH_EVENT, event);
+    public void dispatchCameraEvent(MotionEvent event) {
+        Message msg = mHandler.obtainMessage(DISPATCH_CAMERA_EVENT, event);
         mHandler.sendMessage(msg);
     }
 
+    public void dispatchApplicationWidgetEvent(MotionEvent event) {
+        Message msg = mHandler.obtainMessage(DISPATCH_APPLICATION_WIDGET_EVENT, event);
+        mHandler.sendMessage(msg);
+    }
+
+
     public void launchCamera() {
         Message msg = mHandler.obtainMessage(LAUNCH_CAMERA);
+        mHandler.sendMessage(msg);
+    }
+
+    public void launchApplicationWidget() {
+        Message msg = mHandler.obtainMessage(LAUNCH_APPLICATION_WIDGET);
         mHandler.sendMessage(msg);
     }
 

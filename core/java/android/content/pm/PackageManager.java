@@ -191,6 +191,13 @@ public abstract class PackageManager {
     public static final int MATCH_DEFAULT_ONLY   = 0x00010000;
 
     /**
+     * Resolution flag: If there is only 1 activity that the intent resolves too and if this
+     * flag  is set perform pre launch check for the resolved activity.
+     * @hide
+     */
+    public static final int PERFORM_PRE_LAUNCH_CHECK   = 0x00100000;
+
+    /**
      * Permission check result: this is returned by {@link #checkPermission}
      * if the permission has been granted to the given package.
      */
@@ -3289,6 +3296,18 @@ public abstract class PackageManager {
      * @hide
      */
     public abstract void updateIconMaps(String pkgName);
+
+    /**
+     * Used to compile theme resources for a given theme
+     * @param themePkgName
+     * @return A value of 0 indicates success.  Possible errors returned are:
+     * {@link android.content.pm.PackageManager#INSTALL_FAILED_THEME_AAPT_ERROR},
+     * {@link android.content.pm.PackageManager#INSTALL_FAILED_THEME_IDMAP_ERROR}, or
+     * {@link android.content.pm.PackageManager#INSTALL_FAILED_THEME_UNKNOWN_ERROR}
+     *
+     * @hide
+     */
+    public abstract int processThemeResources(String themePkgName);
 
     /**
      * Update Component protection state

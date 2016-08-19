@@ -350,6 +350,9 @@
     <!-- Integer indicating wpa_supplicant scan interval when p2p is connected in milliseconds -->
     <integer translatable="false" name="config_wifi_scan_interval_p2p_connected">60000</integer>
 
+    <!-- Integer indicating wpa_supplicant scan intervel when WFD session established in milliseconds  -->
+    <integer translatable="false" name="config_wifi_scan_interval_wfd_connected">300000</integer>
+
     <!-- Integer indicating the framework scan interval in milliseconds. This is used in the scenario
          where the chipset does not support background scanning (config_wifi_background_scan_suport
          is false) to set up a periodic wake up scan so that the device can connect to a new access
@@ -596,7 +599,7 @@
     <integer name="config_defaultNotificationLedOn">500</integer>
 
     <!-- Default LED off time for notification LED in milliseconds. -->
-    <integer name="config_defaultNotificationLedOff">2000</integer>
+    <integer name="config_defaultNotificationLedOff">1000</integer>
 
     <!-- Default value for led color when battery is low on charge -->
     <integer name="config_notificationsBatteryLowARGB">0xFFFF0000</integer>
@@ -612,6 +615,9 @@
 
     <!-- Is the notification LED intrusive? Used to decide if there should be a disable option -->
     <bool name="config_intrusiveNotificationLed">false</bool>
+
+    <!-- Does the notification LED support multiple colors? Used to decide if the user can change the colors -->
+    <bool name="config_multiColorNotificationLed">true</bool>
 
     <!-- Is the battery LED intrusive? Used to decide if there should be a disable option -->
     <bool name="config_intrusiveBatteryLed">false</bool>
@@ -1212,8 +1218,10 @@
     <integer name="config_safe_media_volume_index">10</integer>
 
     <!-- Configure mobile network MTU. The standard default is set here but each carrier
-         may have a specific value set in an overlay config.xml file. -->
-    <integer name="config_mobile_mtu">1500</integer>
+         may have a specific value set in an overlay config.xml file. 
+         This really must be 1358 as per 3GPP standards and packet segmentation on the LTE
+         radio.-->
+    <integer name="config_mobile_mtu">1358</integer>
 
 
     <!-- Configuration to send sms on 1x when UE is attached to eHRPD and there is an active
@@ -1327,6 +1335,10 @@
          the default framework version. If left empty, then the framework version will be used.
          Example: com.google.android.myapp/.resolver.MyResolverActivity  -->
     <string name="config_customResolverActivity"></string>
+
+    <!-- Component name of a custom pre launch check activity to be used instead of default
+         framework version. Currently, there is no default version. -->
+    <string name="config_prelaunchcheckactivity"></string>
 
     <!-- Apps that are authorized to access shared accounts, overridden by product overlays -->
     <string name="config_appsAuthorizedForSharedAccounts">;com.android.settings;</string>
@@ -1463,6 +1475,10 @@
     <string-array name="config_disabledComponents" translatable="false">
     </string-array>
 
+    <!-- The list of components which should be forced to be enabled. -->
+    <string-array name="config_forceEnabledComponents" translatable="false">
+    </string-array>
+
     <!-- Device supports LED flashlight -->
     <bool name="config_enableTorch">false</bool>
 
@@ -1531,6 +1547,17 @@
     <string-array name="config_auto_perf_activities" translatable="false">
     </string-array>
 
+    <!-- Packages that are allowed to write killswitch values -->
+    <string-array name="config_packagesAllowedAccessToKillSwitch" translatable="false">
+    </string-array>
+
+    <!-- Path to the library that contains the kill switch library -->
+    <string name="config_killSwitchLib" translatable="false"></string>
+
+    <!-- Name of the class which implements the IKillSwitch interface -->
+    <string name="config_killSwitchClass" translatable="false"></string>
+
+
     <!-- Control the behavior when the user long presses the menu button.
             0 - Nothing
             1 - Menu key
@@ -1542,4 +1569,19 @@
          policy/src/com/android/internal/policy/impl/PhoneWindowManager.java
     -->
     <integer name="config_longPressOnMenuBehavior">3</integer>
+
+    <!-- Default value for proximity check on screen wake
+         NOTE ! - Enable for devices that have a fast response proximity sensor (ideally < 300ms)
+    -->
+    <bool name="config_proximityCheckOnWake">false</bool>
+    <integer name="config_proximityCheckTimeout">250</integer>
+
+    <!-- Ignored sms packages -->
+    <string-array name="config_ignored_sms_packages"></string-array>
+
+    <!-- Whether to always request audio focus for incoming calls.
+         Default is false: silent and vibrate modes will not request audio focus.
+         true: all incoming calls will request audio focus (overriding any active music)
+    -->
+    <bool name="config_alwaysRequestAudioFocusForCalls">false</bool>
 </resources>

@@ -15,6 +15,7 @@
  */
 package android.content.pm;
 
+import android.Manifest;
 import android.content.BroadcastReceiver;
 import android.content.ContentResolver;
 import android.content.ContentValues;
@@ -22,7 +23,11 @@ import android.content.Context;
 import android.content.ContextWrapper;
 import android.content.IntentFilter;
 import android.content.res.AssetManager;
+import android.content.res.Configuration;
+import android.content.res.ThemeConfig;
 import android.database.Cursor;
+import android.database.sqlite.SQLiteDatabase;
+import android.database.sqlite.SQLiteException;
 import android.media.RingtoneManager;
 import android.net.Uri;
 import android.os.FileUtils;
@@ -102,6 +107,10 @@ public class ThemeUtils {
     public static final String ACTION_THEME_CHANGED = "org.cyanogenmod.intent.action.THEME_CHANGED";
 
     public static final String CATEGORY_THEME_COMPONENT_PREFIX = "org.cyanogenmod.intent.category.";
+
+    private static final String SETTINGS_DB =
+            "/data/data/com.android.providers.settings/databases/settings.db";
+    private static final String SETTINGS_SECURE_TABLE = "secure";
 
     // Actions in manifests which identify legacy icon packs
     public static final String[] sSupportedActions = new String[] {
@@ -668,4 +677,91 @@ public class ThemeUtils {
             }
         }
     }
+
+    /**
+     * Creates a map of components found in the current ThemeConfig that come from {@themePkgName}
+     * and sets them to the proper defaults.
+     * @param context
+     * @param themePkgName
+     * @return
+     */
+    public static Map<String, String> returnToDefaults(Context context, String themePkgName) {
+        final Configuration config = context.getResources().getConfiguration();
+        final ThemeConfig themeConfig = config != null ? config.themeConfig : null;
+        Map<String, String> returnToDefaultComponents = new HashMap<String, String>();
+        if (themePkgName != null && themeConfig != null) {
+            Map<String, String> defaultComponents = getDefaultComponents(context);
+            if (themePkgName.equals(themeConfig.getOverlayPkgName())) {
+                returnToDefaultComponents.put(ThemesColumns.MODIFIES_OVERLAYS,
+                        defaultComponents.get(ThemesColumns.MODIFIES_OVERLAYS));
+            }
+            if (themePkgName.equals(
+                    themeConfig.getOverlayPkgNameForApp(ThemeConfig.SYSTEMUI_PKG))) {
+                returnToDefaultComponents.put(ThemesColumns.MODIFIES_STATUS_BAR,
+                        defaultComponents.get(ThemesColumns.MODIFIES_STATUS_BAR));
+            }
+            if (themePkgName.equals(
+                    themeConfig.getOverlayPkgNameForApp(ThemeConfig.SYSTEMUI_NAVBAR_PKG))) {
+                returnToDefaultComponents.put(ThemesColumns.MODIFIES_NAVIGATION_BAR,
+                        defaultComponents.get(ThemesColumns.MODIFIES_NAVIGATION_BAR));
+            }
+            if (themePkgName.equals(themeConfig.getIconPackPkgName())) {
+                returnToDefaultComponents.put(ThemesColumns.MODIFIES_ICONS,
+                        defaultComponents.get(ThemesColumns.MODIFIES_ICONS));
+            }
+            if (themePkgName.equals(themeConfig.getFontPkgName())) {
+                returnToDefaultComponents.put(ThemesColumns.MODIFIES_FONTS,
+                        defaultComponents.get(ThemesColumns.MODIFIES_FONTS));
+            }
+        }
+
+        return returnToDefaultComponents;
+    }
+
+    /**
+     * Get the boot theme by accessing the settings.db directly instead of using a content resolver.
+     * Only use this when the system is starting up and the settings content provider is not ready.
+     *
+     * Note: This method will only succeed if the system is calling this since normal apps will not
+     * be able to access the settings db path.
+     *
+     * @return The boot theme or null if unable to read the database or get the entry for theme
+     *         config
+     */
+    public static ThemeConfig getBootThemeDirty() {
+        ThemeConfig config = null;
+        SQLiteDatabase db = null;
+        try {
+            db = SQLiteDatabase.openDatabase(SETTINGS_DB, null,
+                    SQLiteDatabase.OPEN_READONLY);
+            if (db != null) {
+                String selection = "name=?";
+                String[] selectionArgs =
+                        { Configuration.THEME_PKG_CONFIGURATION_PERSISTENCE_PROPERTY };
+                String[] columns = {"value"};
+                Cursor c = db.query(SETTINGS_SECURE_TABLE, columns, selection, selectionArgs,
+                        null, null, null);
+                if (c != null) {
+                    if (c.getCount() > 0) {
+                        c.moveToFirst();
+                        String json = c.getString(0);
+                        if (json != null) {
+                            config = ThemeConfig.fromJson(json);
+                        }
+                    }
+                    c.close();
+                }
+            }
+        } catch (Exception e) {
+            Log.w(TAG, "Unable to open " + SETTINGS_DB, e);
+        } finally {
+            if (db != null) {
+                db.close();
+            }
+        }
+
+        return config;
+    }
+
+
 }
